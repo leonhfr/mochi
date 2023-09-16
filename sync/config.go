@@ -44,7 +44,7 @@ type Template struct {
 	Fields     map[string]string `yaml:"fields"`
 }
 
-func ReadConfig(parsers []parser.Parser, fs filesystem.Interface) (Config, error) {
+func ReadConfig(ctx context.Context, parsers []parser.Parser, client Client, fs filesystem.Interface) (Config, error) {
 	config := Config{parsers: parsers}
 	path := configPath(fs)
 	if path == "" {
@@ -58,7 +58,12 @@ func ReadConfig(parsers []parser.Parser, fs filesystem.Interface) (Config, error
 
 	config = cleanConfig(config)
 
-	return config, nil
+	templates, err := client.ListTemplates(ctx)
+	if err != nil {
+		return config, err
+	}
+
+	return config, validateConfig(config, templates)
 }
 
 func configPath(fs filesystem.Interface) string {

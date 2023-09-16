@@ -1,17 +1,33 @@
 package sync
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
+	"github.com/leonhfr/mochi/api"
 	"github.com/leonhfr/mochi/filesystem"
 	"github.com/leonhfr/mochi/parser"
 )
 
 var workspace = "../test/data"
 
+var _ Client = &api.Client{}
+
 func Test_ReadConfig(t *testing.T) {
+	templates := []api.Template{
+		{
+			ID: "xxxxxxxx",
+			Fields: map[string]api.FieldTemplate{
+				"aaaaaaaa": {ID: "aaaaaaaa"},
+				"bbbbbbbb": {ID: "bbbbbbbb"},
+				"cccccccc": {ID: "cccccccc"},
+			},
+		},
+	}
+
 	parsers := []parser.Parser{parser.NewNote(), parser.NewVocabulary()}
 
 	want := Config{
@@ -51,8 +67,11 @@ func Test_ReadConfig(t *testing.T) {
 		parsers: parsers,
 	}
 
+	client := new(MockClient)
+	client.On("ListTemplates", mock.Anything).Return(templates, nil)
+
 	fs := filesystem.New(workspace)
-	got, err := ReadConfig(parsers, fs)
+	got, err := ReadConfig(context.Background(), parsers, client, fs)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
@@ -157,4 +176,15 @@ func Test_cleanConfig(t *testing.T) {
 			assert.Equal(t, tt.want, tt.config)
 		})
 	}
+}
+
+type MockClient struct {
+	mock.Mock
+}
+
+var _ Client = &MockClient{}
+
+func (m *MockClient) ListTemplates(ctx context.Context) ([]api.Template, error) {
+	args := m.Called(ctx)
+	return args.Get(0).([]api.Template), args.Error(1)
 }
