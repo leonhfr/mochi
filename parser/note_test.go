@@ -23,6 +23,17 @@ func Test_Note_Convert(t *testing.T) {
 				},
 			},
 		},
+		{
+			"front matter",
+			"---\nfoo: bar\n---\n\n<!-- Comment. -->\n\n# Noun\n\n## Gender\n\nSome stuff about genders.\n\n- der\n- die\n- das\n",
+			[]Card{
+				{
+					Name:    "Noun",
+					Content: "<!-- Comment. -->\n\n# Noun\n\n## Gender\n\nSome stuff about genders.\n\n- der\n- die\n- das\n",
+					Fields:  map[string]string{},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {

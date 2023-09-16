@@ -37,20 +37,20 @@ func Test_generateCardRequests(t *testing.T) {
 						DeckID:  "id_root",
 						ID:      "id_note_1",
 						Name:    "Note 1",
-						Content: "# Note 1\n\nContent 1",
+						Content: "# Note 1\n\nContent 1\n",
 					},
 					{
 						DeckID:  "id_root",
 						ID:      "id_note_2",
 						Name:    "Note 2",
-						Content: "# Note 1\n\nWrong content.",
+						Content: "# Note 1\n\nWrong content.\n",
 					},
 				},
 			},
 			map[string]string{
-				"/note-1.md": "# Note 1\n\nContent 1",
-				"/note-2.md": "# Note 2\n\nContent 2",
-				"/note-3.md": "# Note 3\n\nContent 3",
+				"/note-1.md": "# Note 1\n\nContent 1\n",
+				"/note-2.md": "# Note 2\n\nContent 2\n",
+				"/note-3.md": "# Note 3\n\nContent 3\n",
 			},
 			[]cardRequest{
 				{
@@ -58,14 +58,14 @@ func Test_generateCardRequests(t *testing.T) {
 					kind: updateRequest,
 					update: api.UpdateCardRequest{
 						DeckID:  "id_root",
-						Content: "# Note 2\n\nContent 2",
+						Content: "# Note 2\n\nContent 2\n",
 					},
 				},
 				{
 					kind: createRequest,
 					create: api.CreateCardRequest{
 						DeckID:  "id_root",
-						Content: "# Note 3\n\nContent 3",
+						Content: "# Note 3\n\nContent 3\n",
 					},
 				},
 			},
@@ -112,12 +112,12 @@ func Test_parseCards(t *testing.T) {
 				parser: parser.NewNote(),
 			},
 			map[string]string{
-				"/note.md": "# Note\n\nA simple note",
+				"/note.md": "# Note\n\nA simple note\n",
 			},
 			[]parser.Card{
 				{
 					Name:    "Note",
-					Content: "# Note\n\nA simple note",
+					Content: "# Note\n\nA simple note\n",
 					Fields:  map[string]string{},
 				},
 			},
@@ -132,8 +132,8 @@ func Test_parseCards(t *testing.T) {
 				parser: parser.NewVocabulary(),
 			},
 			map[string]string{
-				"/german/vocabulary/s.md": "# s\n\nSpaziergang\nNotes notes.\n\nSpiegel",
-				"/german/vocabulary/p.md": "# p\n\nPapagei",
+				"/german/vocabulary/s.md": "# s\n\nSpaziergang\nNotes notes.\n\nSpiegel\n",
+				"/german/vocabulary/p.md": "# p\n\nPapagei\n",
 			},
 			nil,
 		},
