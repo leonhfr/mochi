@@ -16,8 +16,10 @@ type deckJob struct {
 	template    Template
 }
 
-func newJobMap(parsers []parser.Parser, sources []string, lock *Lock, config Config) (map[string]*deckJob, error) {
-	jobs := make(map[string]*deckJob)
+type jobMap map[string]*deckJob
+
+func newJobMap(parsers []parser.Parser, sources []string, lock *Lock, config Config) (jobMap, error) {
+	jobs := make(jobMap)
 	for _, source := range sources {
 		sync, ok := config.matchSync(source)
 		if !ok {
