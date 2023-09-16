@@ -10,6 +10,7 @@ import (
 type Interface interface {
 	FileExists(path string) bool
 	Read(path string) ([]byte, error)
+	Write(path, content string) error
 }
 
 type Filesystem struct {
@@ -40,6 +41,17 @@ func (f *Filesystem) Read(path string) ([]byte, error) {
 		return nil, err
 	}
 	return bytes, nil
+}
+
+func (f *Filesystem) Write(path, content string) error {
+	file, err := os.Create(f.fullPath(path))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(content)
+	return err
 }
 
 func (f *Filesystem) fullPath(path string) string {

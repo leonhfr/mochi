@@ -3,6 +3,7 @@ module github.com/leonhfr/mochi
 go 1.20
 
 require (
+	github.com/BurntSushi/toml v1.3.2
 	github.com/carlmjohnson/requests v0.23.4
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
