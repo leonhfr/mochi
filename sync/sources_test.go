@@ -28,6 +28,24 @@ func Test_Sources(t *testing.T) {
 				"/german/vocabulary/s.md",
 			},
 		},
+		{
+			"changed files",
+			[]string{
+				"/german/vocabulary/s.md",
+			},
+			[]string{
+				"/journal/yyyy-mm-dd.md",
+				"/german/vocabulary/f.md",
+				"/german/vocabulary/p.md",
+				"/german/vocabulary/s.md",
+				"/german/grammar/noun.md",
+			},
+			[]string{
+				"/german/vocabulary/f.md",
+				"/german/vocabulary/p.md",
+				"/german/vocabulary/s.md",
+			},
+		},
 	}
 
 	for _, tt := range tests {
