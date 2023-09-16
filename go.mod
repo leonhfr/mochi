@@ -7,6 +7,7 @@ require (
 	github.com/carlmjohnson/requests v0.23.4
 	github.com/sethvargo/go-githubactions v1.1.0
 	github.com/stretchr/testify v1.8.4
+	github.com/yuin/goldmark v1.5.6
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	golang.org/x/text v0.13.0
 	gopkg.in/yaml.v3 v3.0.1

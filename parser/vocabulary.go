@@ -24,3 +24,7 @@ func (v *Vocabulary) Fields() []string {
 		vocabularyFieldNotes,
 	}
 }
+
+func (v *Vocabulary) Convert(_ []byte) ([]Card, error) {
+	return nil, nil
+}
