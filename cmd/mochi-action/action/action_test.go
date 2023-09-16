@@ -98,8 +98,12 @@ func Test_Run(t *testing.T) {
 		}
 
 		want struct {
-			lockFile string
-			output   Output
+			deckCreates map[api.CreateDeckRequest]api.Deck
+			deckUpdates map[string]api.UpdateDeckRequest
+			cardCreates []api.CreateCardRequest
+			cardUpdates map[string]api.UpdateCardRequest
+			lockFile    string
+			output      Output
 		}
 	)
 
@@ -125,8 +129,14 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			want{
-				"[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n",
-				Output{LockFileUpdated: true},
+				deckCreates: map[api.CreateDeckRequest]api.Deck{},
+				deckUpdates: map[string]api.UpdateDeckRequest{},
+				cardCreates: []api.CreateCardRequest{
+					{Content: "# Note\n\nA simple note.\n", DeckID: "id_root"},
+				},
+				cardUpdates: map[string]api.UpdateCardRequest{},
+				lockFile:    "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n",
+				output:      Output{LockFileUpdated: true},
 			},
 		},
 	}
@@ -139,6 +149,18 @@ func Test_Run(t *testing.T) {
 			client.On("ListTemplates", mock.Anything).Return(tt.api.templates, nil)
 			for id, cards := range tt.api.cards {
 				client.On("ListCardsInDeck", mock.Anything, id).Return(cards, nil)
+			}
+			for req, deck := range tt.want.deckCreates {
+				client.On("CreateDeck", mock.Anything, req).Return(deck, nil)
+			}
+			for id, req := range tt.want.deckUpdates {
+				client.On("UpdateDeck", mock.Anything, id, req).Return(api.Deck{}, nil)
+			}
+			for _, req := range tt.want.cardCreates {
+				client.On("CreateCard", mock.Anything, req).Return(api.Card{}, nil)
+			}
+			for id, req := range tt.want.cardUpdates {
+				client.On("UpdateCard", mock.Anything, id, req).Return(api.Card{}, nil)
 			}
 
 			// Filesystem
