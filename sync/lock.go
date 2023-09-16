@@ -23,7 +23,8 @@ const (
 )
 
 type Lock struct {
-	Decks   map[string][2]string `toml:"decks,omitempty"` // directory path: [deck id, deck name]
+	Decks   map[string][2]string            `toml:"decks,omitempty"`  // directory path: [deck id, deck name]
+	Images  map[string]map[string][2]string `toml:"images,omitempty"` // card id: file path: [file name, hash]
 	updated bool
 	mu      sync.RWMutex
 }
@@ -34,7 +35,10 @@ func ReadLock(ctx context.Context, client Client, fs filesystem.Interface) (*Loc
 		return nil, err
 	}
 
-	lock := &Lock{}
+	lock := &Lock{
+		Decks:  map[string][2]string{},
+		Images: map[string]map[string][2]string{},
+	}
 	if err := toml.Unmarshal(source, lock); err != nil {
 		return nil, err
 	}
