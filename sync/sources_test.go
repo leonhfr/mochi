@@ -60,3 +60,23 @@ func Test_Sources(t *testing.T) {
 		})
 	}
 }
+
+func Test_uniqueDirs(t *testing.T) {
+	sources := []string{
+		"/journal/yyyy-mm-dd.md",
+		"/german/vocabulary/f.md",
+		"/german/vocabulary/p.md",
+		"/german/vocabulary/s.md",
+		"/german/grammar/noun.md",
+	}
+	want := []string{
+		"/",
+		"/german",
+		"/german/grammar",
+		"/german/vocabulary",
+		"/journal",
+	}
+
+	got := uniqueDirs(sources)
+	assert.Equal(t, want, got)
+}

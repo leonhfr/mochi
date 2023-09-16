@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/exp/slices"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 
 	"github.com/leonhfr/mochi/filesystem"
@@ -61,6 +64,18 @@ func ReadConfig(ctx context.Context, parsers []parser.Parser, client Client, fs 
 	return config, validateConfig(config, templates)
 }
 
+func (c *Config) deckName(path string) string {
+	for _, s := range c.Sync {
+		if s.Path == path && s.Name != "" {
+			return s.Name
+		}
+	}
+	if path == "/" {
+		return rootDeckName
+	}
+	return toTitle(filepath.Base(path))
+}
+
 func (c *Config) ignored(path string) bool {
 	for _, pattern := range c.Ignore {
 		ok, err := filepath.Match(pattern, path)
@@ -109,4 +124,14 @@ func cleanConfig(config Config) Config {
 	}
 
 	return config
+}
+
+var titleCaser = cases.Title(language.Und, cases.NoLower)
+
+func toTitle(s string) string {
+	words := strings.FieldsFunc(s, func(r rune) bool {
+		return r == '-' || r == '_'
+	})
+	title := strings.Join(words, " ")
+	return titleCaser.String(title)
 }

@@ -102,6 +102,29 @@ func Test_ReadConfig(t *testing.T) {
 	fs.AssertExpectations(t)
 }
 
+func Test_Config_deckName(t *testing.T) {
+	tests := []struct {
+		sync []Sync
+		path string
+		want string
+	}{
+		{[]Sync{{Path: "/", Name: "Notes (root)"}}, "/", "Notes (root)"},
+		{[]Sync{}, "/", rootDeckName},
+		{[]Sync{}, "/journal", "Journal"},
+		{[]Sync{}, "/german/vocabulary", "Vocabulary"},
+		{[]Sync{{Path: "German", Name: "Deutsch"}}, "/german/vocabulary", "Vocabulary"},
+		{[]Sync{}, "/sub/developer-experience", "Developer Experience"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.path, func(t *testing.T) {
+			config := Config{Sync: tt.sync}
+			got := config.deckName(tt.path)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func Test_Config_ignored(t *testing.T) {
 	config := Config{Ignore: []string{
 		"/journal/**",
