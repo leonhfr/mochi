@@ -94,6 +94,7 @@ func Test_Run(t *testing.T) {
 		apiResponses struct {
 			templates []api.Template
 			decks     []api.Deck
+			cards     map[string][]api.Card
 		}
 
 		want struct {
@@ -119,6 +120,9 @@ func Test_Run(t *testing.T) {
 						ID:   "id_root",
 					},
 				},
+				map[string][]api.Card{
+					"id_root": {},
+				},
 			},
 			want{
 				"[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n",
@@ -133,6 +137,9 @@ func Test_Run(t *testing.T) {
 			client := new(MockClient)
 			client.On("ListDecks", mock.Anything).Return(tt.api.decks, nil)
 			client.On("ListTemplates", mock.Anything).Return(tt.api.templates, nil)
+			for id, cards := range tt.api.cards {
+				client.On("ListCardsInDeck", mock.Anything, id).Return(cards, nil)
+			}
 
 			// Filesystem
 			fs := new(MockFilesystem)
