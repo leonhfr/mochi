@@ -26,3 +26,8 @@ func (m *MockFilesystem) Write(path, content string) error {
 	args := m.Called(path, content)
 	return args.Error(0)
 }
+
+func (m *MockFilesystem) Sources(extensions []string) ([]string, error) {
+	args := m.Called(extensions)
+	return args.Get(0).([]string), args.Error(1)
+}

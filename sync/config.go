@@ -61,6 +61,16 @@ func ReadConfig(ctx context.Context, parsers []parser.Parser, client Client, fs 
 	return config, validateConfig(config, templates)
 }
 
+func (c *Config) ignored(path string) bool {
+	for _, pattern := range c.Ignore {
+		ok, err := filepath.Match(pattern, path)
+		if ok || err != nil {
+			return true
+		}
+	}
+	return false
+}
+
 func configPath(fs filesystem.Interface) string {
 	for _, ext := range configExtensions {
 		path := fmt.Sprintf("%s.%s", configName, ext)

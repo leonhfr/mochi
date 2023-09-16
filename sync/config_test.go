@@ -102,6 +102,27 @@ func Test_ReadConfig(t *testing.T) {
 	fs.AssertExpectations(t)
 }
 
+func Test_Config_ignored(t *testing.T) {
+	config := Config{Ignore: []string{
+		"/journal/**",
+	}}
+
+	tests := []struct {
+		path string
+		want bool
+	}{
+		{"/journal/yyyy-mm-dd.md", true},
+		{"/german/vocabulary/s.md", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.path, func(t *testing.T) {
+			got := config.ignored(tt.path)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func Test_parseConfig(t *testing.T) {
 	want := Config{
 		Sync: []Sync{
