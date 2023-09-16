@@ -19,16 +19,19 @@ func Test_ReadConfig(t *testing.T) {
 			{
 				Path:     "/german/vocabulary",
 				Template: "german",
+				Archive:  true,
 			},
 			{
-				Path:   "/german/grammar",
-				Parser: "note",
+				Path:    "/german/grammar",
+				Parser:  "note",
+				Archive: true,
 			},
 			{
-				Path:   "/",
-				Name:   "Notes (root)",
-				Parser: "note",
-				Walk:   true,
+				Path:    "/",
+				Name:    "Notes (root)",
+				Parser:  "note",
+				Archive: true,
+				Walk:    true,
 			},
 		},
 		Ignore: []string{
@@ -61,16 +64,19 @@ func Test_parseConfig(t *testing.T) {
 			{
 				Path:     "german/vocabulary",
 				Template: "german",
+				Archive:  true,
 			},
 			{
-				Path:   ".",
-				Name:   "Notes (root)",
-				Parser: "note",
-				Walk:   true,
+				Path:    ".",
+				Name:    "Notes (root)",
+				Parser:  "note",
+				Archive: true,
+				Walk:    true,
 			},
 			{
-				Path:   "german/grammar",
-				Parser: "note",
+				Path:    "german/grammar",
+				Parser:  "note",
+				Archive: true,
 			},
 		},
 		Ignore: []string{

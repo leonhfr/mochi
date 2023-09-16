@@ -14,13 +14,15 @@ var (
 	config    = `sync:
   - path: german/vocabulary
     template: german
-    archive: false
+    archive: true
   - path: .
     name: Notes (root)
     parser: note
+    archive: true
     walk: true
   - path: german/grammar
     parser: note
+    archive: true
 
 ignore:
   - journal/*
