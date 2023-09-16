@@ -8,13 +8,34 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/leonhfr/mochi/api"
-	"github.com/leonhfr/mochi/filesystem"
 	"github.com/leonhfr/mochi/parser"
 )
 
-var workspace = "../test/data"
+var config = `sync:
+  - path: german/vocabulary
+    template: german
+    archive: true
+  - path: .
+    name: Notes (root)
+    parser: note
+    archive: true
+    walk: true
+  - path: german/grammar
+    parser: note
+    archive: true
 
-var _ Client = &api.Client{}
+ignore:
+  - journal/*
+
+templates:
+  german:
+    parser: vocabulary
+    templateId: xxxxxxxx
+    fields:
+      aaaaaaaa: word
+      bbbbbbbb: examples
+      cccccccc: notes
+`
 
 func Test_ReadConfig(t *testing.T) {
 	templates := []api.Template{
@@ -70,11 +91,15 @@ func Test_ReadConfig(t *testing.T) {
 	client := new(MockClient)
 	client.On("ListTemplates", mock.Anything).Return(templates, nil)
 
-	fs := filesystem.New(workspace)
+	fs := new(MockFilesystem)
+	fs.On("FileExists", "mochi.yaml").Return(false)
+	fs.On("FileExists", "mochi.yml").Return(true)
+	fs.On("Read", "mochi.yml").Return([]byte(config), nil)
 	got, err := ReadConfig(context.Background(), parsers, client, fs)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
+	fs.AssertExpectations(t)
 }
 
 func Test_parseConfig(t *testing.T) {
@@ -114,11 +139,13 @@ func Test_parseConfig(t *testing.T) {
 		},
 	}
 
-	fs := filesystem.New(workspace)
+	fs := new(MockFilesystem)
+	fs.On("Read", "mochi.yml").Return([]byte(config), nil)
 	got, err := parseConfig(Config{}, "mochi.yml", fs)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
+	fs.AssertExpectations(t)
 }
 
 func Test_cleanConfig(t *testing.T) {
@@ -176,15 +203,4 @@ func Test_cleanConfig(t *testing.T) {
 			assert.Equal(t, tt.want, tt.config)
 		})
 	}
-}
-
-type MockClient struct {
-	mock.Mock
-}
-
-var _ Client = &MockClient{}
-
-func (m *MockClient) ListTemplates(ctx context.Context) ([]api.Template, error) {
-	args := m.Called(ctx)
-	return args.Get(0).([]api.Template), args.Error(1)
 }

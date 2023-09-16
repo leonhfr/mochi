@@ -8,7 +8,6 @@ import (
 	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 
-	"github.com/leonhfr/mochi/api"
 	"github.com/leonhfr/mochi/filesystem"
 	"github.com/leonhfr/mochi/parser"
 )
@@ -16,10 +15,6 @@ import (
 const configName = "mochi"
 
 var configExtensions = [2]string{"yaml", "yml"}
-
-type Client interface {
-	ListTemplates(ctx context.Context) ([]api.Template, error)
-}
 
 type Config struct {
 	Sync      []Sync              `yaml:"sync"`
