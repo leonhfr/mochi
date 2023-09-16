@@ -16,9 +16,11 @@ var (
     template: german
     archive: false
   - path: .
-    deck: Notes (root)
+    name: Notes (root)
     parser: note
     walk: true
+  - path: german/grammar
+    parser: note
 
 ignore:
   - journal/*
