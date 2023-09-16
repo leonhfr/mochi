@@ -6,6 +6,8 @@ inputs:
   api_token:
     description: mochi.cards API token
     required: true
+  changed_files:
+    description: List of changed files.
 
 outputs:
   lock_file_updated:

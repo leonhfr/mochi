@@ -22,7 +22,7 @@ func main() {
 	client := api.New(input.APIToken)
 	fs := filesystem.New(input.Workspace)
 
-	output, err := action.Run(ctx, gha, client, fs)
+	output, err := action.Run(ctx, input.ChangedFiles, gha, client, fs)
 	if err != nil {
 		gha.Fatalf("%v", err)
 	}

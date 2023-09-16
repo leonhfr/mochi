@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/sethvargo/go-githubactions"
@@ -21,6 +22,7 @@ var workspace = "../../../test/data"
 func Test_GetInput(t *testing.T) {
 	//nolint:gosec
 	token, workspace := "mochi_cards_token", "/mochi"
+	changedFiles := []string{"/mochi/note-1.md", "/mochi/note-2.md"}
 
 	tests := []struct {
 		name   string
@@ -43,12 +45,14 @@ func Test_GetInput(t *testing.T) {
 		{
 			name: "optional",
 			envMap: map[string]string{
-				"INPUT_API_TOKEN":  token,
-				"GITHUB_WORKSPACE": workspace,
+				"INPUT_API_TOKEN":     token,
+				"INPUT_CHANGED_FILES": strings.Join(changedFiles, changedFilesSeparator),
+				"GITHUB_WORKSPACE":    workspace,
 			},
 			want: Input{
-				APIToken:  token,
-				Workspace: workspace,
+				APIToken:     token,
+				Workspace:    workspace,
+				ChangedFiles: changedFiles,
 			},
 			err: "",
 		},
@@ -99,12 +103,14 @@ func Test_Run(t *testing.T) {
 	)
 
 	tests := []struct {
-		name string
-		api  apiResponses
-		want want
+		name         string
+		changedFiles []string
+		api          apiResponses
+		want         want
 	}{
 		{
 			"all files",
+			nil,
 			apiResponses{
 				nil,
 				[]api.Deck{
@@ -138,7 +144,7 @@ func Test_Run(t *testing.T) {
 				githubactions.WithWriter(io.Discard),
 			)
 
-			output, err := Run(ctx, gha, client, fs)
+			output, err := Run(ctx, tt.changedFiles, gha, client, fs)
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.want.output, output)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/sethvargo/go-githubactions"
 
@@ -15,12 +16,15 @@ import (
 
 const (
 	apiTokenInput         = "api_token"
+	changedFilesInput     = "changed_files"
+	changedFilesSeparator = " "
 	lockFileUpdatedOutput = "lock_file_updated"
 )
 
 type Input struct {
-	APIToken  string
-	Workspace string
+	APIToken     string
+	Workspace    string
+	ChangedFiles []string
 }
 
 type Output struct {
@@ -33,14 +37,20 @@ func GetInput(gha *githubactions.Action) (Input, error) {
 		return Input{}, errors.New("api token required")
 	}
 
+	var changedFiles []string
+	if input := gha.GetInput(changedFilesInput); len(input) > 0 {
+		changedFiles = strings.Split(input, changedFilesSeparator)
+	}
+
 	ghc, err := gha.Context()
 	if err != nil {
 		return Input{}, err
 	}
 
 	return Input{
-		APIToken:  apiToken,
-		Workspace: ghc.Workspace,
+		APIToken:     apiToken,
+		Workspace:    ghc.Workspace,
+		ChangedFiles: changedFiles,
 	}, nil
 }
 
@@ -48,7 +58,7 @@ func SetOutput(gha *githubactions.Action, output Output) {
 	gha.SetOutput(lockFileUpdatedOutput, fmt.Sprint(output.LockFileUpdated))
 }
 
-func Run(ctx context.Context, gha *githubactions.Action, client Client, fs filesystem.Interface) (output Output, err error) {
+func Run(ctx context.Context, changedFiles []string, gha *githubactions.Action, client Client, fs filesystem.Interface) (output Output, err error) {
 	parsers := []parser.Parser{parser.NewNote()}
 
 	gha.Noticef("Reading config...")
@@ -73,7 +83,7 @@ func Run(ctx context.Context, gha *githubactions.Action, client Client, fs files
 	}()
 
 	gha.Noticef("Searching for sources...")
-	sources, err := sync.Sources(config, fs)
+	sources, err := sync.Sources(changedFiles, config, fs)
 	if err != nil {
 		return Output{}, err
 	}

@@ -4,7 +4,7 @@ import "github.com/leonhfr/mochi/filesystem"
 
 var extensions = []string{".md"}
 
-func Sources(config Config, fs filesystem.Interface) ([]string, error) {
+func Sources(_ []string, config Config, fs filesystem.Interface) ([]string, error) {
 	all, err := fs.Sources(extensions)
 	if err != nil {
 		return nil, err

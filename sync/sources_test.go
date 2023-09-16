@@ -13,11 +13,13 @@ func Test_Sources(t *testing.T) {
 
 	tests := []struct {
 		name    string
+		changed []string
 		sources []string
 		want    []string
 	}{
 		{
 			"all files",
+			[]string{},
 			[]string{
 				"/journal/yyyy-mm-dd.md",
 				"/german/vocabulary/s.md",
@@ -33,7 +35,7 @@ func Test_Sources(t *testing.T) {
 			fs := new(MockFilesystem)
 			fs.On("Sources", extensions).Return(tt.sources, nil)
 
-			got, err := Sources(config, fs)
+			got, err := Sources(tt.changed, config, fs)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 			fs.AssertExpectations(t)
