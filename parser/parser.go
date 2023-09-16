@@ -12,4 +12,5 @@ type Card struct {
 	Name    string
 	Content string
 	Fields  map[string]string
+	Images  map[string]Image
 }

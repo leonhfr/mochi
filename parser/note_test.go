@@ -20,6 +20,7 @@ func Test_Note_Convert(t *testing.T) {
 					Name:    "Noun",
 					Content: "<!-- Comment. -->\n\n# Noun\n\n## Gender\n\nSome stuff about genders.\n\n- der\n- die\n- das\n",
 					Fields:  map[string]string{},
+					Images:  map[string]Image{},
 				},
 			},
 		},
@@ -31,6 +32,32 @@ func Test_Note_Convert(t *testing.T) {
 					Name:    "Noun",
 					Content: "<!-- Comment. -->\n\n# Noun\n\n## Gender\n\nSome stuff about genders.\n\n- der\n- die\n- das\n",
 					Fields:  map[string]string{},
+					Images:  map[string]Image{},
+				},
+			},
+		},
+		{
+			"images",
+			"# Noun\n\n## Gender\n\n![Example 1](../images/example-1.png)\n\nInline image: ![Example 2](./example-2.png)",
+			[]Card{
+				{
+					Name:    "Noun",
+					Content: "# Noun\n\n## Gender\n\n![Example 1](@media/ZErEWCjZqZiR61Nn.png)\n\nInline image: ![Example 2](@media/zKtslBV8vJnCFDAo.png)\n",
+					Fields:  map[string]string{},
+					Images: map[string]Image{
+						"../images/example-1.png": {
+							FileName:    "ZErEWCjZqZiR61Nn",
+							Extension:   "png",
+							ContentType: "image/png",
+							AltText:     "Example 1",
+						},
+						"./example-2.png": {
+							FileName:    "zKtslBV8vJnCFDAo",
+							Extension:   "png",
+							ContentType: "image/png",
+							AltText:     "Example 2",
+						},
+					},
 				},
 			},
 		},

@@ -119,6 +119,7 @@ func Test_parseCards(t *testing.T) {
 					Name:    "Note",
 					Content: "# Note\n\nA simple note\n",
 					Fields:  map[string]string{},
+					Images:  map[string]parser.Image{},
 				},
 			},
 		},
