@@ -89,10 +89,19 @@ func Run(ctx context.Context, changedFiles []string, gha *githubactions.Action, 
 	}
 	gha.Noticef("%d sources found!", len(sources))
 
+	gha.Noticef("Synchronizing decks...")
+	dr, err := sync.SynchronizeDecks(ctx, sources, lock, config, client)
+	if err != nil {
+		return Output{}, err
+	}
+	gha.Noticef("Created %d and updated %d decks", dr.Created, dr.Updated)
+
 	return Output{}, err
 }
 
 type Client interface {
 	ListDecks(ctx context.Context) ([]api.Deck, error)
+	CreateDeck(ctx context.Context, req api.CreateDeckRequest) (api.Deck, error)
+	UpdateDeck(ctx context.Context, id string, req api.UpdateDeckRequest) (api.Deck, error)
 	ListTemplates(ctx context.Context) ([]api.Template, error)
 }
