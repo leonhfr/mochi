@@ -7,6 +7,10 @@ inputs:
     description: mochi.cards API token
     required: true
 
+outputs:
+  lock_file_updated:
+    description: Either 'true' or 'false' depending on whether the lock file was updated
+
 runs:
   using: node16
   main: action.js

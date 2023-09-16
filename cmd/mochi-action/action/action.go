@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/sethvargo/go-githubactions"
 
@@ -12,11 +13,18 @@ import (
 	"github.com/leonhfr/mochi/sync"
 )
 
-const apiTokenInput = "api_token"
+const (
+	apiTokenInput         = "api_token"
+	lockFileUpdatedOutput = "lock_file_updated"
+)
 
 type Input struct {
 	APIToken  string
 	Workspace string
+}
+
+type Output struct {
+	LockFileUpdated bool
 }
 
 func GetInput(gha *githubactions.Action) (Input, error) {
@@ -36,24 +44,29 @@ func GetInput(gha *githubactions.Action) (Input, error) {
 	}, nil
 }
 
-func Run(ctx context.Context, gha *githubactions.Action, client Client, fs filesystem.Interface) error {
+func SetOutput(gha *githubactions.Action, output Output) {
+	gha.SetOutput(lockFileUpdatedOutput, fmt.Sprint(output.LockFileUpdated))
+}
+
+func Run(ctx context.Context, gha *githubactions.Action, client Client, fs filesystem.Interface) (output Output, err error) {
 	parsers := []parser.Parser{parser.NewNote()}
 
 	gha.Noticef("Reading config...")
 	config, err := sync.ReadConfig(ctx, parsers, client, fs)
 	if err != nil {
-		return err
+		return Output{}, err
 	}
 
 	gha.Noticef("Reading lock file...")
 	lock, err := sync.ReadLock(ctx, client, fs)
 	if err != nil {
-		return err
+		return Output{}, err
 	}
 
 	defer func() {
 		gha.Noticef("Writing lock file...")
-		_, terr := lock.Write(fs)
+		updated, terr := lock.Write(fs)
+		output.LockFileUpdated = updated
 		if terr != nil {
 			err = terr
 		}
@@ -62,11 +75,11 @@ func Run(ctx context.Context, gha *githubactions.Action, client Client, fs files
 	gha.Noticef("Searching for sources...")
 	sources, err := sync.Sources(config, fs)
 	if err != nil {
-		return err
+		return Output{}, err
 	}
 	gha.Noticef("%d sources found!", len(sources))
 
-	return nil
+	return Output{}, err
 }
 
 type Client interface {

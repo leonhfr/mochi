@@ -8,6 +8,7 @@ import (
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/leonhfr/mochi/api"
 	"github.com/leonhfr/mochi/filesystem"
@@ -93,6 +94,7 @@ func Test_Run(t *testing.T) {
 
 		want struct {
 			lockFile string
+			output   Output
 		}
 	)
 
@@ -113,7 +115,8 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			want{
-				lockFile: "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n",
+				"[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n",
+				Output{LockFileUpdated: true},
 			},
 		},
 	}
@@ -134,11 +137,13 @@ func Test_Run(t *testing.T) {
 			gha := githubactions.New(
 				githubactions.WithWriter(io.Discard),
 			)
-			err := Run(ctx, gha, client, fs)
 
+			output, err := Run(ctx, gha, client, fs)
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.want.output, output)
 			client.AssertExpectations(t)
 			fs.AssertExpectations(t)
-			assert.NoError(t, err)
 		})
 	}
 }
