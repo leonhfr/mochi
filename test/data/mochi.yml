@@ -1,0 +1,20 @@
+sync:
+  - path: german/vocabulary
+    template: german
+    archive: false
+  - path: .
+    deck: Notes (root)
+    parser: note
+    walk: true
+
+ignore:
+  - journal/*
+
+templates:
+  german:
+    parser: vocabulary
+    templateId: xxxxxxxx
+    fields:
+      aaaaaaaa: word
+      bbbbbbbb: examples
+      cccccccc: notes
