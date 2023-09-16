@@ -1,16 +1,21 @@
 package action
 
 import (
+	"context"
 	"io"
 	"testing"
 
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/leonhfr/mochi/api"
+	"github.com/leonhfr/mochi/filesystem"
 )
 
 var _ Client = &api.Client{}
+
+var workspace = "../../../test/data"
 
 func Test_GetInput(t *testing.T) {
 	//nolint:gosec
@@ -77,4 +82,105 @@ func Test_GetInput(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_Run(t *testing.T) {
+	type (
+		apiResponses struct {
+			templates []api.Template
+			decks     []api.Deck
+		}
+
+		want struct {
+			lockFile string
+		}
+	)
+
+	tests := []struct {
+		name string
+		api  apiResponses
+		want want
+	}{
+		{
+			"all files",
+			apiResponses{
+				nil,
+				[]api.Deck{
+					{
+						Name: "Notes (root)",
+						ID:   "id_root",
+					},
+				},
+			},
+			want{
+				lockFile: "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Client
+			client := new(MockClient)
+			client.On("ListDecks", mock.Anything).Return(tt.api.decks, nil)
+			client.On("ListTemplates", mock.Anything).Return(tt.api.templates, nil)
+
+			// Filesystem
+			fs := new(MockFilesystem)
+			fs.On("Write", "mochi-lock.toml", tt.want.lockFile).Return(nil)
+
+			// Run
+			ctx := context.Background()
+			gha := githubactions.New(
+				githubactions.WithWriter(io.Discard),
+			)
+			err := Run(ctx, gha, client, fs)
+
+			client.AssertExpectations(t)
+			fs.AssertExpectations(t)
+			assert.NoError(t, err)
+		})
+	}
+}
+
+type MockClient struct {
+	mock.Mock
+}
+
+var _ Client = &MockClient{}
+
+func (m *MockClient) ListDecks(ctx context.Context) ([]api.Deck, error) {
+	args := m.Called(ctx)
+	return args.Get(0).([]api.Deck), args.Error(1)
+}
+
+func (m *MockClient) ListTemplates(ctx context.Context) ([]api.Template, error) {
+	args := m.Called(ctx)
+	return args.Get(0).([]api.Template), args.Error(1)
+}
+
+var _ filesystem.Interface = &MockFilesystem{}
+
+type MockFilesystem struct {
+	mock.Mock
+}
+
+func (m *MockFilesystem) FileExists(path string) bool {
+	fs := filesystem.New(workspace)
+	return fs.FileExists(path)
+}
+
+func (m *MockFilesystem) Read(path string) ([]byte, error) {
+	fs := filesystem.New(workspace)
+	return fs.Read(path)
+}
+
+func (m *MockFilesystem) Write(path, content string) error {
+	args := m.Called(path, content)
+	return args.Error(0)
+}
+
+func (m *MockFilesystem) Sources(extensions []string) ([]string, error) {
+	fs := filesystem.New(workspace)
+	return fs.Sources(extensions)
 }

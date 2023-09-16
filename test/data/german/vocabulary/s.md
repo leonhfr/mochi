@@ -1,5 +1,0 @@
-<!-- Generated comment. -->
-
-# s
-
-Spaziergang

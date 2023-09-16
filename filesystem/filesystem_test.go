@@ -12,29 +12,14 @@ var _ Interface = &Filesystem{}
 var (
 	workspace = "../test/data"
 	config    = `sync:
-  - path: german/vocabulary
-    template: german
-    archive: true
   - path: .
     name: Notes (root)
     parser: note
     archive: true
     walk: true
-  - path: german/grammar
-    parser: note
-    archive: true
 
 ignore:
   - journal/*
-
-templates:
-  german:
-    parser: vocabulary
-    templateId: xxxxxxxx
-    fields:
-      aaaaaaaa: word
-      bbbbbbbb: examples
-      cccccccc: notes
 `
 )
 
