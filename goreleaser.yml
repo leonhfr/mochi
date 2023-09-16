@@ -1,0 +1,9 @@
+builds:
+  - id: mochi-action
+    main: ./cmd/mochi-action
+    binary: mochi-action
+    goos:
+    - linux
+    goarch:
+    - amd64
+    - arm64
