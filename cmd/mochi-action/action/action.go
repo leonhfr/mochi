@@ -96,10 +96,20 @@ func Run(ctx context.Context, changedFiles []string, gha *githubactions.Action, 
 	}
 	gha.Noticef("Created %d and updated %d decks", dr.Created, dr.Updated)
 
+	gha.Noticef("Synchronizing cards...")
+	cr, err := sync.SynchronizeCards(ctx, sources, lock, config, client, fs)
+	if err != nil {
+		return Output{}, err
+	}
+	gha.Noticef("Created %d, updated %d, and archived %d cards", cr.Created, cr.Updated, cr.Archived)
+
 	return Output{}, err
 }
 
 type Client interface {
+	ListCardsInDeck(ctx context.Context, id string) ([]api.Card, error)
+	CreateCard(ctx context.Context, req api.CreateCardRequest) (api.Card, error)
+	UpdateCard(ctx context.Context, id string, req api.UpdateCardRequest) (api.Card, error)
 	ListDecks(ctx context.Context) ([]api.Deck, error)
 	CreateDeck(ctx context.Context, req api.CreateDeckRequest) (api.Deck, error)
 	UpdateDeck(ctx context.Context, id string, req api.UpdateDeckRequest) (api.Deck, error)

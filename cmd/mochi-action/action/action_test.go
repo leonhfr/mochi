@@ -160,6 +160,21 @@ type MockClient struct {
 
 var _ Client = &MockClient{}
 
+func (m *MockClient) CreateCard(ctx context.Context, req api.CreateCardRequest) (api.Card, error) {
+	args := m.Called(ctx, req)
+	return args.Get(0).(api.Card), args.Error(1)
+}
+
+func (m *MockClient) ListCardsInDeck(ctx context.Context, id string) ([]api.Card, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).([]api.Card), args.Error(1)
+}
+
+func (m *MockClient) UpdateCard(ctx context.Context, id string, req api.UpdateCardRequest) (api.Card, error) {
+	args := m.Called(ctx, id, req)
+	return args.Get(0).(api.Card), args.Error(1)
+}
+
 func (m *MockClient) ListDecks(ctx context.Context) ([]api.Deck, error) {
 	args := m.Called(ctx)
 	return args.Get(0).([]api.Deck), args.Error(1)
