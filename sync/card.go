@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/leonhfr/mochi/filesystem"
+	"github.com/leonhfr/mochi/parser"
 )
 
 type CardResult struct {
@@ -12,6 +13,10 @@ type CardResult struct {
 	Archived int
 }
 
-func SynchronizeCards(_ context.Context, _ []string, _ *Lock, _ Config, _ Client, _ filesystem.Interface) (CardResult, error) {
+func SynchronizeCards(_ context.Context, parsers []parser.Parser, sources []string, lock *Lock, config Config, _ Client, _ filesystem.Interface) (CardResult, error) {
+	_, err := newJobMap(parsers, sources, lock, config)
+	if err != nil {
+		return CardResult{}, err
+	}
 	return CardResult{}, nil
 }

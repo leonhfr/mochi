@@ -86,6 +86,19 @@ func (c *Config) ignored(path string) bool {
 	return false
 }
 
+func (c *Config) matchSync(path string) (Sync, bool) {
+	dir := filepath.Dir(path)
+	for _, s := range c.Sync {
+		if dir == s.Path {
+			return s, true
+		}
+		if s.Walk && strings.HasPrefix(dir, s.Path) {
+			return s, true
+		}
+	}
+	return Sync{}, false
+}
+
 func configPath(fs filesystem.Interface) string {
 	for _, ext := range configExtensions {
 		path := fmt.Sprintf("%s.%s", configName, ext)

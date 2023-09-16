@@ -97,7 +97,7 @@ func Run(ctx context.Context, changedFiles []string, gha *githubactions.Action, 
 	gha.Noticef("Created %d and updated %d decks", dr.Created, dr.Updated)
 
 	gha.Noticef("Synchronizing cards...")
-	cr, err := sync.SynchronizeCards(ctx, sources, lock, config, client, fs)
+	cr, err := sync.SynchronizeCards(ctx, parsers, sources, lock, config, client, fs)
 	if err != nil {
 		return Output{}, err
 	}

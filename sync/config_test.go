@@ -146,6 +146,43 @@ func Test_Config_ignored(t *testing.T) {
 	}
 }
 
+func Test_Config_matchSync(t *testing.T) {
+	config := Config{Sync: []Sync{
+		{
+			Path:   "/german/vocabulary",
+			Parser: "vocabulary",
+		},
+		{
+			Path:   "/german/grammar",
+			Parser: "grammar",
+		},
+		{
+			Path:   "/sub",
+			Parser: "root",
+			Walk:   true,
+		},
+	}}
+
+	tests := []struct {
+		path   string
+		want   bool
+		parser string // sync parser
+	}{
+		{"/german/vocabulary/s.md", true, "vocabulary"},
+		{"/german/grammar/noun.md", true, "grammar"},
+		{"/sub/note.md", true, "note"},
+		{"/sub/sub/note.md", true, "note"},
+		{"/note.md", false, ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.path, func(t *testing.T) {
+			_, got := config.matchSync(tt.path)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func Test_parseConfig(t *testing.T) {
 	want := Config{
 		Sync: []Sync{
