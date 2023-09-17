@@ -53,6 +53,27 @@ func ReadLock(ctx context.Context, client Client, fs filesystem.Interface) (*Loc
 	return lock, nil
 }
 
+func (l *Lock) getDeck(path string) ([2]string, bool) {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+	deck, ok := l.Decks[path]
+	return deck, ok
+}
+
+func (l *Lock) setDeck(path string, deck [2]string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.Decks[path] = deck
+	l.updated = true
+}
+
+func (l *Lock) deleteDeck(path string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	delete(l.Decks, path)
+	l.updated = true
+}
+
 func (l *Lock) Write(fs filesystem.Interface) (bool, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -76,23 +97,18 @@ func (l *Lock) Write(fs filesystem.Interface) (bool, error) {
 }
 
 func updateLock(lock *Lock, decks []api.Deck) {
-	lock.mu.Lock()
-	defer lock.mu.Unlock()
-
 	for path, deck := range lock.Decks {
 		index := slices.IndexFunc[[]api.Deck](decks, func(d api.Deck) bool {
 			return deck[indexDeckID] == d.ID
 		})
 
 		if index < 0 {
-			delete(lock.Decks, path)
-			lock.updated = true
+			lock.deleteDeck(path)
 			continue
 		}
 
 		if apiDeck := decks[index]; deck[indexDeckName] != apiDeck.Name {
-			lock.Decks[path] = [2]string{apiDeck.ID, apiDeck.Name}
-			lock.updated = true
+			lock.setDeck(path, [2]string{apiDeck.ID, apiDeck.Name})
 		}
 	}
 }
