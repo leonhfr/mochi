@@ -54,19 +54,15 @@ func Test_generateCardRequests(t *testing.T) {
 			},
 			[]cardRequest{
 				{
-					id:   "id_note_2",
-					kind: updateRequest,
-					update: api.UpdateCardRequest{
-						DeckID:  "id_root",
-						Content: "# Note 2\n\nContent 2\n",
-					},
+					id:      "id_note_2",
+					kind:    updateRequest,
+					deckID:  "id_root",
+					content: "# Note 2\n\nContent 2\n",
 				},
 				{
-					kind: createRequest,
-					create: api.CreateCardRequest{
-						DeckID:  "id_root",
-						Content: "# Note 3\n\nContent 3\n",
-					},
+					kind:    createRequest,
+					deckID:  "id_root",
+					content: "# Note 3\n\nContent 3\n",
 				},
 			},
 		},

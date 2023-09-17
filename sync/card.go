@@ -3,7 +3,6 @@ package sync
 import (
 	"context"
 	"runtime"
-	"sync"
 
 	"golang.org/x/exp/slices"
 
@@ -23,11 +22,6 @@ type CardResult struct {
 	Archived int
 }
 
-type syncCardResult struct {
-	result CardResult
-	mu     sync.Mutex
-}
-
 func SynchronizeCards(ctx context.Context, parsers []parser.Parser, sources []string, lock *Lock, config Config, client Client, fs filesystem.Interface) (CardResult, error) {
 	jobMap, err := newJobMap(parsers, sources, lock, config)
 	if err != nil {
@@ -35,53 +29,8 @@ func SynchronizeCards(ctx context.Context, parsers []parser.Parser, sources []st
 	}
 
 	handlers := numHandlers()
-	scr := &syncCardResult{}
-	err = processJobMap(ctx, jobMap, handlers, scr, client, fs)
 
-	return scr.result, err
-}
-
-type requestKind int
-
-const (
-	createRequest requestKind = iota
-	updateRequest
-	archiveRequest
-)
-
-type cardRequest struct {
-	id     string
-	kind   requestKind
-	create api.CreateCardRequest
-	update api.UpdateCardRequest
-}
-
-func (r *cardRequest) do(ctx context.Context, scr *syncCardResult, client Client) error {
-	if r.kind == createRequest {
-		if _, err := client.CreateCard(ctx, r.create); err != nil {
-			return err
-		}
-
-		scr.mu.Lock()
-		scr.result.Created++
-		scr.mu.Unlock()
-	}
-
-	if r.kind == updateRequest || r.kind == archiveRequest {
-		if _, err := client.UpdateCard(ctx, r.id, r.update); err != nil {
-			return err
-		}
-
-		scr.mu.Lock()
-		if r.kind == updateRequest {
-			scr.result.Updated++
-		} else {
-			scr.result.Archived++
-		}
-		scr.mu.Unlock()
-	}
-
-	return nil
+	return processJobMap(ctx, jobMap, handlers, client, fs)
 }
 
 func generateCardRequests(ctx context.Context, job *deckJob, client Client, fs filesystem.Interface) ([]cardRequest, error) {
@@ -160,74 +109,6 @@ func cardEqual(job *deckJob, card parser.Card, apiCard api.Card) bool {
 	}
 
 	return true
-}
-
-func newCreateCardRequest(deck *deckJob, card parser.Card) cardRequest {
-	if !deck.hasTemplate {
-		return cardRequest{
-			kind: createRequest,
-			create: api.CreateCardRequest{
-				Content: card.Content,
-				DeckID:  deck.id,
-			},
-		}
-	}
-
-	fields := make(map[string]api.Field)
-	for id, field := range deck.template.Fields {
-		fields[id] = api.Field{
-			ID:    id,
-			Value: card.Fields[field],
-		}
-	}
-
-	return cardRequest{
-		kind: createRequest,
-		create: api.CreateCardRequest{
-			Fields:     fields,
-			DeckID:     deck.id,
-			TemplateID: deck.template.TemplateID,
-		},
-	}
-}
-
-func newUpdateCardRequest(job *deckJob, id string, card parser.Card) cardRequest {
-	if !job.hasTemplate {
-		return cardRequest{
-			id:   id,
-			kind: updateRequest,
-			update: api.UpdateCardRequest{
-				Content: card.Content,
-				DeckID:  job.id,
-			},
-		}
-	}
-
-	fields := make(map[string]api.Field)
-	for id, field := range job.template.Fields {
-		fields[id] = api.Field{
-			ID:    id,
-			Value: card.Fields[field],
-		}
-	}
-
-	return cardRequest{
-		id:   id,
-		kind: updateRequest,
-		update: api.UpdateCardRequest{
-			Fields:     fields,
-			DeckID:     job.id,
-			TemplateID: job.template.TemplateID,
-		},
-	}
-}
-
-func newArchiveCardRequest(id string) cardRequest {
-	return cardRequest{
-		id:     id,
-		kind:   archiveRequest,
-		update: api.UpdateCardRequest{Archived: true},
-	}
 }
 
 func numHandlers() int {

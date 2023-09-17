@@ -7,13 +7,14 @@ import (
 	"github.com/leonhfr/mochi/filesystem"
 )
 
-func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, scr *syncCardResult, client Client, fs filesystem.Interface) error {
+func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, client Client, fs filesystem.Interface) (CardResult, error) {
 	done := make(chan struct{})
 	defer close(done)
 
 	jobc := newJobChannel(jobs, done)
 	reqc := make(chan cardRequest)
 	errc := make(chan error)
+	resc := make(chan CardResult, numHandlers)
 
 	var wgJobs, wgReqs sync.WaitGroup
 	wgJobs.Add(numHandlers)
@@ -27,7 +28,7 @@ func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, scr *syncC
 
 		go func() {
 			defer wgReqs.Done()
-			reqHandler(ctx, scr, client, done, reqc, errc)
+			resc <- reqHandler(ctx, client, done, reqc, errc)
 		}()
 	}
 
@@ -39,15 +40,22 @@ func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, scr *syncC
 	go func() {
 		wgReqs.Wait()
 		close(errc)
+		close(resc)
 	}()
 
 	for err := range errc {
 		if err != nil {
-			return err
+			return CardResult{}, err
 		}
 	}
 
-	return nil
+	var cr CardResult
+	for res := range resc {
+		cr.Created += res.Created
+		cr.Updated += res.Updated
+		cr.Archived += res.Archived
+	}
+	return cr, nil
 }
 
 func jobHandler(ctx context.Context, client Client, fs filesystem.Interface, done <-chan struct{}, jobc <-chan *deckJob, reqc chan<- cardRequest, errc chan<- error) {
@@ -68,14 +76,17 @@ func jobHandler(ctx context.Context, client Client, fs filesystem.Interface, don
 	}
 }
 
-func reqHandler(ctx context.Context, scr *syncCardResult, client Client, done <-chan struct{}, reqc <-chan cardRequest, errc chan<- error) {
+func reqHandler(ctx context.Context, client Client, done <-chan struct{}, reqc <-chan cardRequest, errc chan<- error) CardResult {
+	var cr CardResult
 	for req := range reqc {
 		select {
-		case errc <- req.do(ctx, scr, client):
+		case errc <- processCardRequest(ctx, req, client):
+			cr.increment(req.kind)
 		case <-done:
-			return
+			return cr
 		}
 	}
+	return cr
 }
 
 func newJobChannel(jobs jobMap, done <-chan struct{}) <-chan *deckJob {
