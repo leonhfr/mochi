@@ -27,6 +27,11 @@ func (m *MockFilesystem) Write(path, content string) error {
 	return args.Error(0)
 }
 
+func (m *MockFilesystem) Image(path string) ([]byte, string, error) {
+	args := m.Called(path)
+	return args.Get(0).([]byte), args.String(1), args.Error(2)
+}
+
 func (m *MockFilesystem) Sources(extensions []string) ([]string, error) {
 	args := m.Called(extensions)
 	return args.Get(0).([]string), args.Error(1)

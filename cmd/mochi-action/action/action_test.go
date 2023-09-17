@@ -245,6 +245,11 @@ func (m *MockFilesystem) Write(path, content string) error {
 	return args.Error(0)
 }
 
+func (m *MockFilesystem) Image(path string) ([]byte, string, error) {
+	fs := filesystem.New(workspace)
+	return fs.Image(path)
+}
+
 func (m *MockFilesystem) Sources(extensions []string) ([]string, error) {
 	fs := filesystem.New(workspace)
 	return fs.Sources(extensions)

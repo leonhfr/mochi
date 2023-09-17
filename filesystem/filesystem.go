@@ -1,7 +1,13 @@
 package filesystem
 
 import (
+	"bytes"
+	//nolint:gosec
+	"crypto/md5"
+	"encoding/base64"
 	"errors"
+	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -14,6 +20,7 @@ type Interface interface {
 	FileExists(path string) bool
 	Read(path string) ([]byte, error)
 	Write(path, content string) error
+	Image(path string) ([]byte, string, error)
 	Sources(extensions []string) ([]string, error)
 }
 
@@ -56,6 +63,26 @@ func (f *Filesystem) Write(path, content string) error {
 
 	_, err = file.WriteString(content)
 	return err
+}
+
+func (f *Filesystem) Image(path string) ([]byte, string, error) {
+	file, err := os.Open(f.fullPath(path))
+	if err != nil {
+		return nil, "", err
+	}
+	defer file.Close()
+
+	image := bytes.NewBuffer(nil)
+	encoder := base64.NewEncoder(base64.StdEncoding, image)
+	defer encoder.Close()
+	//nolint:gosec
+	hash := md5.New()
+
+	if _, err := io.Copy(encoder, io.TeeReader(file, hash)); err != nil {
+		return nil, "", err
+	}
+
+	return image.Bytes(), fmt.Sprintf("%x", hash.Sum(nil)), nil
 }
 
 // Sources expects the extension with a dot: [".md"].
