@@ -13,12 +13,19 @@ import (
 )
 
 func Test_generateCardRequests(t *testing.T) {
+	type image struct {
+		content []byte
+		hash    string
+	}
+
 	tests := []struct {
-		name  string
-		job   *deckJob
-		cards map[string][]api.Card
-		files map[string]string
-		want  []cardRequest
+		name     string
+		job      *deckJob
+		lock     *Lock
+		cards    map[string][]api.Card
+		markdown map[string]string
+		images   map[string]image
+		want     []cardRequest
 	}{
 		{
 			"generate card requests",
@@ -28,8 +35,13 @@ func Test_generateCardRequests(t *testing.T) {
 					"/note-1.md",
 					"/note-2.md",
 					"/note-3.md",
+					"/images.md",
 				},
 				parser: parser.NewNote(),
+			},
+			&Lock{
+				Decks:  map[string][2]string{},
+				Images: map[string]map[string]string{},
 			},
 			map[string][]api.Card{
 				"id_root": {
@@ -51,6 +63,11 @@ func Test_generateCardRequests(t *testing.T) {
 				"/note-1.md": "# Note 1\n\nContent 1\n",
 				"/note-2.md": "# Note 2\n\nContent 2\n",
 				"/note-3.md": "# Note 3\n\nContent 3\n",
+				"/images.md": "# Images\n\n![Image 1](path/to/image-1.jpg)\n\n![Image 1](another/path/to/image-2.jpg)",
+			},
+			map[string]image{
+				"path/to/image-1.jpg":         {[]byte("Image 1 content."), "image_hash_1"},
+				"another/path/to/image-2.jpg": {[]byte("Image 2 content."), "image_hash_2"},
 			},
 			[]cardRequest{
 				{
@@ -63,6 +80,31 @@ func Test_generateCardRequests(t *testing.T) {
 					kind:    createRequest,
 					deckID:  "id_root",
 					content: "# Note 3\n\nContent 3\n",
+				},
+				{
+					kind:    createRequest,
+					deckID:  "id_root",
+					content: "# Images\n\n![Image 1](@media/25a1627c0b27798f.jpg)\n\n![Image 1](@media/ac4c72c7e58b0232.jpg)\n",
+					images: []syncImage{
+						{
+							attachment: api.Attachment{
+								FileName:    "25a1627c0b27798f.jpg",
+								ContentType: "image/jpg",
+								Data:        "Image 1 content.",
+							},
+							path: "path/to/image-1.jpg",
+							hash: "image_hash_1",
+						},
+						{
+							attachment: api.Attachment{
+								FileName:    "ac4c72c7e58b0232.jpg",
+								ContentType: "image/jpg",
+								Data:        "Image 2 content.",
+							},
+							path: "another/path/to/image-2.jpg",
+							hash: "image_hash_2",
+						},
+					},
 				},
 			},
 		},
@@ -78,11 +120,15 @@ func Test_generateCardRequests(t *testing.T) {
 
 			// Filesystem
 			fs := new(MockFilesystem)
-			for path, content := range tt.files {
+			for path, content := range tt.markdown {
 				fs.On("Read", path).Return([]byte(content), nil)
 			}
+			for path, image := range tt.images {
+				fs.On("FileExists", path).Return(true)
+				fs.On("Image", path).Return(image.content, image.hash, nil)
+			}
 
-			got, err := generateCardRequests(context.Background(), tt.job, client, fs)
+			got, err := generateCardRequests(context.Background(), tt.job, tt.lock, client, fs)
 
 			require.NoError(t, err)
 			assert.ElementsMatch(t, tt.want, got)
@@ -108,14 +154,21 @@ func Test_parseCards(t *testing.T) {
 				parser: parser.NewNote(),
 			},
 			map[string]string{
-				"/note.md": "# Note\n\nA simple note\n",
+				"/note.md": "# Note\n\nA simple note\n\n![Image](../images/image.jpg)\n",
 			},
 			[]parser.Card{
 				{
 					Name:    "Note",
-					Content: "# Note\n\nA simple note\n",
+					Content: "# Note\n\nA simple note\n\n![Image](@media/d853ca1bac6e94e1.jpg)\n",
 					Fields:  map[string]string{},
-					Images:  map[string]parser.Image{},
+					Images: map[string]parser.Image{
+						"../images/image.jpg": {
+							FileName:    "d853ca1bac6e94e1",
+							Extension:   "jpg",
+							ContentType: "image/jpg",
+							AltText:     "Image",
+						},
+					},
 				},
 			},
 		},

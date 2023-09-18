@@ -7,7 +7,7 @@ import (
 	"github.com/leonhfr/mochi/filesystem"
 )
 
-func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, client Client, fs filesystem.Interface) (CardResult, error) {
+func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, lock *Lock, client Client, fs filesystem.Interface) (CardResult, error) {
 	done := make(chan struct{})
 	defer close(done)
 
@@ -23,12 +23,12 @@ func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, client Cli
 	for i := 0; i < numHandlers; i++ {
 		go func() {
 			defer wgJobs.Done()
-			jobHandler(ctx, client, fs, done, jobc, reqc, errc)
+			jobHandler(ctx, lock, client, fs, done, jobc, reqc, errc)
 		}()
 
 		go func() {
 			defer wgReqs.Done()
-			resc <- reqHandler(ctx, client, done, reqc, errc)
+			resc <- reqHandler(ctx, lock, client, done, reqc, errc)
 		}()
 	}
 
@@ -58,9 +58,9 @@ func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, client Cli
 	return cr, nil
 }
 
-func jobHandler(ctx context.Context, client Client, fs filesystem.Interface, done <-chan struct{}, jobc <-chan *deckJob, reqc chan<- cardRequest, errc chan<- error) {
+func jobHandler(ctx context.Context, lock *Lock, client Client, fs filesystem.Interface, done <-chan struct{}, jobc <-chan *deckJob, reqc chan<- cardRequest, errc chan<- error) {
 	for job := range jobc {
-		reqs, err := generateCardRequests(ctx, job, client, fs)
+		reqs, err := generateCardRequests(ctx, job, lock, client, fs)
 		select {
 		case errc <- err:
 		default:
@@ -76,11 +76,11 @@ func jobHandler(ctx context.Context, client Client, fs filesystem.Interface, don
 	}
 }
 
-func reqHandler(ctx context.Context, client Client, done <-chan struct{}, reqc <-chan cardRequest, errc chan<- error) CardResult {
+func reqHandler(ctx context.Context, lock *Lock, client Client, done <-chan struct{}, reqc <-chan cardRequest, errc chan<- error) CardResult {
 	var cr CardResult
 	for req := range reqc {
 		select {
-		case errc <- processCardRequest(ctx, req, client):
+		case errc <- processCardRequest(ctx, req, lock, client):
 			cr.increment(req.kind)
 		case <-done:
 			return cr

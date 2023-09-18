@@ -2,8 +2,10 @@ package sync
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/leonhfr/mochi/api"
+	"github.com/leonhfr/mochi/filesystem"
 	"github.com/leonhfr/mochi/parser"
 )
 
@@ -34,21 +36,58 @@ type cardRequest struct {
 	templateID string
 	archived   bool
 	fields     map[string]api.Field
+	images     []syncImage
 }
 
-func newCreateCardRequest(job *deckJob, card parser.Card) cardRequest {
+type syncImage struct {
+	attachment api.Attachment
+	path       string
+	hash       string
+}
+
+func newCreateCardRequest(job *deckJob, card parser.Card, fs filesystem.Interface) (cardRequest, error) {
 	content, fields := newCardContent(job, card)
+	var images []syncImage
+	for path, image := range card.Images {
+		attachment, hash, err := newImageAttachment(path, image, fs)
+		if err != nil {
+			return cardRequest{}, err
+		}
+		if len(hash) > 0 {
+			images = append(images, syncImage{
+				attachment: attachment,
+				path:       path,
+				hash:       hash,
+			})
+		}
+	}
 	return cardRequest{
 		kind:       createRequest,
 		deckID:     job.id,
 		content:    content,
 		templateID: job.template.TemplateID,
 		fields:     fields,
-	}
+		images:     images,
+	}, nil
 }
 
-func newUpdateCardRequest(job *deckJob, id string, card parser.Card) cardRequest {
+func newUpdateCardRequest(job *deckJob, id string, card parser.Card, lock *Lock, fs filesystem.Interface) (cardRequest, error) {
 	content, fields := newCardContent(job, card)
+	var images []syncImage
+	for path, image := range card.Images {
+		attachment, hash, err := newImageAttachment(path, image, fs)
+		if err != nil {
+			return cardRequest{}, err
+		}
+		existingHash, ok := lock.getImageHash(id, path)
+		if (!ok || existingHash != hash) && len(hash) > 0 {
+			images = append(images, syncImage{
+				attachment: attachment,
+				path:       path,
+				hash:       hash,
+			})
+		}
+	}
 	return cardRequest{
 		kind:       updateRequest,
 		id:         id,
@@ -56,7 +95,8 @@ func newUpdateCardRequest(job *deckJob, id string, card parser.Card) cardRequest
 		content:    content,
 		templateID: job.template.TemplateID,
 		fields:     fields,
-	}
+		images:     images,
+	}, nil
 }
 
 func newArchiveCardRequest(id string) cardRequest {
@@ -67,24 +107,40 @@ func newArchiveCardRequest(id string) cardRequest {
 	}
 }
 
-func processCardRequest(ctx context.Context, req cardRequest, client Client) error {
+func processCardRequest(ctx context.Context, req cardRequest, lock *Lock, client Client) error {
+	//nolint:prealloc
+	var attachments []api.Attachment
+	for _, image := range req.images {
+		attachments = append(attachments, image.attachment)
+	}
+
 	switch req.kind {
 	case createRequest:
-		_, err := client.CreateCard(ctx, api.CreateCardRequest{
-			DeckID:     req.deckID,
-			Content:    req.content,
-			TemplateID: req.templateID,
-			Fields:     req.fields,
+		card, err := client.CreateCard(ctx, api.CreateCardRequest{
+			DeckID:      req.deckID,
+			Content:     req.content,
+			TemplateID:  req.templateID,
+			Fields:      req.fields,
+			Attachments: attachments,
 		})
-		return err
+		if err != nil {
+			return err
+		}
+		setImages(card.ID, req.images, lock)
+		return nil
 	case updateRequest:
-		_, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
-			DeckID:     req.deckID,
-			Content:    req.content,
-			TemplateID: req.templateID,
-			Fields:     req.fields,
+		card, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
+			DeckID:      req.deckID,
+			Content:     req.content,
+			TemplateID:  req.templateID,
+			Fields:      req.fields,
+			Attachments: attachments,
 		})
-		return err
+		if err != nil {
+			return err
+		}
+		setImages(card.ID, req.images, lock)
+		return nil
 	case archiveRequest:
 		_, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
 			Archived: true,
@@ -108,4 +164,25 @@ func newCardContent(job *deckJob, card parser.Card) (string, map[string]api.Fiel
 		}
 	}
 	return "", fields
+}
+
+func setImages(id string, images []syncImage, lock *Lock) {
+	for _, image := range images {
+		lock.setImageHash(id, image.path, image.hash)
+	}
+}
+
+func newImageAttachment(path string, image parser.Image, fs filesystem.Interface) (api.Attachment, string, error) {
+	if !fs.FileExists(path) {
+		return api.Attachment{}, "", nil
+	}
+	base64, hash, err := fs.Image(path)
+	if err != nil {
+		return api.Attachment{}, "", err
+	}
+	return api.Attachment{
+		FileName:    fmt.Sprintf("%s.%s", image.FileName, image.Extension),
+		ContentType: image.ContentType,
+		Data:        string(base64),
+	}, hash, nil
 }

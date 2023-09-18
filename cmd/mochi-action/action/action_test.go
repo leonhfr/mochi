@@ -13,6 +13,7 @@ import (
 
 	"github.com/leonhfr/mochi/api"
 	"github.com/leonhfr/mochi/filesystem"
+	"github.com/leonhfr/mochi/test/data/base64"
 )
 
 var _ Client = &api.Client{}
@@ -132,10 +133,20 @@ func Test_Run(t *testing.T) {
 				deckCreates: map[api.CreateDeckRequest]api.Deck{},
 				deckUpdates: map[string]api.UpdateDeckRequest{},
 				cardCreates: []api.CreateCardRequest{
-					{Content: "# Note\n\nA simple note.\n", DeckID: "id_root"},
+					{
+						Content: "# Note\n\nA simple note.\n\n![Scream](@media/360edfb43ae42e8a.png)\n",
+						DeckID:  "id_root",
+						Attachments: []api.Attachment{
+							{
+								FileName:    "360edfb43ae42e8a.png",
+								ContentType: "image/png",
+								Data:        string(base64.Scream),
+							},
+						},
+					},
 				},
 				cardUpdates: map[string]api.UpdateCardRequest{},
-				lockFile:    "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n",
+				lockFile:    "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n\n[images]\n[images.\"\"]\n\"images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n",
 				output:      Output{LockFileUpdated: true},
 			},
 		},

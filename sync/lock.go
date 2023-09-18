@@ -23,8 +23,8 @@ const (
 )
 
 type Lock struct {
-	Decks   map[string][2]string            `toml:"decks,omitempty"`  // directory path: [deck id, deck name]
-	Images  map[string]map[string][2]string `toml:"images,omitempty"` // card id: file path: [file name, hash]
+	Decks   map[string][2]string         `toml:"decks,omitempty"`  // directory path: [deck id, deck name]
+	Images  map[string]map[string]string `toml:"images,omitempty"` // card id: file path: hash
 	updated bool
 	mu      sync.RWMutex
 }
@@ -37,7 +37,7 @@ func ReadLock(ctx context.Context, client Client, fs filesystem.Interface) (*Loc
 
 	lock := &Lock{
 		Decks:  map[string][2]string{},
-		Images: map[string]map[string][2]string{},
+		Images: map[string]map[string]string{},
 	}
 	if err := toml.Unmarshal(source, lock); err != nil {
 		return nil, err
@@ -72,6 +72,28 @@ func (l *Lock) deleteDeck(path string) {
 	defer l.mu.Unlock()
 	delete(l.Decks, path)
 	l.updated = true
+}
+
+func (l *Lock) getImageHash(id, path string) (string, bool) {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+	images, ok := l.Images[id]
+	if !ok {
+		return "", false
+	}
+	image, ok := images[path]
+	return image, ok
+}
+
+func (l *Lock) setImageHash(id, path, hash string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.updated = true
+	if _, ok := l.Images[id]; !ok {
+		l.Images[id] = map[string]string{path: hash}
+		return
+	}
+	l.Images[id][path] = hash
 }
 
 func (l *Lock) Write(fs filesystem.Interface) (bool, error) {

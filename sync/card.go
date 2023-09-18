@@ -30,10 +30,10 @@ func SynchronizeCards(ctx context.Context, parsers []parser.Parser, sources []st
 
 	handlers := numHandlers()
 
-	return processJobMap(ctx, jobMap, handlers, client, fs)
+	return processJobMap(ctx, jobMap, handlers, lock, client, fs)
 }
 
-func generateCardRequests(ctx context.Context, job *deckJob, client Client, fs filesystem.Interface) ([]cardRequest, error) {
+func generateCardRequests(ctx context.Context, job *deckJob, lock *Lock, client Client, fs filesystem.Interface) ([]cardRequest, error) {
 	cards, err := parseCards(job, fs)
 	if err != nil {
 		return nil, err
@@ -51,14 +51,22 @@ func generateCardRequests(ctx context.Context, job *deckJob, client Client, fs f
 		})
 
 		if index < 0 {
-			requests = append(requests, newCreateCardRequest(job, card))
+			request, err := newCreateCardRequest(job, card, fs)
+			if err != nil {
+				return nil, err
+			}
+			requests = append(requests, request)
 			continue
 		}
 
 		apiCard := apiCards[index]
 		apiCards = append(apiCards[:index], apiCards[index+1:]...)
 		if !cardEqual(job, card, apiCard) {
-			requests = append(requests, newUpdateCardRequest(job, apiCard.ID, card))
+			request, err := newUpdateCardRequest(job, apiCard.ID, card, lock, fs)
+			if err != nil {
+				return nil, err
+			}
+			requests = append(requests, request)
 		}
 	}
 
