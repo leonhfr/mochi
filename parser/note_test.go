@@ -42,17 +42,17 @@ func Test_Note_Convert(t *testing.T) {
 			[]Card{
 				{
 					Name:    "Noun",
-					Content: "# Noun\n\n## Gender\n\n![Example 1](@media/ZErEWCjZqZiR61Nn.png)\n\nInline image: ![Example 2](@media/zKtslBV8vJnCFDAo.png)\n",
+					Content: "# Noun\n\n## Gender\n\n![Example 1](@media/644ac45828d9a998.png)\n\nInline image: ![Example 2](@media/ccab6c94157cbc99.png)\n",
 					Fields:  map[string]string{},
 					Images: map[string]Image{
 						"../images/example-1.png": {
-							FileName:    "ZErEWCjZqZiR61Nn",
+							FileName:    "644ac45828d9a998",
 							Extension:   "png",
 							ContentType: "image/png",
 							AltText:     "Example 1",
 						},
 						"./example-2.png": {
-							FileName:    "zKtslBV8vJnCFDAo",
+							FileName:    "ccab6c94157cbc99",
 							Extension:   "png",
 							ContentType: "image/png",
 							AltText:     "Example 2",

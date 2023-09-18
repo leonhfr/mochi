@@ -3,7 +3,6 @@ package parser
 import (
 	//nolint:gosec
 	"crypto/md5"
-	"encoding/base64"
 	"fmt"
 	"net/url"
 	"path/filepath"
@@ -14,7 +13,7 @@ const fileNameLength = 16
 
 type Image struct {
 	FileName    string // <md5 of path relative to root>
-	Extension   string // .ext
+	Extension   string // ext
 	ContentType string // mime type
 	AltText     string
 }
@@ -44,9 +43,7 @@ func newImage(destination, altText string) (string, Image) {
 	}
 
 	//nolint:gosec
-	hashb := md5.Sum([]byte(destination))
-	hash := base64.StdEncoding.EncodeToString(hashb[:])
-	hash = strings.TrimRight(hash, "=")
+	hash := fmt.Sprintf("%x", md5.Sum([]byte(destination)))
 
 	return destination, Image{
 		FileName:    hash[:fileNameLength],
