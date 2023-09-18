@@ -41,7 +41,7 @@ func (n *Note) Fields() []string {
 	return nil
 }
 
-func (n *Note) Convert(source []byte) ([]Card, error) {
+func (n *Note) Convert(path string, source []byte) ([]Card, error) {
 	var fmLength int
 	var name string
 	images := make(map[string]Image)
@@ -63,8 +63,8 @@ func (n *Note) Convert(source []byte) ([]Card, error) {
 		if img, ok := n.(*ast.Image); ok && entering {
 			destination := string(img.Destination)
 			altText := string(img.Text(source))
-			if path, image := newImage(destination, altText); path != "" {
-				images[path] = image
+			if absPath, image := newImage(path, destination, altText); absPath != "" {
+				images[absPath] = image
 			}
 		}
 

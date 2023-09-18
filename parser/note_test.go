@@ -9,11 +9,13 @@ import (
 func Test_Note_Convert(t *testing.T) {
 	tests := []struct {
 		name   string
+		path   string
 		source string
 		want   []Card
 	}{
 		{
 			"comment",
+			"/note.md",
 			"<!-- Comment. -->\n\n# Noun\n\n## Gender\n\nSome stuff about genders.\n\n- der\n- die\n- das\n",
 			[]Card{
 				{
@@ -26,6 +28,7 @@ func Test_Note_Convert(t *testing.T) {
 		},
 		{
 			"front matter",
+			"/note.md",
 			"---\nfoo: bar\n---\n\n<!-- Comment. -->\n\n# Noun\n\n## Gender\n\nSome stuff about genders.\n\n- der\n- die\n- das\n",
 			[]Card{
 				{
@@ -38,6 +41,7 @@ func Test_Note_Convert(t *testing.T) {
 		},
 		{
 			"images",
+			"/dir/note.md",
 			"# Noun\n\n## Gender\n\n![Example 1](../images/example-1.png)\n\nInline image: ![Example 2](./example-2.png)",
 			[]Card{
 				{
@@ -45,13 +49,15 @@ func Test_Note_Convert(t *testing.T) {
 					Content: "# Noun\n\n## Gender\n\n![Example 1](@media/644ac45828d9a998.png)\n\nInline image: ![Example 2](@media/ccab6c94157cbc99.png)\n",
 					Fields:  map[string]string{},
 					Images: map[string]Image{
-						"../images/example-1.png": {
+						"/images/example-1.png": {
+							Destination: "../images/example-1.png",
 							FileName:    "644ac45828d9a998",
 							Extension:   "png",
 							ContentType: "image/png",
 							AltText:     "Example 1",
 						},
-						"./example-2.png": {
+						"/dir/example-2.png": {
+							Destination: "./example-2.png",
 							FileName:    "ccab6c94157cbc99",
 							Extension:   "png",
 							ContentType: "image/png",
@@ -65,7 +71,7 @@ func Test_Note_Convert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewNote().Convert([]byte(tt.source))
+			got, err := NewNote().Convert(tt.path, []byte(tt.source))
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})

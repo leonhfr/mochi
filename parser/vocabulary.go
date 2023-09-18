@@ -25,6 +25,6 @@ func (v *Vocabulary) Fields() []string {
 	}
 }
 
-func (v *Vocabulary) Convert(_ []byte) ([]Card, error) {
+func (v *Vocabulary) Convert(_ string, _ []byte) ([]Card, error) {
 	return nil, nil
 }

@@ -87,7 +87,7 @@ func parseCards(job *deckJob, fs filesystem.Interface) ([]parser.Card, error) {
 			return nil, err
 		}
 
-		parsedCards, err := job.parser.Convert(content)
+		parsedCards, err := job.parser.Convert(source, content)
 		if err != nil {
 			return nil, err
 		}

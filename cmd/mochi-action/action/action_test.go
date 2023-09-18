@@ -101,7 +101,7 @@ func Test_Run(t *testing.T) {
 		want struct {
 			deckCreates map[api.CreateDeckRequest]api.Deck
 			deckUpdates map[string]api.UpdateDeckRequest
-			cardCreates []api.CreateCardRequest
+			cardCreates map[string]api.CreateCardRequest
 			cardUpdates map[string]api.UpdateCardRequest
 			lockFile    string
 			output      Output
@@ -126,15 +126,22 @@ func Test_Run(t *testing.T) {
 					},
 				},
 				map[string][]api.Card{
-					"id_root": {},
+					"id_root": {
+						{
+							ID:      "id_card_note_2",
+							DeckID:  "id_root",
+							Name:    "Note 2",
+							Content: "# Note 2\n",
+						},
+					},
 				},
 			},
 			want{
 				deckCreates: map[api.CreateDeckRequest]api.Deck{},
 				deckUpdates: map[string]api.UpdateDeckRequest{},
-				cardCreates: []api.CreateCardRequest{
-					{
-						Content: "# Note\n\nA simple note.\n\n![Scream](@media/360edfb43ae42e8a.png)\n",
+				cardCreates: map[string]api.CreateCardRequest{
+					"id_card_note_1": {
+						Content: "# Note 1\n\nA simple note.\n\n![Scream](@media/360edfb43ae42e8a.png)\n",
 						DeckID:  "id_root",
 						Attachments: []api.Attachment{
 							{
@@ -145,9 +152,21 @@ func Test_Run(t *testing.T) {
 						},
 					},
 				},
-				cardUpdates: map[string]api.UpdateCardRequest{},
-				lockFile:    "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n\n[images]\n[images.\"\"]\n\"images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n",
-				output:      Output{LockFileUpdated: true},
+				cardUpdates: map[string]api.UpdateCardRequest{
+					"id_card_note_2": {
+						Content: "# Note 2\n\nAdding an image to an existing note.\n\n![Scream](@media/360edfb43ae42e8a.png)\n",
+						DeckID:  "id_root",
+						Attachments: []api.Attachment{
+							{
+								FileName:    "360edfb43ae42e8a.png",
+								ContentType: "image/png",
+								Data:        string(base64.Scream),
+							},
+						},
+					},
+				},
+				lockFile: "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n\n[images]\n[images.id_card_note_1]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n[images.id_card_note_2]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n",
+				output:   Output{LockFileUpdated: true},
 			},
 		},
 	}
@@ -167,11 +186,11 @@ func Test_Run(t *testing.T) {
 			for id, req := range tt.want.deckUpdates {
 				client.On("UpdateDeck", mock.Anything, id, req).Return(api.Deck{}, nil)
 			}
-			for _, req := range tt.want.cardCreates {
-				client.On("CreateCard", mock.Anything, req).Return(api.Card{}, nil)
+			for id, req := range tt.want.cardCreates {
+				client.On("CreateCard", mock.Anything, req).Return(api.Card{ID: id}, nil)
 			}
 			for id, req := range tt.want.cardUpdates {
-				client.On("UpdateCard", mock.Anything, id, req).Return(api.Card{}, nil)
+				client.On("UpdateCard", mock.Anything, id, req).Return(api.Card{ID: id}, nil)
 			}
 
 			// Filesystem

@@ -5,7 +5,7 @@ import "fmt"
 type Parser interface {
 	fmt.Stringer
 	Fields() []string
-	Convert(source []byte) ([]Card, error)
+	Convert(path string, source []byte) ([]Card, error)
 }
 
 type Card struct {

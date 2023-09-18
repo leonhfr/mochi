@@ -12,6 +12,7 @@ import (
 const fileNameLength = 16
 
 type Image struct {
+	Destination string // original destination
 	FileName    string // <md5 of path relative to root>
 	Extension   string // ext
 	ContentType string // mime type
@@ -27,7 +28,7 @@ var mimeTypes = map[string]string{
 	"webp": "image/webp",
 }
 
-func newImage(destination, altText string) (string, Image) {
+func newImage(path, destination, altText string) (string, Image) {
 	if _, err := url.ParseRequestURI(destination); err == nil {
 		return "", Image{}
 	}
@@ -42,10 +43,12 @@ func newImage(destination, altText string) (string, Image) {
 		return "", Image{}
 	}
 
+	absPath := filepath.Join(filepath.Dir(path), destination)
 	//nolint:gosec
 	hash := fmt.Sprintf("%x", md5.Sum([]byte(destination)))
 
-	return destination, Image{
+	return absPath, Image{
+		Destination: destination,
 		FileName:    hash[:fileNameLength],
 		Extension:   ext,
 		AltText:     altText,
@@ -54,8 +57,8 @@ func newImage(destination, altText string) (string, Image) {
 }
 
 func replaceImages(source string, images map[string]Image) string {
-	for path, image := range images {
-		from := fmt.Sprintf("![%s](%s)", image.AltText, path)
+	for _, image := range images {
+		from := fmt.Sprintf("![%s](%s)", image.AltText, image.Destination)
 		to := fmt.Sprintf("![%s](@media/%s.%s)", image.AltText, image.FileName, image.Extension)
 		source = strings.ReplaceAll(source, from, to)
 	}

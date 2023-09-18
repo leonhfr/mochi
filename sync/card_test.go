@@ -66,8 +66,8 @@ func Test_generateCardRequests(t *testing.T) {
 				"/images.md": "# Images\n\n![Image 1](path/to/image-1.jpg)\n\n![Image 1](another/path/to/image-2.jpg)",
 			},
 			map[string]image{
-				"path/to/image-1.jpg":         {[]byte("Image 1 content."), "image_hash_1"},
-				"another/path/to/image-2.jpg": {[]byte("Image 2 content."), "image_hash_2"},
+				"/path/to/image-1.jpg":         {[]byte("Image 1 content."), "image_hash_1"},
+				"/another/path/to/image-2.jpg": {[]byte("Image 2 content."), "image_hash_2"},
 			},
 			[]cardRequest{
 				{
@@ -92,7 +92,7 @@ func Test_generateCardRequests(t *testing.T) {
 								ContentType: "image/jpg",
 								Data:        "Image 1 content.",
 							},
-							path: "path/to/image-1.jpg",
+							path: "/path/to/image-1.jpg",
 							hash: "image_hash_1",
 						},
 						{
@@ -101,7 +101,7 @@ func Test_generateCardRequests(t *testing.T) {
 								ContentType: "image/jpg",
 								Data:        "Image 2 content.",
 							},
-							path: "another/path/to/image-2.jpg",
+							path: "/another/path/to/image-2.jpg",
 							hash: "image_hash_2",
 						},
 					},
@@ -162,7 +162,8 @@ func Test_parseCards(t *testing.T) {
 					Content: "# Note\n\nA simple note\n\n![Image](@media/d853ca1bac6e94e1.jpg)\n",
 					Fields:  map[string]string{},
 					Images: map[string]parser.Image{
-						"../images/image.jpg": {
+						"/images/image.jpg": {
+							Destination: "../images/image.jpg",
 							FileName:    "d853ca1bac6e94e1",
 							Extension:   "jpg",
 							ContentType: "image/jpg",
