@@ -141,11 +141,11 @@ func Test_Run(t *testing.T) {
 				deckUpdates: map[string]api.UpdateDeckRequest{},
 				cardCreates: map[string]api.CreateCardRequest{
 					"id_card_note_1": {
-						Content: "# Note 1\n\nA simple note.\n\n![Scream](@media/360edfb43ae42e8a.png)\n",
+						Content: "# Note 1\n\nA simple note.\n\n![Scream](@media/d9bc5d59efbd3aca.png)\n",
 						DeckID:  "id_root",
 						Attachments: []api.Attachment{
 							{
-								FileName:    "360edfb43ae42e8a.png",
+								FileName:    "d9bc5d59efbd3aca.png",
 								ContentType: "image/png",
 								Data:        string(base64.Scream),
 							},
@@ -154,11 +154,11 @@ func Test_Run(t *testing.T) {
 				},
 				cardUpdates: map[string]api.UpdateCardRequest{
 					"id_card_note_2": {
-						Content: "# Note 2\n\nAdding an image to an existing note.\n\n![Scream](@media/360edfb43ae42e8a.png)\n",
+						Content: "# Note 2\n\nAdding an image to an existing note.\n\n![Scream](@media/d9bc5d59efbd3aca.png)\n",
 						DeckID:  "id_root",
 						Attachments: []api.Attachment{
 							{
-								FileName:    "360edfb43ae42e8a.png",
+								FileName:    "d9bc5d59efbd3aca.png",
 								ContentType: "image/png",
 								Data:        string(base64.Scream),
 							},

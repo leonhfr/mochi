@@ -84,11 +84,11 @@ func Test_generateCardRequests(t *testing.T) {
 				{
 					kind:    createRequest,
 					deckID:  "id_root",
-					content: "# Images\n\n![Image 1](@media/25a1627c0b27798f.jpg)\n\n![Image 1](@media/ac4c72c7e58b0232.jpg)\n",
+					content: "# Images\n\n![Image 1](@media/c1816e0497517666.jpg)\n\n![Image 1](@media/5ac642a4b61d6ca1.jpg)\n",
 					images: []syncImage{
 						{
 							attachment: api.Attachment{
-								FileName:    "25a1627c0b27798f.jpg",
+								FileName:    "c1816e0497517666.jpg",
 								ContentType: "image/jpg",
 								Data:        "Image 1 content.",
 							},
@@ -97,7 +97,7 @@ func Test_generateCardRequests(t *testing.T) {
 						},
 						{
 							attachment: api.Attachment{
-								FileName:    "ac4c72c7e58b0232.jpg",
+								FileName:    "5ac642a4b61d6ca1.jpg",
 								ContentType: "image/jpg",
 								Data:        "Image 2 content.",
 							},
@@ -159,12 +159,12 @@ func Test_parseCards(t *testing.T) {
 			[]parser.Card{
 				{
 					Name:    "Note",
-					Content: "# Note\n\nA simple note\n\n![Image](@media/d853ca1bac6e94e1.jpg)\n",
+					Content: "# Note\n\nA simple note\n\n![Image](@media/b7e04c679d3e44ec.jpg)\n",
 					Fields:  map[string]string{},
 					Images: map[string]parser.Image{
 						"/images/image.jpg": {
 							Destination: "../images/image.jpg",
-							FileName:    "d853ca1bac6e94e1",
+							FileName:    "b7e04c679d3e44ec",
 							Extension:   "jpg",
 							ContentType: "image/jpg",
 							AltText:     "Image",

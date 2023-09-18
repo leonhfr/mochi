@@ -45,7 +45,7 @@ func newImage(path, destination, altText string) (string, Image) {
 
 	absPath := filepath.Join(filepath.Dir(path), destination)
 	//nolint:gosec
-	hash := fmt.Sprintf("%x", md5.Sum([]byte(destination)))
+	hash := fmt.Sprintf("%x", md5.Sum([]byte(absPath)))
 
 	return absPath, Image{
 		Destination: destination,
