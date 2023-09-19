@@ -259,7 +259,38 @@ func Test_parseCards(t *testing.T) {
 				"/german/vocabulary/s.md": "# s\n\nSpaziergang\nNotes notes.\n\nSpiegel\n",
 				"/german/vocabulary/p.md": "# p\n\nPapagei\n",
 			},
-			nil,
+			[]parser.Card{
+				{
+					Name:    "Spaziergang",
+					Content: "# Spaziergang\n\n## Notes\n\nNotes notes.\n",
+					Fields: map[string]string{
+						"examples": "",
+						"notes":    "Notes notes.",
+						"word":     "Spaziergang",
+					},
+					Images: map[string]parser.Image(nil),
+				},
+				{
+					Name:    "Spiegel",
+					Content: "# Spiegel\n",
+					Fields: map[string]string{
+						"examples": "",
+						"notes":    "",
+						"word":     "Spiegel",
+					},
+					Images: map[string]parser.Image(nil),
+				},
+				{
+					Name:    "Papagei",
+					Content: "# Papagei\n",
+					Fields: map[string]string{
+						"examples": "",
+						"notes":    "",
+						"word":     "Papagei",
+					},
+					Images: map[string]parser.Image(nil),
+				},
+			},
 		},
 	}
 
