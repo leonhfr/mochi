@@ -78,15 +78,17 @@ func Test_Lock_Write(t *testing.T) {
 				Decks: map[string][2]string{
 					"/deck_path": {"deck_id", "Deck Name"},
 				},
-				Images: map[string]map[string]string{
-					"card_id": {
-						"../images/example-1.png": "md5_hash",
+				Images: map[string]map[string]map[string]string{
+					"deck_id": {
+						"card_id": {
+							"../images/example-1.png": "md5_hash",
+						},
 					},
 				},
 				updated: true,
 			},
 			map[string]string{
-				lockName: "[decks]\n\"/deck_path\" = [\"deck_id\", \"Deck Name\"]\n\n[images]\n[images.card_id]\n\"../images/example-1.png\" = \"md5_hash\"\n",
+				lockName: "[decks]\n\"/deck_path\" = [\"deck_id\", \"Deck Name\"]\n\n[images]\n[images.deck_id]\n[images.deck_id.card_id]\n\"../images/example-1.png\" = \"md5_hash\"\n",
 			},
 			true,
 		},

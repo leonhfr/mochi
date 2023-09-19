@@ -79,7 +79,7 @@ func newUpdateCardRequest(job *deckJob, id string, card parser.Card, lock *Lock,
 		if err != nil {
 			return cardRequest{}, err
 		}
-		existingHash, ok := lock.getImageHash(id, path)
+		existingHash, ok := lock.getImageHash(job.id, id, path)
 		if (!ok || existingHash != hash) && len(hash) > 0 {
 			images = append(images, syncImage{
 				attachment: attachment,
@@ -126,7 +126,7 @@ func processCardRequest(ctx context.Context, req cardRequest, lock *Lock, client
 		if err != nil {
 			return err
 		}
-		setImages(card.ID, req.images, lock)
+		setImages(req.deckID, card.ID, req.images, lock)
 		return nil
 	case updateRequest:
 		card, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
@@ -139,7 +139,7 @@ func processCardRequest(ctx context.Context, req cardRequest, lock *Lock, client
 		if err != nil {
 			return err
 		}
-		setImages(card.ID, req.images, lock)
+		setImages(req.deckID, card.ID, req.images, lock)
 		return nil
 	case archiveRequest:
 		_, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
@@ -166,9 +166,9 @@ func newCardContent(job *deckJob, card parser.Card) (string, map[string]api.Fiel
 	return "", fields
 }
 
-func setImages(id string, images []syncImage, lock *Lock) {
+func setImages(deckID, cardID string, images []syncImage, lock *Lock) {
 	for _, image := range images {
-		lock.setImageHash(id, image.path, image.hash)
+		lock.setImageHash(deckID, cardID, image.path, image.hash)
 	}
 }
 

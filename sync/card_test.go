@@ -35,13 +35,18 @@ func Test_generateCardRequests(t *testing.T) {
 					"/note-1.md",
 					"/note-2.md",
 					"/note-3.md",
-					"/images.md",
+					"/image-1.md",
+					"/image-2.md",
 				},
 				parser: parser.NewNote(),
 			},
 			&Lock{
-				Decks:  map[string][2]string{},
-				Images: map[string]map[string]string{},
+				Decks: map[string][2]string{},
+				Images: map[string]map[string]map[string]string{
+					"id_root": {
+						"id_deleted_card": {"/path/to/deleted/image.png": "hash_deleted_card"},
+					},
+				},
 			},
 			map[string][]api.Card{
 				"id_root": {
@@ -60,10 +65,11 @@ func Test_generateCardRequests(t *testing.T) {
 				},
 			},
 			map[string]string{
-				"/note-1.md": "# Note 1\n\nContent 1\n",
-				"/note-2.md": "# Note 2\n\nContent 2\n",
-				"/note-3.md": "# Note 3\n\nContent 3\n",
-				"/images.md": "# Images\n\n![Image 1](path/to/image-1.jpg)\n\n![Image 1](another/path/to/image-2.jpg)",
+				"/note-1.md":  "# Note 1\n\nContent 1\n",
+				"/note-2.md":  "# Note 2\n\nContent 2\n",
+				"/note-3.md":  "# Note 3\n\nContent 3\n",
+				"/image-1.md": "# Image 1\n\n![Image 1](path/to/image-1.jpg)\n",
+				"/image-2.md": "# Image 2\n\n![Image 2](another/path/to/image-2.jpg)\n",
 			},
 			map[string]image{
 				"/path/to/image-1.jpg":         {[]byte("Image 1 content."), "image_hash_1"},
@@ -84,7 +90,7 @@ func Test_generateCardRequests(t *testing.T) {
 				{
 					kind:    createRequest,
 					deckID:  "id_root",
-					content: "# Images\n\n![Image 1](@media/c1816e0497517666.jpg)\n\n![Image 1](@media/5ac642a4b61d6ca1.jpg)\n",
+					content: "# Image 1\n\n![Image 1](@media/c1816e0497517666.jpg)\n",
 					images: []syncImage{
 						{
 							attachment: api.Attachment{
@@ -95,6 +101,13 @@ func Test_generateCardRequests(t *testing.T) {
 							path: "/path/to/image-1.jpg",
 							hash: "image_hash_1",
 						},
+					},
+				},
+				{
+					kind:    createRequest,
+					deckID:  "id_root",
+					content: "# Image 2\n\n![Image 2](@media/5ac642a4b61d6ca1.jpg)\n",
+					images: []syncImage{
 						{
 							attachment: api.Attachment{
 								FileName:    "5ac642a4b61d6ca1.jpg",

@@ -165,7 +165,7 @@ func Test_Run(t *testing.T) {
 						},
 					},
 				},
-				lockFile: "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n\n[images]\n[images.id_card_note_1]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n[images.id_card_note_2]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n",
+				lockFile: "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n\n[images]\n[images.id_root]\n[images.id_root.id_card_note_1]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n[images.id_root.id_card_note_2]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n",
 				output:   Output{LockFileUpdated: true},
 			},
 		},

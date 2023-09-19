@@ -23,8 +23,8 @@ const (
 )
 
 type Lock struct {
-	Decks   map[string][2]string         `toml:"decks,omitempty"`  // directory path: [deck id, deck name]
-	Images  map[string]map[string]string `toml:"images,omitempty"` // card id: file path: hash
+	Decks   map[string][2]string                    `toml:"decks,omitempty"`  // directory path: [deck id, deck name]
+	Images  map[string]map[string]map[string]string `toml:"images,omitempty"` // deck id: card id: file path: hash
 	updated bool
 	mu      sync.RWMutex
 }
@@ -37,7 +37,7 @@ func ReadLock(ctx context.Context, client Client, fs filesystem.Interface) (*Loc
 
 	lock := &Lock{
 		Decks:  map[string][2]string{},
-		Images: map[string]map[string]string{},
+		Images: map[string]map[string]map[string]string{},
 	}
 	if err := toml.Unmarshal(source, lock); err != nil {
 		return nil, err
@@ -74,26 +74,44 @@ func (l *Lock) deleteDeck(path string) {
 	l.updated = true
 }
 
-func (l *Lock) getImageHash(id, path string) (string, bool) {
+func (l *Lock) getImageHash(deckID, cardID, path string) (string, bool) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
-	images, ok := l.Images[id]
+
+	deckImageHashes, ok := l.Images[deckID]
 	if !ok {
 		return "", false
 	}
-	image, ok := images[path]
-	return image, ok
+
+	cardImageHashes, ok := deckImageHashes[cardID]
+	if !ok {
+		return "", false
+	}
+
+	hash, ok := cardImageHashes[path]
+	return hash, ok
 }
 
-func (l *Lock) setImageHash(id, path, hash string) {
+func (l *Lock) setImageHash(deckID, cardID, path, hash string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	l.updated = true
-	if _, ok := l.Images[id]; !ok {
-		l.Images[id] = map[string]string{path: hash}
+	if _, ok := l.Images[deckID]; !ok {
+		l.Images[deckID] = map[string]map[string]string{
+			cardID: {path: hash},
+		}
 		return
 	}
-	l.Images[id][path] = hash
+
+	if _, ok := l.Images[deckID][cardID]; !ok {
+		l.Images[deckID][cardID] = map[string]string{
+			path: hash,
+		}
+		return
+	}
+
+	l.Images[deckID][cardID][path] = hash
 }
 
 func (l *Lock) Write(fs filesystem.Interface) (bool, error) {
