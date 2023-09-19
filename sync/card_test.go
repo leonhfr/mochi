@@ -34,6 +34,50 @@ func Test_generateCardRequests(t *testing.T) {
 		want     want
 	}{
 		{
+			"should dearchive (update) card",
+			&deckJob{
+				id: "id_root",
+				sources: []string{
+					"/note.md",
+				},
+				parser: parser.NewNote(),
+			},
+			&Lock{
+				Decks:  map[string][2]string{},
+				Images: map[string]map[string]map[string]string{},
+			},
+			map[string][]api.Card{
+				"id_root": {
+					{
+						DeckID:   "id_root",
+						ID:       "id_note",
+						Name:     "Note",
+						Content:  "# Note\n\nContent.\n",
+						Archived: true,
+					},
+				},
+			},
+			map[string]string{
+				"/note.md": "# Note\n\nContent.\n",
+			},
+			map[string]image{},
+			want{
+				[]cardRequest{
+					{
+						kind:     updateRequest,
+						id:       "id_note",
+						deckID:   "id_root",
+						content:  "# Note\n\nContent.\n",
+						archived: false,
+					},
+				},
+				&Lock{
+					Decks:  map[string][2]string{},
+					Images: map[string]map[string]map[string]string{},
+				},
+			},
+		},
+		{
 			"generate card requests",
 			&deckJob{
 				id: "id_root",

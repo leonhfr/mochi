@@ -107,7 +107,7 @@ func parseCards(job *deckJob, fs filesystem.Interface) ([]parser.Card, error) {
 
 func cardEqual(job *deckJob, card parser.Card, apiCard api.Card) bool {
 	if !job.hasTemplate {
-		return card.Name == apiCard.Name && card.Content == apiCard.Content
+		return card.Name == apiCard.Name && card.Content == apiCard.Content && !apiCard.Archived
 	}
 
 	if card.Name != apiCard.Name || job.template.TemplateID != apiCard.TemplateID {
@@ -124,7 +124,7 @@ func cardEqual(job *deckJob, card parser.Card, apiCard api.Card) bool {
 		}
 	}
 
-	return true
+	return !apiCard.Archived
 }
 
 func numHandlers() int {
