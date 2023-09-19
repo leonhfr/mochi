@@ -1,4 +1,6 @@
 sync:
+  - path: german/vocabulary
+    template: german
   - path: .
     name: Notes (root)
     parser: note
@@ -7,3 +9,12 @@ sync:
 
 ignore:
   - journal/*
+
+templates:
+  german:
+    parser: vocabulary
+    templateId: xxxxxxxx
+    fields:
+      aaaaaaaa: word
+      bbbbbbbb: examples
+      cccccccc: notes

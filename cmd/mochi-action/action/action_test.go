@@ -118,7 +118,16 @@ func Test_Run(t *testing.T) {
 			"all files",
 			nil,
 			apiResponses{
-				nil,
+				[]api.Template{
+					{
+						ID: "xxxxxxxx",
+						Fields: map[string]api.FieldTemplate{
+							"aaaaaaaa": {ID: "aaaaaaaa"},
+							"bbbbbbbb": {ID: "bbbbbbbb"},
+							"cccccccc": {ID: "cccccccc"},
+						},
+					},
+				},
 				[]api.Deck{
 					{
 						Name: "Notes (root)",
@@ -134,12 +143,25 @@ func Test_Run(t *testing.T) {
 							Content: "# Note 2\n",
 						},
 					},
+					"id_german_vocabulary": {},
 				},
 			},
 			want{
-				deckCreates: map[api.CreateDeckRequest]api.Deck{},
+				deckCreates: map[api.CreateDeckRequest]api.Deck{
+					{Name: "German"}: {ID: "id_german"},
+					{Name: "Vocabulary", ParentID: "id_german"}: {ID: "id_german_vocabulary"},
+				},
 				deckUpdates: map[string]api.UpdateDeckRequest{},
 				cardCreates: map[string]api.CreateCardRequest{
+					"id_card_vocabulary_1": {
+						DeckID:     "id_german_vocabulary",
+						TemplateID: "xxxxxxxx",
+						Fields: map[string]api.Field{
+							"aaaaaaaa": {ID: "aaaaaaaa", Value: "Spaziergang"},
+							"bbbbbbbb": {ID: "bbbbbbbb"},
+							"cccccccc": {ID: "cccccccc"},
+						},
+					},
 					"id_card_note_1": {
 						Content: "# Note 1\n\nA simple note.\n\n![Scream](@media/d9bc5d59efbd3aca.png)\n",
 						DeckID:  "id_root",
@@ -165,7 +187,7 @@ func Test_Run(t *testing.T) {
 						},
 					},
 				},
-				lockFile: "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n\n[images]\n[images.id_root]\n[images.id_root.id_card_note_1]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n[images.id_root.id_card_note_2]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n",
+				lockFile: "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n\"/german\" = [\"id_german\", \"\"]\n\"/german/vocabulary\" = [\"id_german_vocabulary\", \"\"]\n\n[images]\n[images.id_root]\n[images.id_root.id_card_note_1]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n[images.id_root.id_card_note_2]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n",
 				output:   Output{LockFileUpdated: true},
 			},
 		},

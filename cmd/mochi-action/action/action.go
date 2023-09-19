@@ -59,7 +59,10 @@ func SetOutput(gha *githubactions.Action, output Output) {
 }
 
 func Run(ctx context.Context, changedFiles []string, gha *githubactions.Action, client Client, fs filesystem.Interface) (output Output, err error) {
-	parsers := []parser.Parser{parser.NewNote()}
+	parsers := []parser.Parser{
+		parser.NewNote(),
+		parser.NewVocabulary(),
+	}
 
 	gha.Noticef("Reading config...")
 	config, err := sync.ReadConfig(ctx, parsers, client, fs)
