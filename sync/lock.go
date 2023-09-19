@@ -56,6 +56,7 @@ func ReadLock(ctx context.Context, client Client, fs filesystem.Interface) (*Loc
 func (l *Lock) getDeck(path string) ([2]string, bool) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
+
 	deck, ok := l.Decks[path]
 	return deck, ok
 }
@@ -63,6 +64,7 @@ func (l *Lock) getDeck(path string) ([2]string, bool) {
 func (l *Lock) setDeck(path string, deck [2]string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	l.Decks[path] = deck
 	l.updated = true
 }
@@ -70,7 +72,40 @@ func (l *Lock) setDeck(path string, deck [2]string) {
 func (l *Lock) deleteDeck(path string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	delete(l.Decks, path)
+	l.updated = true
+}
+
+func (l *Lock) getImageCards(deckID string) []string {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
+	deck, ok := l.Images[deckID]
+	if !ok {
+		return nil
+	}
+
+	cards := make([]string, 0, len(deck))
+	for card := range deck {
+		cards = append(cards, card)
+	}
+	return cards
+}
+
+func (l *Lock) deleteImageDeck(deckID string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	delete(l.Images, deckID)
+	l.updated = true
+}
+
+func (l *Lock) deleteImageCard(deckID, cardID string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	delete(l.Images[deckID], cardID)
 	l.updated = true
 }
 
@@ -149,6 +184,14 @@ func updateLock(lock *Lock, decks []api.Deck) {
 
 		if apiDeck := decks[index]; deck[indexDeckName] != apiDeck.Name {
 			lock.setDeck(path, [2]string{apiDeck.ID, apiDeck.Name})
+		}
+	}
+
+	for deckID := range lock.Images {
+		if !slices.ContainsFunc[[]api.Deck](decks, func(d api.Deck) bool {
+			return d.ID == deckID
+		}) {
+			lock.deleteImageDeck(deckID)
 		}
 	}
 }

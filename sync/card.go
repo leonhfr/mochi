@@ -44,6 +44,14 @@ func generateCardRequests(ctx context.Context, job *deckJob, lock *Lock, client 
 		return nil, err
 	}
 
+	for _, cardID := range lock.getImageCards(job.id) {
+		if !slices.ContainsFunc[[]api.Card](apiCards, func(c api.Card) bool {
+			return c.ID == cardID
+		}) {
+			lock.deleteImageCard(job.id, cardID)
+		}
+	}
+
 	var requests []cardRequest
 	for _, card := range cards {
 		index := slices.IndexFunc[[]api.Card](apiCards, func(apiCard api.Card) bool {

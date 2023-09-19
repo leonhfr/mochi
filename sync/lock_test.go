@@ -163,6 +163,19 @@ func Test_updateLock(t *testing.T) {
 				updated: true,
 			},
 		},
+		{
+			"images deck delete",
+			[]api.Deck{},
+			&Lock{
+				Images: map[string]map[string]map[string]string{
+					"id_deck": {},
+				},
+			},
+			&Lock{
+				Images:  map[string]map[string]map[string]string{},
+				updated: true,
+			},
+		},
 	}
 
 	for _, tt := range tests {

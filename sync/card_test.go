@@ -13,10 +13,16 @@ import (
 )
 
 func Test_generateCardRequests(t *testing.T) {
-	type image struct {
-		content []byte
-		hash    string
-	}
+	type (
+		image struct {
+			content []byte
+			hash    string
+		}
+		want struct {
+			requests []cardRequest
+			lock     *Lock
+		}
+	)
 
 	tests := []struct {
 		name     string
@@ -25,7 +31,7 @@ func Test_generateCardRequests(t *testing.T) {
 		cards    map[string][]api.Card
 		markdown map[string]string
 		images   map[string]image
-		want     []cardRequest
+		want     want
 	}{
 		{
 			"generate card requests",
@@ -75,49 +81,58 @@ func Test_generateCardRequests(t *testing.T) {
 				"/path/to/image-1.jpg":         {[]byte("Image 1 content."), "image_hash_1"},
 				"/another/path/to/image-2.jpg": {[]byte("Image 2 content."), "image_hash_2"},
 			},
-			[]cardRequest{
-				{
-					id:      "id_note_2",
-					kind:    updateRequest,
-					deckID:  "id_root",
-					content: "# Note 2\n\nContent 2\n",
-				},
-				{
-					kind:    createRequest,
-					deckID:  "id_root",
-					content: "# Note 3\n\nContent 3\n",
-				},
-				{
-					kind:    createRequest,
-					deckID:  "id_root",
-					content: "# Image 1\n\n![Image 1](@media/c1816e0497517666.jpg)\n",
-					images: []syncImage{
-						{
-							attachment: api.Attachment{
-								FileName:    "c1816e0497517666.jpg",
-								ContentType: "image/jpg",
-								Data:        "Image 1 content.",
+			want{
+				[]cardRequest{
+					{
+						id:      "id_note_2",
+						kind:    updateRequest,
+						deckID:  "id_root",
+						content: "# Note 2\n\nContent 2\n",
+					},
+					{
+						kind:    createRequest,
+						deckID:  "id_root",
+						content: "# Note 3\n\nContent 3\n",
+					},
+					{
+						kind:    createRequest,
+						deckID:  "id_root",
+						content: "# Image 1\n\n![Image 1](@media/c1816e0497517666.jpg)\n",
+						images: []syncImage{
+							{
+								attachment: api.Attachment{
+									FileName:    "c1816e0497517666.jpg",
+									ContentType: "image/jpg",
+									Data:        "Image 1 content.",
+								},
+								path: "/path/to/image-1.jpg",
+								hash: "image_hash_1",
 							},
-							path: "/path/to/image-1.jpg",
-							hash: "image_hash_1",
+						},
+					},
+					{
+						kind:    createRequest,
+						deckID:  "id_root",
+						content: "# Image 2\n\n![Image 2](@media/5ac642a4b61d6ca1.jpg)\n",
+						images: []syncImage{
+							{
+								attachment: api.Attachment{
+									FileName:    "5ac642a4b61d6ca1.jpg",
+									ContentType: "image/jpg",
+									Data:        "Image 2 content.",
+								},
+								path: "/another/path/to/image-2.jpg",
+								hash: "image_hash_2",
+							},
 						},
 					},
 				},
-				{
-					kind:    createRequest,
-					deckID:  "id_root",
-					content: "# Image 2\n\n![Image 2](@media/5ac642a4b61d6ca1.jpg)\n",
-					images: []syncImage{
-						{
-							attachment: api.Attachment{
-								FileName:    "5ac642a4b61d6ca1.jpg",
-								ContentType: "image/jpg",
-								Data:        "Image 2 content.",
-							},
-							path: "/another/path/to/image-2.jpg",
-							hash: "image_hash_2",
-						},
+				&Lock{
+					Decks: map[string][2]string{},
+					Images: map[string]map[string]map[string]string{
+						"id_root": {},
 					},
+					updated: true,
 				},
 			},
 		},
@@ -144,7 +159,8 @@ func Test_generateCardRequests(t *testing.T) {
 			got, err := generateCardRequests(context.Background(), tt.job, tt.lock, client, fs)
 
 			require.NoError(t, err)
-			assert.ElementsMatch(t, tt.want, got)
+			assert.ElementsMatch(t, tt.want.requests, got)
+			assert.Equal(t, tt.want.lock, tt.lock)
 			client.AssertExpectations(t)
 			fs.AssertExpectations(t)
 		})
