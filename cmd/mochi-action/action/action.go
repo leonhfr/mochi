@@ -62,6 +62,7 @@ func Run(ctx context.Context, changedFiles []string, gha *githubactions.Action, 
 	parsers := []parser.Parser{
 		parser.NewNote(),
 		parser.NewVocabulary(),
+		parser.NewHeadings(),
 	}
 
 	gha.Noticef("Reading config...")
