@@ -10,18 +10,20 @@ import (
 const baseURL = "https://app.mochi.cards/"
 
 type Client struct {
-	baseURL string
-	token   string
-	client  *http.Client
+	baseURL   string
+	token     string
+	client    *http.Client
+	transport http.RoundTripper
 }
 
 type Option func(c *Client)
 
 func New(token string, options ...Option) *Client {
 	c := &Client{
-		baseURL: baseURL,
-		token:   token,
-		client:  http.DefaultClient,
+		baseURL:   baseURL,
+		token:     token,
+		client:    http.DefaultClient,
+		transport: http.DefaultTransport,
 	}
 
 	for _, option := range options {
@@ -43,10 +45,17 @@ func WithClient(client *http.Client) Option {
 	}
 }
 
+func WithTransport(transport http.RoundTripper) Option {
+	return func(c *Client) {
+		c.transport = transport
+	}
+}
+
 func (c *Client) builder() *requests.Builder {
 	return requests.
 		URL(c.baseURL).
 		Client(c.client).
+		Transport(c.transport).
 		Accept("application/json").
 		BasicAuth(c.token, "")
 }

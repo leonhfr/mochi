@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/sethvargo/go-githubactions"
 
@@ -19,7 +20,8 @@ func main() {
 		gha.Fatalf("%v", err)
 	}
 
-	client := api.New(input.APIToken)
+	transport := action.NewThrottledTransport(30, 15*time.Second)
+	client := api.New(input.APIToken, api.WithTransport(transport))
 	fs := filesystem.New(input.Workspace)
 
 	output, err := action.Run(ctx, input.ChangedFiles, gha, client, fs)
