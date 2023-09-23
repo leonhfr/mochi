@@ -118,7 +118,7 @@ func parseParagraph(paragraph *ast.Paragraph, path string, source []byte) (strin
 
 		return ast.WalkContinue, nil
 	})
-	return strings.Join(lines, ""), images, err
+	return strings.Join(lines, "\n"), images, err
 }
 
 func newHeadingsCard(name string, paragraphs []string, images map[string]Image) Card {
