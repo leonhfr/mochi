@@ -20,7 +20,7 @@ func main() {
 		gha.Fatalf("%v", err)
 	}
 
-	transport := action.NewThrottledTransport(30, 15*time.Second)
+	transport := action.NewThrottledTransport(60, 10*time.Second)
 	client := api.New(input.APIToken, api.WithTransport(transport))
 	fs := filesystem.New(input.Workspace)
 
