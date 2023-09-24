@@ -110,6 +110,13 @@ func parseParagraph(paragraph *ast.Paragraph, path string, source []byte) (strin
 			return ast.WalkSkipChildren, nil
 		}
 
+		if link, ok := n.(*ast.Link); ok && entering {
+			destination := string(link.Destination)
+			text := string(link.Text(source))
+			lines = append(lines, fmt.Sprintf("[%s](%s)", text, destination))
+			return ast.WalkSkipChildren, nil
+		}
+
 		if _, ok := n.(*ast.Text); ok && entering {
 			if text := string(n.Text(source)); len(text) > 0 {
 				lines = append(lines, text)
@@ -125,6 +132,7 @@ func newHeadingsCard(name string, paragraphs []string, images map[string]Image) 
 	title := formatHeading(name, headingsLevel)
 	content := concatenateBlocks(append([]string{title}, paragraphs...)) + "\n"
 	content = replaceImages(content, images)
+	content = replaceVideos(content)
 	return Card{
 		Name:    name,
 		Content: content,

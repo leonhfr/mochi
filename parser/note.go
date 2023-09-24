@@ -76,6 +76,7 @@ func (n *Note) Convert(path string, source []byte) ([]Card, error) {
 
 	content := trimFrontmatter(string(source), fmLength)
 	content = replaceImages(content, images)
+	content = replaceVideos(content)
 	return []Card{
 		{
 			Name:    name,

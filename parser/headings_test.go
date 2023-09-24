@@ -67,6 +67,19 @@ func Test_Headings_Convert(t *testing.T) {
 				},
 			},
 		},
+		{
+			"video",
+			"/video.md",
+			"# Video\n\n[@video](https://www.youtube-nocookie.com/embed/VIDEO_ID)\n",
+			[]Card{
+				{
+					Name:    "Video",
+					Content: "# Video\n\n<iframe src=\"https://www.youtube-nocookie.com/embed/VIDEO_ID?rel=0&amp;autoplay=0&amp;showinfo=0&amp;enablejsapi=0\" frameborder=\"0\" loading=\"lazy\" gesture=\"media\" allow=\"autoplay; fullscreen\" allowautoplay=\"true\" allowfullscreen=\"true\" style=\"aspect-ratio:16/9;height:100%;width:100%;\"></iframe>\n",
+					Fields:  map[string]string{},
+					Images:  map[string]Image{},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
