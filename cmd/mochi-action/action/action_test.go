@@ -163,13 +163,13 @@ func Test_Run(t *testing.T) {
 						},
 					},
 					"id_card_note_1": {
-						Content: "# Note 1\n\nA simple note.\n\n![Scream](@media/d9bc5d59efbd3aca.png)\n",
+						Content: "# Note 1\n\nA simple note.\n\n![Constellations](@media/475e4a2888d507e5.jpg)\n\n![Scream](@media/d9bc5d59efbd3aca.png)\n",
 						DeckID:  "id_root",
 						Attachments: []api.Attachment{
 							{
-								FileName:    "d9bc5d59efbd3aca.png",
-								ContentType: "image/png",
-								Data:        string(base64.Scream),
+								FileName:    "475e4a2888d507e5.jpg",
+								ContentType: "image/jpg",
+								Data:        string(base64.Constellations),
 							},
 						},
 					},
@@ -186,8 +186,19 @@ func Test_Run(t *testing.T) {
 							},
 						},
 					},
+					"id_card_note_1": {
+						Content: "# Note 1\n\nA simple note.\n\n![Constellations](@media/475e4a2888d507e5.jpg)\n\n![Scream](@media/d9bc5d59efbd3aca.png)\n",
+						DeckID:  "id_root",
+						Attachments: []api.Attachment{
+							{
+								FileName:    "d9bc5d59efbd3aca.png",
+								ContentType: "image/png",
+								Data:        string(base64.Scream),
+							},
+						},
+					},
 				},
-				lockFile: "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n\"/german\" = [\"id_german\", \"\"]\n\"/german/vocabulary\" = [\"id_german_vocabulary\", \"\"]\n\n[images]\n[images.id_root]\n[images.id_root.id_card_note_1]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n[images.id_root.id_card_note_2]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n",
+				lockFile: "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n\"/german\" = [\"id_german\", \"\"]\n\"/german/vocabulary\" = [\"id_german_vocabulary\", \"\"]\n\n[images]\n[images.id_root]\n[images.id_root.id_card_note_1]\n\"/images/constellations.jpg\" = \"d76091ac3aa97c6fa44f05e35f848332\"\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n[images.id_root.id_card_note_2]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n",
 				output:   Output{LockFileUpdated: true},
 			},
 		},

@@ -3,6 +3,7 @@ package sync
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/leonhfr/mochi/api"
 	"github.com/leonhfr/mochi/filesystem"
@@ -113,50 +114,126 @@ func processCardRequest(ctx context.Context, req cardRequest, lock *Lock, client
 	for _, image := range req.images {
 		attachments = append(attachments, image.attachment)
 	}
+	sort.Slice(attachments, func(i, j int) bool {
+		return attachments[i].FileName < attachments[j].FileName
+	})
 
 	switch req.kind {
 	case createRequest:
-		card, err := client.CreateCard(ctx, api.CreateCardRequest{
-			DeckID:      req.deckID,
-			Content:     req.content,
-			TemplateID:  req.templateID,
-			Fields:      req.fields,
-			Attachments: attachments,
-		})
-		if err != nil {
-			logger.Errorf("Card creation failed: %s...", substring(req.content, 100))
+		if len(attachments) == 0 {
+			_, err := createCard(ctx, req, lock, client, logger)
 			return err
 		}
-		logger.Infof("Created card with id %s, deck id %s, %d attachments", card.ID, card.DeckID, len(attachments))
-		setImages(req.deckID, card.ID, req.images, lock)
+
+		for index, attachment := range attachments {
+			if index == 0 {
+				card, err := createCardWithAttachment(ctx, req, attachment, lock, client, logger)
+				if err != nil {
+					return err
+				}
+				req.id = card.ID
+
+				continue
+			}
+
+			if err := updateCardWithAttachment(ctx, req, attachment, lock, client, logger); err != nil {
+				return err
+			}
+		}
 		return nil
 	case updateRequest:
-		card, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
-			DeckID:      req.deckID,
-			Content:     req.content,
-			TemplateID:  req.templateID,
-			Fields:      req.fields,
-			Attachments: attachments,
-		})
-		if err != nil {
-			logger.Errorf("Card update failed (id: %s): %s...", req.id, substring(req.content, 100))
-			return err
+		if len(attachments) == 0 {
+			return updateCard(ctx, req, lock, client, logger)
 		}
-		logger.Infof("Updated card with id %s, deck id %s, %d attachments", card.ID, card.DeckID, len(attachments))
-		setImages(req.deckID, card.ID, req.images, lock)
+
+		for _, attachment := range attachments {
+			if err := updateCardWithAttachment(ctx, req, attachment, lock, client, logger); err != nil {
+				return err
+			}
+		}
 		return nil
 	case archiveRequest:
-		card, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
-			Archived: true,
-		})
-		if err != nil {
-			logger.Errorf("Card archive failed (id: %s)", req.id)
-		}
-		logger.Infof("Archived card with id %s, deck id %s", card.ID, card.DeckID)
-		return nil
+		return archiveCard(ctx, req, client, logger)
 	default:
 		return nil
 	}
+}
+
+func createCard(ctx context.Context, req cardRequest, lock *Lock, client Client, logger Logger) (api.Card, error) {
+	card, err := client.CreateCard(ctx, api.CreateCardRequest{
+		DeckID:     req.deckID,
+		Content:    req.content,
+		TemplateID: req.templateID,
+		Fields:     req.fields,
+	})
+	if err != nil {
+		logger.Errorf("Card creation failed: %s...", substring(req.content, 100))
+		return card, err
+	}
+	logger.Infof("Created card with id %s, deck id %s", card.ID, card.DeckID)
+	setImages(req.deckID, card.ID, req.images, lock)
+	return card, nil
+}
+
+func createCardWithAttachment(ctx context.Context, req cardRequest, attachment api.Attachment, lock *Lock, client Client, logger Logger) (api.Card, error) {
+	card, err := client.CreateCard(ctx, api.CreateCardRequest{
+		DeckID:      req.deckID,
+		Content:     req.content,
+		TemplateID:  req.templateID,
+		Fields:      req.fields,
+		Attachments: []api.Attachment{attachment},
+	})
+	if err != nil {
+		logger.Errorf("Card creation failed: %s...", substring(req.content, 100))
+		return card, err
+	}
+	logger.Infof("Created card with id %s, deck id %s, attachment %s", card.ID, card.DeckID, attachment.FileName)
+	setImages(req.deckID, card.ID, req.images, lock)
+	return card, nil
+}
+
+func updateCard(ctx context.Context, req cardRequest, lock *Lock, client Client, logger Logger) error {
+	card, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
+		DeckID:     req.deckID,
+		Content:    req.content,
+		TemplateID: req.templateID,
+		Fields:     req.fields,
+	})
+	if err != nil {
+		logger.Errorf("Card update failed (id: %s): %s...", req.id, substring(req.content, 100))
+		return err
+	}
+	logger.Infof("Updated card with id %s, deck id %s", card.ID, card.DeckID)
+	setImages(req.deckID, card.ID, req.images, lock)
+	return nil
+}
+
+func updateCardWithAttachment(ctx context.Context, req cardRequest, attachment api.Attachment, lock *Lock, client Client, logger Logger) error {
+	card, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
+		DeckID:      req.deckID,
+		Content:     req.content,
+		TemplateID:  req.templateID,
+		Fields:      req.fields,
+		Attachments: []api.Attachment{attachment},
+	})
+	if err != nil {
+		logger.Errorf("Card update with attachment failed (id: %s): %s...", req.id, substring(req.content, 100))
+		return err
+	}
+	logger.Infof("Updated card with id %s, deck id %s, attachment %s", card.ID, card.DeckID, attachment.FileName)
+	setImages(req.deckID, card.ID, req.images, lock)
+	return nil
+}
+
+func archiveCard(ctx context.Context, req cardRequest, client Client, logger Logger) error {
+	card, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
+		Archived: true,
+	})
+	if err != nil {
+		logger.Errorf("Card archive failed (id: %s)", req.id)
+	}
+	logger.Infof("Archived card with id %s, deck id %s", card.ID, card.DeckID)
+	return nil
 }
 
 func newCardContent(job *deckJob, card parser.Card) (string, map[string]api.Field) {
