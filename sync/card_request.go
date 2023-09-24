@@ -123,10 +123,11 @@ func processCardRequest(ctx context.Context, req cardRequest, lock *Lock, client
 			Fields:      req.fields,
 			Attachments: attachments,
 		})
-		logger.Infof("Created card with id %s, deck id %s, %d attachments", card.ID, card.DeckID, len(attachments))
 		if err != nil {
+			logger.Errorf("Card creation failed: %s...", substring(req.content, 100))
 			return err
 		}
+		logger.Infof("Created card with id %s, deck id %s, %d attachments", card.ID, card.DeckID, len(attachments))
 		setImages(req.deckID, card.ID, req.images, lock)
 		return nil
 	case updateRequest:
@@ -137,18 +138,22 @@ func processCardRequest(ctx context.Context, req cardRequest, lock *Lock, client
 			Fields:      req.fields,
 			Attachments: attachments,
 		})
-		logger.Infof("Updated card with id %s, deck id %s, %d attachments", card.ID, card.DeckID, len(attachments))
 		if err != nil {
+			logger.Errorf("Card update failed (id: %s): %s...", req.id, substring(req.content, 100))
 			return err
 		}
+		logger.Infof("Updated card with id %s, deck id %s, %d attachments", card.ID, card.DeckID, len(attachments))
 		setImages(req.deckID, card.ID, req.images, lock)
 		return nil
 	case archiveRequest:
 		card, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
 			Archived: true,
 		})
+		if err != nil {
+			logger.Errorf("Card archive failed (id: %s)", req.id)
+		}
 		logger.Infof("Archived card with id %s, deck id %s", card.ID, card.DeckID)
-		return err
+		return nil
 	default:
 		return nil
 	}
@@ -188,4 +193,11 @@ func newImageAttachment(path string, image parser.Image, fs filesystem.Interface
 		ContentType: image.ContentType,
 		Data:        string(base64),
 	}, hash, nil
+}
+
+func substring(text string, length int) string {
+	if len(text) < length {
+		return text
+	}
+	return text[:length]
 }

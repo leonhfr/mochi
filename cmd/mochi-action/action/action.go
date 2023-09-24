@@ -128,6 +128,14 @@ type logger struct {
 	gha *githubactions.Action
 }
 
+func (l *logger) Error(message string) {
+	l.gha.Errorf(message)
+}
+
+func (l *logger) Errorf(format string, args ...any) {
+	l.gha.Errorf(format, args...)
+}
+
 func (l *logger) Info(message string) {
 	l.gha.Infof(message)
 }
