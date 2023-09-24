@@ -59,53 +59,57 @@ func SetOutput(gha *githubactions.Action, output Output) {
 }
 
 func Run(ctx context.Context, changedFiles []string, gha *githubactions.Action, client Client, fs filesystem.Interface) (output Output, err error) {
+	logger := &logger{gha}
 	parsers := []parser.Parser{
 		parser.NewNote(),
 		parser.NewVocabulary(),
 		parser.NewHeadings(),
 	}
 
-	gha.Noticef("Reading config...")
+	gha.Infof("Reading config...")
 	config, err := sync.ReadConfig(ctx, parsers, client, fs)
 	if err != nil {
 		return Output{}, err
 	}
 
-	gha.Noticef("Reading lock file...")
+	gha.Infof("Reading lock file...")
 	lock, err := sync.ReadLock(ctx, client, fs)
 	if err != nil {
 		return Output{}, err
 	}
 
 	defer func() {
-		gha.Noticef("Writing lock file...")
+		gha.Infof("Updating lock file...")
 		updated, terr := lock.Write(fs)
 		output.LockFileUpdated = updated
 		if terr != nil {
 			err = terr
 		}
+		gha.Infof("Lock file updated.")
 	}()
 
-	gha.Noticef("Searching for sources...")
+	gha.Infof("Searching for sources...")
 	sources, err := sync.Sources(changedFiles, config, fs)
 	if err != nil {
 		return Output{}, err
 	}
-	gha.Noticef("%d sources found!", len(sources))
+	gha.Infof("%d markdown sources found.", len(sources))
 
-	gha.Noticef("Synchronizing decks...")
-	dr, err := sync.SynchronizeDecks(ctx, sources, lock, config, client)
+	gha.Group("Synchronizing decks...")
+	dr, err := sync.SynchronizeDecks(ctx, sources, lock, config, client, logger)
 	if err != nil {
 		return Output{}, err
 	}
-	gha.Noticef("Created %d and updated %d decks", dr.Created, dr.Updated)
+	gha.EndGroup()
+	gha.Infof("Created %d and updated %d decks", dr.Created, dr.Updated)
 
-	gha.Noticef("Synchronizing cards...")
-	cr, err := sync.SynchronizeCards(ctx, parsers, sources, lock, config, client, fs)
+	gha.Group("Synchronizing cards...")
+	cr, err := sync.SynchronizeCards(ctx, parsers, sources, lock, config, client, fs, logger)
 	if err != nil {
 		return Output{}, err
 	}
-	gha.Noticef("Created %d, updated %d, and archived %d cards", cr.Created, cr.Updated, cr.Archived)
+	gha.EndGroup()
+	gha.Infof("Created %d, updated %d, and archived %d cards", cr.Created, cr.Updated, cr.Archived)
 
 	return Output{}, err
 }
@@ -118,4 +122,16 @@ type Client interface {
 	CreateDeck(ctx context.Context, req api.CreateDeckRequest) (api.Deck, error)
 	UpdateDeck(ctx context.Context, id string, req api.UpdateDeckRequest) (api.Deck, error)
 	ListTemplates(ctx context.Context) ([]api.Template, error)
+}
+
+type logger struct {
+	gha *githubactions.Action
+}
+
+func (l *logger) Info(message string) {
+	l.gha.Infof(message)
+}
+
+func (l *logger) Infof(format string, args ...any) {
+	l.gha.Infof(format, args...)
 }

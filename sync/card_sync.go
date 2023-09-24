@@ -7,7 +7,7 @@ import (
 	"github.com/leonhfr/mochi/filesystem"
 )
 
-func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, lock *Lock, client Client, fs filesystem.Interface) (CardResult, error) {
+func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, lock *Lock, client Client, fs filesystem.Interface, logger Logger) (CardResult, error) {
 	done := make(chan struct{})
 	defer close(done)
 
@@ -28,7 +28,7 @@ func processJobMap(ctx context.Context, jobs jobMap, numHandlers int, lock *Lock
 
 		go func() {
 			defer wgReqs.Done()
-			resc <- reqHandler(ctx, lock, client, done, reqc, errc)
+			resc <- reqHandler(ctx, lock, client, logger, done, reqc, errc)
 		}()
 	}
 
@@ -76,11 +76,11 @@ func jobHandler(ctx context.Context, lock *Lock, client Client, fs filesystem.In
 	}
 }
 
-func reqHandler(ctx context.Context, lock *Lock, client Client, done <-chan struct{}, reqc <-chan cardRequest, errc chan<- error) CardResult {
+func reqHandler(ctx context.Context, lock *Lock, client Client, logger Logger, done <-chan struct{}, reqc <-chan cardRequest, errc chan<- error) CardResult {
 	var cr CardResult
 	for req := range reqc {
 		select {
-		case errc <- processCardRequest(ctx, req, lock, client):
+		case errc <- processCardRequest(ctx, req, lock, client, logger):
 			cr.increment(req.kind)
 		case <-done:
 			return cr

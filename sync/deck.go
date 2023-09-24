@@ -14,7 +14,7 @@ type DeckResult struct {
 	Updated int
 }
 
-func SynchronizeDecks(ctx context.Context, sources []string, lock *Lock, config Config, client Client) (DeckResult, error) {
+func SynchronizeDecks(ctx context.Context, sources []string, lock *Lock, config Config, client Client, logger Logger) (DeckResult, error) {
 	var res DeckResult
 	for _, path := range uniqueDirs(sources) {
 		name := config.deckName(path)
@@ -24,6 +24,7 @@ func SynchronizeDecks(ctx context.Context, sources []string, lock *Lock, config 
 			if err := createDeck(ctx, path, name, lock, client); err != nil {
 				return res, err
 			}
+			logger.Infof("Created deck \"%s\"", name)
 			res.Created++
 		}
 
@@ -31,6 +32,7 @@ func SynchronizeDecks(ctx context.Context, sources []string, lock *Lock, config 
 			if err := updateDeck(ctx, path, deck[indexDeckID], name, lock, client); err != nil {
 				return res, err
 			}
+			logger.Infof("Updated deck \"%s\"", name)
 			res.Updated++
 		}
 	}

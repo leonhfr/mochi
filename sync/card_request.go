@@ -107,7 +107,7 @@ func newArchiveCardRequest(id string) cardRequest {
 	}
 }
 
-func processCardRequest(ctx context.Context, req cardRequest, lock *Lock, client Client) error {
+func processCardRequest(ctx context.Context, req cardRequest, lock *Lock, client Client, logger Logger) error {
 	//nolint:prealloc
 	var attachments []api.Attachment
 	for _, image := range req.images {
@@ -123,6 +123,7 @@ func processCardRequest(ctx context.Context, req cardRequest, lock *Lock, client
 			Fields:      req.fields,
 			Attachments: attachments,
 		})
+		logger.Infof("Created card with id %s, deck id %s, %d attachments", card.ID, card.DeckID, len(attachments))
 		if err != nil {
 			return err
 		}
@@ -136,15 +137,17 @@ func processCardRequest(ctx context.Context, req cardRequest, lock *Lock, client
 			Fields:      req.fields,
 			Attachments: attachments,
 		})
+		logger.Infof("Updated card with id %s, deck id %s, %d attachments", card.ID, card.DeckID, len(attachments))
 		if err != nil {
 			return err
 		}
 		setImages(req.deckID, card.ID, req.images, lock)
 		return nil
 	case archiveRequest:
-		_, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
+		card, err := client.UpdateCard(ctx, req.id, api.UpdateCardRequest{
 			Archived: true,
 		})
+		logger.Infof("Archived card with id %s, deck id %s", card.ID, card.DeckID)
 		return err
 	default:
 		return nil

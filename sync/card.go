@@ -2,7 +2,9 @@ package sync
 
 import (
 	"context"
+	"fmt"
 	"runtime"
+	"sort"
 
 	"golang.org/x/exp/slices"
 
@@ -22,15 +24,28 @@ type CardResult struct {
 	Archived int
 }
 
-func SynchronizeCards(ctx context.Context, parsers []parser.Parser, sources []string, lock *Lock, config Config, client Client, fs filesystem.Interface) (CardResult, error) {
+func SynchronizeCards(ctx context.Context, parsers []parser.Parser, sources []string, lock *Lock, config Config, client Client, fs filesystem.Interface, logger Logger) (CardResult, error) {
 	jobMap, err := newJobMap(parsers, sources, lock, config)
 	if err != nil {
 		return CardResult{}, err
 	}
 
+	var logs []string
+	for path, job := range jobMap {
+		if job.hasTemplate {
+			logs = append(logs, fmt.Sprintf("%s: %d sources to sync (template id: %s)", path, len(job.sources), job.template.TemplateID))
+		} else {
+			logs = append(logs, fmt.Sprintf("%s: %d sources to sync (parser: %s)", path, len(job.sources), job.parser.String()))
+		}
+	}
+	sort.Strings(logs)
+	for _, log := range logs {
+		logger.Info(log)
+	}
+
 	handlers := numHandlers()
 
-	return processJobMap(ctx, jobMap, handlers, lock, client, fs)
+	return processJobMap(ctx, jobMap, handlers, lock, client, fs, logger)
 }
 
 func generateCardRequests(ctx context.Context, job *deckJob, lock *Lock, client Client, fs filesystem.Interface) ([]cardRequest, error) {

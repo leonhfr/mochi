@@ -79,7 +79,7 @@ func Test_SynchronizeDecks(t *testing.T) {
 				client.On("UpdateDeck", mock.Anything, id, req).Return(api.Deck{}, nil)
 			}
 
-			got, err := SynchronizeDecks(context.Background(), tt.sources, tt.lock, tt.config, client)
+			got, err := SynchronizeDecks(context.Background(), tt.sources, tt.lock, tt.config, client, testLogger{})
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.want.lock.Decks, tt.lock.Decks)
