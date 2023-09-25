@@ -49,7 +49,7 @@ func (h *Headings) Convert(path string, source []byte) ([]Card, error) {
 	var cards []Card
 	var title string
 	var paragraphs []string
-	var images map[string]Image
+	images := make(map[string]Image)
 
 	doc := h.parser.Parse(text.NewReader(source))
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
@@ -67,9 +67,11 @@ func (h *Headings) Convert(path string, source []byte) ([]Card, error) {
 			images = make(map[string]Image)
 
 			return ast.WalkContinue, nil
-		} else if ok && entering {
+		} else if ok && entering && len(title) > 0 {
 			text := string(heading.Text(source))
 			paragraphs = append(paragraphs, formatHeading(text, heading.Level))
+		} else if ok && entering {
+			return ast.WalkStop, fmt.Errorf("malformed card: %s", path)
 		}
 
 		if paragraph, ok := n.(*ast.Paragraph); ok && entering {

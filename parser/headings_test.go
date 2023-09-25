@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +12,8 @@ func Test_Headings_Convert(t *testing.T) {
 		name   string
 		path   string
 		source string
-		want   []Card
+		cards  []Card
+		err    error
 	}{
 		{
 			"valid",
@@ -31,6 +33,7 @@ func Test_Headings_Convert(t *testing.T) {
 					Images:  map[string]Image{},
 				},
 			},
+			nil,
 		},
 		{
 			"images",
@@ -66,6 +69,7 @@ func Test_Headings_Convert(t *testing.T) {
 					},
 				},
 			},
+			nil,
 		},
 		{
 			"video",
@@ -79,14 +83,22 @@ func Test_Headings_Convert(t *testing.T) {
 					Images:  map[string]Image{},
 				},
 			},
+			nil,
+		},
+		{
+			"malformed header",
+			"/subdirectory/headings.md",
+			"---\nfoo: bar\n---\n\n## Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n\n# Heading 2\n\nContent 2.\n",
+			nil,
+			errors.New("malformed card: /subdirectory/headings.md"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewHeadings().Convert(tt.path, []byte(tt.source))
-			assert.NoError(t, err)
-			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.cards, got)
 		})
 	}
 }
