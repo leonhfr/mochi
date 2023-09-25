@@ -12,10 +12,11 @@ type ThrottledTransport struct {
 	limiter     *rate.Limiter
 }
 
-func NewThrottledTransport(requests int, period time.Duration) *ThrottledTransport {
+// NewThrottledTransport allows events up to rate r and permits bursts of at most t tokens.
+func NewThrottledTransport(r time.Duration, t int) *ThrottledTransport {
 	return &ThrottledTransport{
 		transporter: http.DefaultTransport,
-		limiter:     rate.NewLimiter(rate.Every(period), requests),
+		limiter:     rate.NewLimiter(rate.Every(r), t),
 	}
 }
 
