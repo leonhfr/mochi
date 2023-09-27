@@ -31,6 +31,7 @@ func (cr *CardResult) increment(kind requestKind) {
 
 type cardRequest struct {
 	kind       requestKind
+	filename   string
 	id         string
 	deckID     string
 	content    string
@@ -46,7 +47,7 @@ type syncImage struct {
 	hash       string
 }
 
-func newCreateCardRequest(job *deckJob, card parser.Card, fs filesystem.Interface) (cardRequest, error) {
+func newCreateCardRequest(job *deckJob, filename string, card parser.Card, fs filesystem.Interface) (cardRequest, error) {
 	content, fields := newCardContent(job, card)
 	var images []syncImage
 	for path, image := range card.Images {
@@ -64,6 +65,7 @@ func newCreateCardRequest(job *deckJob, card parser.Card, fs filesystem.Interfac
 	}
 	return cardRequest{
 		kind:       createRequest,
+		filename:   filename,
 		deckID:     job.id,
 		content:    content,
 		templateID: job.template.TemplateID,
@@ -72,7 +74,7 @@ func newCreateCardRequest(job *deckJob, card parser.Card, fs filesystem.Interfac
 	}, nil
 }
 
-func newUpdateCardRequest(job *deckJob, id string, card parser.Card, lock *Lock, fs filesystem.Interface) (cardRequest, error) {
+func newUpdateCardRequest(job *deckJob, id, filename string, card parser.Card, lock *Lock, fs filesystem.Interface) (cardRequest, error) {
 	content, fields := newCardContent(job, card)
 	paths := make([]string, 0, len(card.Images))
 
@@ -97,6 +99,7 @@ func newUpdateCardRequest(job *deckJob, id string, card parser.Card, lock *Lock,
 
 	return cardRequest{
 		kind:       updateRequest,
+		filename:   filename,
 		id:         id,
 		deckID:     job.id,
 		content:    content,
@@ -178,7 +181,7 @@ func createCard(ctx context.Context, req cardRequest, lock *Lock, client Client,
 	}
 	logger.Infof("Created card with id %s, deck id %s", card.ID, card.DeckID)
 
-	if err := lock.setCard(req.deckID, card.ID); err != nil {
+	if err := lock.setCard(req.deckID, card.ID, req.filename); err != nil {
 		return card, err
 	}
 
@@ -203,7 +206,7 @@ func createCardWithAttachment(ctx context.Context, req cardRequest, attachment a
 	}
 	logger.Infof("Created card with id %s, deck id %s, attachment %s", card.ID, card.DeckID, attachment.FileName)
 
-	if err := lock.setCard(req.deckID, card.ID); err != nil {
+	if err := lock.setCard(req.deckID, card.ID, req.filename); err != nil {
 		return card, err
 	}
 
@@ -227,7 +230,7 @@ func updateCard(ctx context.Context, req cardRequest, lock *Lock, client Client,
 	}
 	logger.Infof("Updated card with id %s, deck id %s", card.ID, card.DeckID)
 
-	if err := lock.setCard(req.deckID, card.ID); err != nil {
+	if err := lock.setCard(req.deckID, card.ID, req.filename); err != nil {
 		return err
 	}
 
@@ -248,7 +251,7 @@ func updateCardWithAttachment(ctx context.Context, req cardRequest, attachment a
 	}
 	logger.Infof("Updated card with id %s, deck id %s, attachment %s", card.ID, card.DeckID, attachment.FileName)
 
-	if err := lock.setCard(req.deckID, card.ID); err != nil {
+	if err := lock.setCard(req.deckID, card.ID, req.filename); err != nil {
 		return err
 	}
 

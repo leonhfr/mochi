@@ -198,7 +198,7 @@ func Test_Run(t *testing.T) {
 						},
 					},
 				},
-				lockFile: `{"id_german":{"path":"/german","name":""},"id_german_vocabulary":{"path":"/german/vocabulary","name":"","cards":{"id_card_vocabulary_1":{}}},"id_root":{"path":"/","name":"Notes (root)","cards":{"id_card_note_1":{"images":{"/images/constellations.jpg":"d76091ac3aa97c6fa44f05e35f848332","/images/scream.png":"637b04d6cbd2a4a365fe57c16c90a046"}},"id_card_note_2":{"images":{"/images/scream.png":"637b04d6cbd2a4a365fe57c16c90a046"}}}}}`,
+				lockFile: `{"id_german":{"path":"/german","name":""},"id_german_vocabulary":{"path":"/german/vocabulary","name":"","cards":{"id_card_vocabulary_1":{"filename":"s.md"}}},"id_root":{"path":"/","name":"Notes (root)","cards":{"id_card_note_1":{"filename":"note-1.md","images":{"/images/constellations.jpg":"d76091ac3aa97c6fa44f05e35f848332","/images/scream.png":"637b04d6cbd2a4a365fe57c16c90a046"}},"id_card_note_2":{"filename":"note-2.md","images":{"/images/scream.png":"637b04d6cbd2a4a365fe57c16c90a046"}}}}}`,
 				output:   Output{LockFileUpdated: true},
 			},
 		},

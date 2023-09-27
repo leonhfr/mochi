@@ -23,7 +23,8 @@ type lockDeck struct {
 }
 
 type lockCard struct {
-	Images map[string]string `json:"images,omitempty"` // relative path: md5 hash
+	Filename string            `json:"filename"`         // filename inside directory: note.md
+	Images   map[string]string `json:"images,omitempty"` // relative path: md5 hash
 }
 
 type Lock struct {
@@ -97,7 +98,19 @@ func (l *Lock) setDeck(id, path, name string) {
 	l.updated = true
 }
 
-func (l *Lock) setCard(deckID, cardID string) error {
+func (l *Lock) getCard(deckID, cardID string) (lockCard, bool) {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
+	if _, ok := l.data[deckID]; !ok {
+		return lockCard{}, false
+	}
+
+	card, ok := l.data[deckID].Cards[cardID]
+	return card, ok
+}
+
+func (l *Lock) setCard(deckID, cardID, filename string) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -118,7 +131,8 @@ func (l *Lock) setCard(deckID, cardID string) error {
 	}
 
 	l.data[deckID].Cards[cardID] = lockCard{
-		Images: map[string]string{},
+		Filename: filename,
+		Images:   map[string]string{},
 	}
 	l.updated = true
 	return nil
@@ -134,6 +148,13 @@ func (l *Lock) getImageHash(deckID, cardID, path string) (string, bool) {
 
 	if _, ok := l.data[deckID].Cards[cardID]; !ok {
 		return "", false
+	}
+
+	if l.data[deckID].Cards[cardID].Images == nil {
+		l.data[deckID].Cards[cardID] = lockCard{
+			Filename: l.data[deckID].Cards[cardID].Filename,
+			Images:   make(map[string]string),
+		}
 	}
 
 	hash, ok := l.data[deckID].Cards[cardID].Images[path]

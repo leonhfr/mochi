@@ -44,7 +44,9 @@ func Test_generateCardRequests(t *testing.T) {
 			},
 			&Lock{
 				data: lockData{
-					"id_root": {Path: "/", Name: "Notes (root)", Cards: map[string]lockCard{}},
+					"id_root": {Path: "/", Name: "Notes (root)", Cards: map[string]lockCard{
+						"id_note": {Filename: "note.md", Images: map[string]string{}},
+					}},
 				},
 			},
 			map[string][]api.Card{
@@ -66,6 +68,7 @@ func Test_generateCardRequests(t *testing.T) {
 				[]cardRequest{
 					{
 						kind:     updateRequest,
+						filename: "note.md",
 						id:       "id_note",
 						deckID:   "id_root",
 						content:  "# Note\n\nContent.\n",
@@ -74,7 +77,9 @@ func Test_generateCardRequests(t *testing.T) {
 				},
 				&Lock{
 					data: lockData{
-						"id_root": {Path: "/", Name: "Notes (root)", Cards: map[string]lockCard{}},
+						"id_root": {Path: "/", Name: "Notes (root)", Cards: map[string]lockCard{
+							"id_note": {Filename: "note.md", Images: map[string]string{}},
+						}},
 					},
 				},
 			},
@@ -98,7 +103,18 @@ func Test_generateCardRequests(t *testing.T) {
 						Path: "/",
 						Name: "Notes (root)",
 						Cards: map[string]lockCard{
-							"id_deleted_card": {Images: map[string]string{"/path/to/deleted/image.png": "hash_deleted_card"}},
+							"id_deleted_card": {
+								Filename: "deleted.md",
+								Images:   map[string]string{"/path/to/deleted/image.png": "hash_deleted_card"},
+							},
+							"id_note_1": {
+								Filename: "note-1.md",
+								Images:   map[string]string{},
+							},
+							"id_note_2": {
+								Filename: "note-2.md",
+								Images:   map[string]string{},
+							},
 						},
 					},
 				},
@@ -133,20 +149,23 @@ func Test_generateCardRequests(t *testing.T) {
 			want{
 				[]cardRequest{
 					{
-						id:      "id_note_2",
-						kind:    updateRequest,
-						deckID:  "id_root",
-						content: "# Note 2\n\nContent 2\n",
+						id:       "id_note_2",
+						filename: "note-2.md",
+						kind:     updateRequest,
+						deckID:   "id_root",
+						content:  "# Note 2\n\nContent 2\n",
 					},
 					{
-						kind:    createRequest,
-						deckID:  "id_root",
-						content: "# Note 3\n\nContent 3\n",
+						kind:     createRequest,
+						filename: "note-3.md",
+						deckID:   "id_root",
+						content:  "# Note 3\n\nContent 3\n",
 					},
 					{
-						kind:    createRequest,
-						deckID:  "id_root",
-						content: "# Image 1\n\n![Image 1](@media/c1816e0497517666.jpg)\n",
+						kind:     createRequest,
+						filename: "image-1.md",
+						deckID:   "id_root",
+						content:  "# Image 1\n\n![Image 1](@media/c1816e0497517666.jpg)\n",
 						images: []syncImage{
 							{
 								attachment: api.Attachment{
@@ -160,9 +179,10 @@ func Test_generateCardRequests(t *testing.T) {
 						},
 					},
 					{
-						kind:    createRequest,
-						deckID:  "id_root",
-						content: "# Image 2\n\n![Image 2](@media/5ac642a4b61d6ca1.jpg)\n",
+						kind:     createRequest,
+						filename: "image-2.md",
+						deckID:   "id_root",
+						content:  "# Image 2\n\n![Image 2](@media/5ac642a4b61d6ca1.jpg)\n",
 						images: []syncImage{
 							{
 								attachment: api.Attachment{
@@ -179,9 +199,18 @@ func Test_generateCardRequests(t *testing.T) {
 				&Lock{
 					data: lockData{
 						"id_root": {
-							Path:  "/",
-							Name:  "Notes (root)",
-							Cards: map[string]lockCard{},
+							Path: "/",
+							Name: "Notes (root)",
+							Cards: map[string]lockCard{
+								"id_note_1": {
+									Filename: "note-1.md",
+									Images:   map[string]string{},
+								},
+								"id_note_2": {
+									Filename: "note-2.md",
+									Images:   map[string]string{},
+								},
+							},
 						},
 					},
 					updated: true,
@@ -224,7 +253,7 @@ func Test_parseCards(t *testing.T) {
 		name  string
 		job   *deckJob
 		files map[string]string
-		want  []parser.Card
+		want  map[string][]parser.Card
 	}{
 		{
 			"note",
@@ -237,18 +266,20 @@ func Test_parseCards(t *testing.T) {
 			map[string]string{
 				"/note.md": "# Note\n\nA simple note\n\n![Image](../images/image.jpg)\n",
 			},
-			[]parser.Card{
-				{
-					Name:    "Note",
-					Content: "# Note\n\nA simple note\n\n![Image](@media/b7e04c679d3e44ec.jpg)\n",
-					Fields:  map[string]string{},
-					Images: map[string]parser.Image{
-						"/images/image.jpg": {
-							Destination: "../images/image.jpg",
-							FileName:    "b7e04c679d3e44ec",
-							Extension:   "jpg",
-							ContentType: "image/jpg",
-							AltText:     "Image",
+			map[string][]parser.Card{
+				"note.md": {
+					{
+						Name:    "Note",
+						Content: "# Note\n\nA simple note\n\n![Image](@media/b7e04c679d3e44ec.jpg)\n",
+						Fields:  map[string]string{},
+						Images: map[string]parser.Image{
+							"/images/image.jpg": {
+								Destination: "../images/image.jpg",
+								FileName:    "b7e04c679d3e44ec",
+								Extension:   "jpg",
+								ContentType: "image/jpg",
+								AltText:     "Image",
+							},
 						},
 					},
 				},
@@ -267,36 +298,40 @@ func Test_parseCards(t *testing.T) {
 				"/german/vocabulary/s.md": "# s\n\nSpaziergang\nNotes notes.\n\nSpiegel\n",
 				"/german/vocabulary/p.md": "# p\n\nPapagei\n",
 			},
-			[]parser.Card{
-				{
-					Name:    "Spaziergang",
-					Content: "# Spaziergang\n\n## Notes\n\nNotes notes.\n",
-					Fields: map[string]string{
-						"examples": "",
-						"notes":    "Notes notes.",
-						"word":     "Spaziergang",
+			map[string][]parser.Card{
+				"s.md": {
+					{
+						Name:    "Spaziergang",
+						Content: "# Spaziergang\n\n## Notes\n\nNotes notes.\n",
+						Fields: map[string]string{
+							"examples": "",
+							"notes":    "Notes notes.",
+							"word":     "Spaziergang",
+						},
+						Images: map[string]parser.Image(nil),
 					},
-					Images: map[string]parser.Image(nil),
+					{
+						Name:    "Spiegel",
+						Content: "# Spiegel\n",
+						Fields: map[string]string{
+							"examples": "",
+							"notes":    "",
+							"word":     "Spiegel",
+						},
+						Images: map[string]parser.Image(nil),
+					},
 				},
-				{
-					Name:    "Spiegel",
-					Content: "# Spiegel\n",
-					Fields: map[string]string{
-						"examples": "",
-						"notes":    "",
-						"word":     "Spiegel",
+				"p.md": {
+					{
+						Name:    "Papagei",
+						Content: "# Papagei\n",
+						Fields: map[string]string{
+							"examples": "",
+							"notes":    "",
+							"word":     "Papagei",
+						},
+						Images: map[string]parser.Image(nil),
 					},
-					Images: map[string]parser.Image(nil),
-				},
-				{
-					Name:    "Papagei",
-					Content: "# Papagei\n",
-					Fields: map[string]string{
-						"examples": "",
-						"notes":    "",
-						"word":     "Papagei",
-					},
-					Images: map[string]parser.Image(nil),
 				},
 			},
 		},

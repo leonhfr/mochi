@@ -1,3 +1,11 @@
 {
-  "id_root": { "path": "/", "name": "Wrong Name" }
+  "id_root": {
+    "path": "/",
+    "name": "Wrong Name",
+    "cards": {
+      "id_card_note_2": {
+        "filename": "note-2.md"
+      }
+    }
+  }
 }

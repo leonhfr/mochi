@@ -81,6 +81,7 @@ func Test_Lock_Write(t *testing.T) {
 						Name: "Deck Name",
 						Cards: map[string]lockCard{
 							"card_id": {
+								Filename: "note.md",
 								Images: map[string]string{
 									"../images/example-1.png": "md5_hash",
 								},
@@ -91,7 +92,7 @@ func Test_Lock_Write(t *testing.T) {
 				updated: true,
 			},
 			map[string]string{
-				lockName: `{"deck_id":{"path":"/deck_path","name":"Deck Name","cards":{"card_id":{"images":{"../images/example-1.png":"md5_hash"}}}}}`,
+				lockName: `{"deck_id":{"path":"/deck_path","name":"Deck Name","cards":{"card_id":{"filename":"note.md","images":{"../images/example-1.png":"md5_hash"}}}}}`,
 			},
 			true,
 		},

@@ -3,10 +3,9 @@ package sync
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"runtime"
 	"sort"
-
-	"golang.org/x/exp/slices"
 
 	"github.com/leonhfr/mochi/api"
 	"github.com/leonhfr/mochi/filesystem"
@@ -49,7 +48,7 @@ func SynchronizeCards(ctx context.Context, parsers []parser.Parser, sources []st
 }
 
 func generateCardRequests(ctx context.Context, job *deckJob, lock *Lock, client Client, fs filesystem.Interface) ([]cardRequest, error) {
-	cards, err := parseCards(job, fs)
+	cardsMap, err := parseCards(job, fs)
 	if err != nil {
 		return nil, err
 	}
@@ -60,60 +59,85 @@ func generateCardRequests(ctx context.Context, job *deckJob, lock *Lock, client 
 	}
 
 	cardIDs := make([]string, 0, len(apiCards))
+	apiCardsMap := make(map[string]api.Card)
 	for _, apiCard := range apiCards {
 		cardIDs = append(cardIDs, apiCard.ID)
+		apiCardsMap[apiCard.ID] = apiCard
 	}
 	lock.cleanCards(job.id, cardIDs)
 
 	var requests []cardRequest
-	for _, card := range cards {
-		index := slices.IndexFunc[[]api.Card](apiCards, func(apiCard api.Card) bool {
-			return card.Name == apiCard.Name
-		})
-
-		if index < 0 {
-			request, err := newCreateCardRequest(job, card, fs)
+	for filename, cards := range cardsMap {
+		for _, card := range cards {
+			id, reqs, err := matchCard(filename, card, apiCardsMap, job, lock, fs)
 			if err != nil {
 				return nil, err
 			}
-			requests = append(requests, request)
-			continue
-		}
 
-		apiCard := apiCards[index]
-		apiCards = append(apiCards[:index], apiCards[index+1:]...)
-		if !cardEqual(job, card, apiCard) {
-			request, err := newUpdateCardRequest(job, apiCard.ID, card, lock, fs)
-			if err != nil {
-				return nil, err
+			if len(reqs) > 0 {
+				requests = append(requests, reqs...)
 			}
-			requests = append(requests, request)
+			if len(id) > 0 {
+				delete(apiCardsMap, id)
+			}
 		}
 	}
 
 	if job.archive {
-		for _, apiCard := range apiCards {
-			requests = append(requests, newArchiveCardRequest(apiCard.ID))
+		for id := range apiCardsMap {
+			requests = append(requests, newArchiveCardRequest(id))
 		}
 	}
 
 	return requests, nil
 }
 
-func parseCards(job *deckJob, fs filesystem.Interface) ([]parser.Card, error) {
-	var cards []parser.Card
+func matchCard(filename string, card parser.Card, apiCardsMap map[string]api.Card, job *deckJob, lock *Lock, fs filesystem.Interface) (string, []cardRequest, error) {
+	matchedCards := make(map[string]api.Card)
+	for _, apiCard := range apiCardsMap {
+		if card.Name == apiCard.Name {
+			matchedCards[apiCard.ID] = apiCard
+		}
+	}
+
+	for id, apiCard := range matchedCards {
+		if lockCard, ok := lock.getCard(job.id, id); ok && lockCard.Filename == filename {
+			if cardEqual(job, card, apiCard) {
+				return id, nil, nil
+			}
+
+			request, err := newUpdateCardRequest(job, apiCard.ID, filename, card, lock, fs)
+			if err != nil {
+				return "", nil, err
+			}
+
+			return id, []cardRequest{request}, nil
+		}
+	}
+
+	request, err := newCreateCardRequest(job, filename, card, fs)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return "", []cardRequest{request}, nil
+}
+
+func parseCards(job *deckJob, fs filesystem.Interface) (map[string][]parser.Card, error) {
+	cards := make(map[string][]parser.Card)
 	for _, source := range job.sources {
 		content, err := fs.Read(source)
 		if err != nil {
 			return nil, err
 		}
 
+		filename := filepath.Base(source)
 		parsedCards, err := job.parser.Convert(source, content)
 		if err != nil {
 			return nil, err
 		}
 
-		cards = append(cards, parsedCards...)
+		cards[filename] = parsedCards
 	}
 	return cards, nil
 }
