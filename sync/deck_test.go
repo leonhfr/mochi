@@ -34,10 +34,10 @@ func Test_SynchronizeDecks(t *testing.T) {
 				"/german/grammar/noun.md",
 			},
 			lock: &Lock{
-				Decks: map[string][2]string{
-					"/":                  {"id_root", "Root"},
-					"/german":            {"id_german", "German"},
-					"/german/vocabulary": {"id_german_vocabulary", "Vocabulary"},
+				data: lockData{
+					"id_root":              {Path: "/", Name: "Root", Cards: map[string]lockCard{}},
+					"id_german":            {Path: "/german", Name: "German", Cards: map[string]lockCard{}},
+					"id_german_vocabulary": {Path: "/german/vocabulary", Name: "Vocabulary", Cards: map[string]lockCard{}},
 				},
 			},
 			config: Config{Sync: []Sync{
@@ -53,11 +53,11 @@ func Test_SynchronizeDecks(t *testing.T) {
 			},
 			want: want{
 				&Lock{
-					Decks: map[string][2]string{
-						"/":                  {"id_root", "Notes (root)"},
-						"/german":            {"id_german", "German"},
-						"/german/grammar":    {"id_german_grammar", "Grammar"},
-						"/german/vocabulary": {"id_german_vocabulary", "Vocabulary"},
+					data: lockData{
+						"id_root":              {Path: "/", Name: "Notes (root)", Cards: map[string]lockCard{}},
+						"id_german":            {Path: "/german", Name: "German", Cards: map[string]lockCard{}},
+						"id_german_grammar":    {Path: "/german/grammar", Name: "Grammar", Cards: map[string]lockCard{}},
+						"id_german_vocabulary": {Path: "/german/vocabulary", Name: "Vocabulary", Cards: map[string]lockCard{}},
 					},
 					updated: true,
 				},
@@ -82,7 +82,7 @@ func Test_SynchronizeDecks(t *testing.T) {
 			got, err := SynchronizeDecks(context.Background(), tt.sources, tt.lock, tt.config, client, testLogger{})
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.want.lock.Decks, tt.lock.Decks)
+			assert.Equal(t, tt.want.lock.data, tt.lock.data)
 			assert.Equal(t, tt.want.lock.updated, tt.lock.updated)
 			assert.Equal(t, tt.want.res, got)
 			client.AssertExpectations(t)

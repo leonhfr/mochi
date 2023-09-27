@@ -74,8 +74,11 @@ func newCreateCardRequest(job *deckJob, card parser.Card, fs filesystem.Interfac
 
 func newUpdateCardRequest(job *deckJob, id string, card parser.Card, lock *Lock, fs filesystem.Interface) (cardRequest, error) {
 	content, fields := newCardContent(job, card)
+	paths := make([]string, 0, len(card.Images))
+
 	var images []syncImage
 	for path, image := range card.Images {
+		paths = append(paths, path)
 		attachment, hash, err := newImageAttachment(path, image, fs)
 		if err != nil {
 			return cardRequest{}, err
@@ -89,6 +92,9 @@ func newUpdateCardRequest(job *deckJob, id string, card parser.Card, lock *Lock,
 			})
 		}
 	}
+
+	lock.cleanImages(job.id, id, paths)
+
 	return cardRequest{
 		kind:       updateRequest,
 		id:         id,
@@ -171,7 +177,15 @@ func createCard(ctx context.Context, req cardRequest, lock *Lock, client Client,
 		return card, err
 	}
 	logger.Infof("Created card with id %s, deck id %s", card.ID, card.DeckID)
-	setImages(req.deckID, card.ID, req.images, lock)
+
+	if err := lock.setCard(req.deckID, card.ID); err != nil {
+		return card, err
+	}
+
+	if err := setImages(req.deckID, card.ID, req.images, lock); err != nil {
+		return card, err
+	}
+
 	return card, nil
 }
 
@@ -188,7 +202,15 @@ func createCardWithAttachment(ctx context.Context, req cardRequest, attachment a
 		return card, err
 	}
 	logger.Infof("Created card with id %s, deck id %s, attachment %s", card.ID, card.DeckID, attachment.FileName)
-	setImages(req.deckID, card.ID, req.images, lock)
+
+	if err := lock.setCard(req.deckID, card.ID); err != nil {
+		return card, err
+	}
+
+	if err := setImages(req.deckID, card.ID, req.images, lock); err != nil {
+		return card, err
+	}
+
 	return card, nil
 }
 
@@ -204,8 +226,12 @@ func updateCard(ctx context.Context, req cardRequest, lock *Lock, client Client,
 		return err
 	}
 	logger.Infof("Updated card with id %s, deck id %s", card.ID, card.DeckID)
-	setImages(req.deckID, card.ID, req.images, lock)
-	return nil
+
+	if err := lock.setCard(req.deckID, card.ID); err != nil {
+		return err
+	}
+
+	return setImages(req.deckID, card.ID, req.images, lock)
 }
 
 func updateCardWithAttachment(ctx context.Context, req cardRequest, attachment api.Attachment, lock *Lock, client Client, logger Logger) error {
@@ -221,8 +247,12 @@ func updateCardWithAttachment(ctx context.Context, req cardRequest, attachment a
 		return err
 	}
 	logger.Infof("Updated card with id %s, deck id %s, attachment %s", card.ID, card.DeckID, attachment.FileName)
-	setImages(req.deckID, card.ID, req.images, lock)
-	return nil
+
+	if err := lock.setCard(req.deckID, card.ID); err != nil {
+		return err
+	}
+
+	return setImages(req.deckID, card.ID, req.images, lock)
 }
 
 func archiveCard(ctx context.Context, req cardRequest, client Client, logger Logger) error {
@@ -251,10 +281,13 @@ func newCardContent(job *deckJob, card parser.Card) (string, map[string]api.Fiel
 	return "", fields
 }
 
-func setImages(deckID, cardID string, images []syncImage, lock *Lock) {
+func setImages(deckID, cardID string, images []syncImage, lock *Lock) error {
 	for _, image := range images {
-		lock.setImageHash(deckID, cardID, image.path, image.hash)
+		if err := lock.setImageHash(deckID, cardID, image.path, image.hash); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func newImageAttachment(path string, image parser.Image, fs filesystem.Interface) (api.Attachment, string, error) {

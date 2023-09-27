@@ -21,14 +21,14 @@ func Test_ReadLock(t *testing.T) {
 		{
 			"success",
 			map[string]string{
-				lockName: "[decks]\n\"/deck_path\" = [\"deck_id\", \"Deck Name\"]\n",
+				lockName: `{"deck_id":{"path":"/deck_path","name":"Deck Name"}}`,
 			},
 			[]api.Deck{
 				{ID: "deck_id", Name: "Deck Name"},
 			},
 			&Lock{
-				Decks: map[string][2]string{
-					"/deck_path": {"deck_id", "Deck Name"},
+				data: lockData{
+					"deck_id": lockDeck{Path: "/deck_path", Name: "Deck Name"},
 				},
 			},
 		},
@@ -46,7 +46,7 @@ func Test_ReadLock(t *testing.T) {
 
 			lock, err := ReadLock(context.Background(), client, fs)
 			require.NoError(t, err)
-			assert.Equal(t, tt.want.Decks, lock.Decks)
+			assert.Equal(t, tt.want.data, lock.data)
 			assert.False(t, lock.updated)
 			client.AssertExpectations(t)
 			fs.AssertExpectations(t)
@@ -64,8 +64,8 @@ func Test_Lock_Write(t *testing.T) {
 		{
 			"not updated",
 			&Lock{
-				Decks: map[string][2]string{
-					"/deck_path": {"deck_id", "Deck Name"},
+				data: lockData{
+					"deck_id": lockDeck{Path: "/deck_path", Name: "Deck Name"},
 				},
 				updated: false,
 			},
@@ -75,20 +75,23 @@ func Test_Lock_Write(t *testing.T) {
 		{
 			"updated",
 			&Lock{
-				Decks: map[string][2]string{
-					"/deck_path": {"deck_id", "Deck Name"},
-				},
-				Images: map[string]map[string]map[string]string{
-					"deck_id": {
-						"card_id": {
-							"../images/example-1.png": "md5_hash",
+				data: lockData{
+					"deck_id": lockDeck{
+						Path: "/deck_path",
+						Name: "Deck Name",
+						Cards: map[string]lockCard{
+							"card_id": {
+								Images: map[string]string{
+									"../images/example-1.png": "md5_hash",
+								},
+							},
 						},
 					},
 				},
 				updated: true,
 			},
 			map[string]string{
-				lockName: "[decks]\n\"/deck_path\" = [\"deck_id\", \"Deck Name\"]\n\n[images]\n[images.deck_id]\n[images.deck_id.card_id]\n\"../images/example-1.png\" = \"md5_hash\"\n",
+				lockName: `{"deck_id":{"path":"/deck_path","name":"Deck Name","cards":{"card_id":{"images":{"../images/example-1.png":"md5_hash"}}}}}`,
 			},
 			true,
 		},
@@ -110,7 +113,7 @@ func Test_Lock_Write(t *testing.T) {
 	}
 }
 
-func Test_updateLock(t *testing.T) {
+func Test_Lock_cleanDecks(t *testing.T) {
 	tests := []struct {
 		name  string
 		decks []api.Deck
@@ -123,13 +126,13 @@ func Test_updateLock(t *testing.T) {
 				{ID: "deck_id", Name: "Deck Name"},
 			},
 			&Lock{
-				Decks: map[string][2]string{
-					"/deck_path": {"deck_id", "Deck Name"},
+				data: lockData{
+					"deck_id": lockDeck{Path: "/deck_path", Name: "Deck Name"},
 				},
 			},
 			&Lock{
-				Decks: map[string][2]string{
-					"/deck_path": {"deck_id", "Deck Name"},
+				data: lockData{
+					"deck_id": lockDeck{Path: "/deck_path", Name: "Deck Name"},
 				},
 			},
 		},
@@ -137,12 +140,12 @@ func Test_updateLock(t *testing.T) {
 			"deck delete",
 			[]api.Deck{},
 			&Lock{
-				Decks: map[string][2]string{
-					"/deck_path": {"deck_id", "Deck Name"},
+				data: lockData{
+					"deck_id": lockDeck{Path: "/deck_path", Name: "Deck Name"},
 				},
 			},
 			&Lock{
-				Decks:   map[string][2]string{},
+				data:    lockData{},
 				updated: true,
 			},
 		},
@@ -152,27 +155,14 @@ func Test_updateLock(t *testing.T) {
 				{ID: "deck_id", Name: "Deck Name"},
 			},
 			&Lock{
-				Decks: map[string][2]string{
-					"/deck_path": {"deck_id", "Wrong Name"},
+				data: lockData{
+					"deck_id": lockDeck{Path: "/deck_path", Name: "Wrong Name"},
 				},
 			},
 			&Lock{
-				Decks: map[string][2]string{
-					"/deck_path": {"deck_id", "Deck Name"},
+				data: lockData{
+					"deck_id": lockDeck{Path: "/deck_path", Name: "Deck Name"},
 				},
-				updated: true,
-			},
-		},
-		{
-			"images deck delete",
-			[]api.Deck{},
-			&Lock{
-				Images: map[string]map[string]map[string]string{
-					"id_deck": {},
-				},
-			},
-			&Lock{
-				Images:  map[string]map[string]map[string]string{},
 				updated: true,
 			},
 		},
@@ -180,8 +170,9 @@ func Test_updateLock(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			updateLock(tt.lock, tt.decks)
-			assert.Equal(t, tt.want, tt.lock)
+			tt.lock.cleanDecks(tt.decks)
+			assert.Equal(t, tt.want.data, tt.lock.data)
+			assert.Equal(t, tt.want.updated, tt.lock.updated)
 		})
 	}
 }

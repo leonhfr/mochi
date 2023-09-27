@@ -44,7 +44,7 @@ func newJob(parsers []parser.Parser, path, source string, sync Sync, lock *Lock,
 	lock.mu.RLock()
 	defer lock.mu.RUnlock()
 
-	deck, ok := lock.Decks[path]
+	deckID, _, ok := lock.getDeck(path)
 	if !ok {
 		return nil, fmt.Errorf("deck id of path %s not found", path)
 	}
@@ -57,7 +57,7 @@ func newJob(parsers []parser.Parser, path, source string, sync Sync, lock *Lock,
 
 	return &deckJob{
 		sources:     []string{source},
-		id:          deck[indexDeckID],
+		id:          deckID,
 		archive:     sync.Archive,
 		hasTemplate: hasTemplate,
 		parser:      parser,

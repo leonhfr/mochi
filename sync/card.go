@@ -59,13 +59,11 @@ func generateCardRequests(ctx context.Context, job *deckJob, lock *Lock, client 
 		return nil, err
 	}
 
-	for _, cardID := range lock.getImageCards(job.id) {
-		if !slices.ContainsFunc[[]api.Card](apiCards, func(c api.Card) bool {
-			return c.ID == cardID
-		}) {
-			lock.deleteImageCard(job.id, cardID)
-		}
+	cardIDs := make([]string, 0, len(apiCards))
+	for _, apiCard := range apiCards {
+		cardIDs = append(cardIDs, apiCard.ID)
 	}
+	lock.cleanCards(job.id, cardIDs)
 
 	var requests []cardRequest
 	for _, card := range cards {

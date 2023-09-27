@@ -18,7 +18,7 @@ func SynchronizeDecks(ctx context.Context, sources []string, lock *Lock, config 
 	var res DeckResult
 	for _, path := range uniqueDirs(sources) {
 		name := config.deckName(path)
-		deck, ok := lock.getDeck(path)
+		deckID, deck, ok := lock.getDeck(path)
 
 		if !ok {
 			if err := createDeck(ctx, path, name, lock, client); err != nil {
@@ -28,8 +28,8 @@ func SynchronizeDecks(ctx context.Context, sources []string, lock *Lock, config 
 			res.Created++
 		}
 
-		if ok && deck[indexDeckName] != name {
-			if err := updateDeck(ctx, path, deck[indexDeckID], name, lock, client); err != nil {
+		if ok && deck.Name != name {
+			if err := updateDeck(ctx, path, deckID, name, lock, client); err != nil {
 				return res, err
 			}
 			logger.Infof("Updated deck \"%s\"", name)
@@ -42,8 +42,8 @@ func SynchronizeDecks(ctx context.Context, sources []string, lock *Lock, config 
 func createDeck(ctx context.Context, path, name string, lock *Lock, client Client) error {
 	var parentID string
 	if path := filepath.Dir(path); len(path) > 1 {
-		if deck, ok := lock.getDeck(path); ok {
-			parentID = deck[indexDeckID]
+		if deckID, _, ok := lock.getDeck(path); ok {
+			parentID = deckID
 		}
 	}
 
@@ -57,7 +57,7 @@ func createDeck(ctx context.Context, path, name string, lock *Lock, client Clien
 		return err
 	}
 
-	lock.setDeck(path, [2]string{deck.ID, deck.Name})
+	lock.setDeck(deck.ID, path, deck.Name)
 	return nil
 }
 
@@ -70,7 +70,7 @@ func updateDeck(ctx context.Context, path, id, name string, lock *Lock, client C
 		return err
 	}
 
-	deck, _ := lock.getDeck(path)
-	lock.setDeck(path, [2]string{deck[indexDeckID], name})
+	deckID, _, _ := lock.getDeck(path)
+	lock.setDeck(deckID, path, name)
 	return nil
 }

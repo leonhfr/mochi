@@ -198,7 +198,7 @@ func Test_Run(t *testing.T) {
 						},
 					},
 				},
-				lockFile: "[decks]\n\"/\" = [\"id_root\", \"Notes (root)\"]\n\"/german\" = [\"id_german\", \"\"]\n\"/german/vocabulary\" = [\"id_german_vocabulary\", \"\"]\n\n[images]\n[images.id_root]\n[images.id_root.id_card_note_1]\n\"/images/constellations.jpg\" = \"d76091ac3aa97c6fa44f05e35f848332\"\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n[images.id_root.id_card_note_2]\n\"/images/scream.png\" = \"637b04d6cbd2a4a365fe57c16c90a046\"\n",
+				lockFile: `{"id_german":{"path":"/german","name":""},"id_german_vocabulary":{"path":"/german/vocabulary","name":"","cards":{"id_card_vocabulary_1":{}}},"id_root":{"path":"/","name":"Notes (root)","cards":{"id_card_note_1":{"images":{"/images/constellations.jpg":"d76091ac3aa97c6fa44f05e35f848332","/images/scream.png":"637b04d6cbd2a4a365fe57c16c90a046"}},"id_card_note_2":{"images":{"/images/scream.png":"637b04d6cbd2a4a365fe57c16c90a046"}}}}}`,
 				output:   Output{LockFileUpdated: true},
 			},
 		},
@@ -228,7 +228,7 @@ func Test_Run(t *testing.T) {
 
 			// Filesystem
 			fs := new(MockFilesystem)
-			fs.On("Write", "mochi-lock.toml", tt.want.lockFile).Return(nil)
+			fs.On("Write", "mochi.lock", tt.want.lockFile).Return(nil)
 
 			// Run
 			ctx := context.Background()

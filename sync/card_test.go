@@ -43,8 +43,9 @@ func Test_generateCardRequests(t *testing.T) {
 				parser: parser.NewNote(),
 			},
 			&Lock{
-				Decks:  map[string][2]string{},
-				Images: map[string]map[string]map[string]string{},
+				data: lockData{
+					"id_root": {Path: "/", Name: "Notes (root)", Cards: map[string]lockCard{}},
+				},
 			},
 			map[string][]api.Card{
 				"id_root": {
@@ -72,8 +73,9 @@ func Test_generateCardRequests(t *testing.T) {
 					},
 				},
 				&Lock{
-					Decks:  map[string][2]string{},
-					Images: map[string]map[string]map[string]string{},
+					data: lockData{
+						"id_root": {Path: "/", Name: "Notes (root)", Cards: map[string]lockCard{}},
+					},
 				},
 			},
 		},
@@ -91,10 +93,13 @@ func Test_generateCardRequests(t *testing.T) {
 				parser: parser.NewNote(),
 			},
 			&Lock{
-				Decks: map[string][2]string{},
-				Images: map[string]map[string]map[string]string{
+				data: lockData{
 					"id_root": {
-						"id_deleted_card": {"/path/to/deleted/image.png": "hash_deleted_card"},
+						Path: "/",
+						Name: "Notes (root)",
+						Cards: map[string]lockCard{
+							"id_deleted_card": {Images: map[string]string{"/path/to/deleted/image.png": "hash_deleted_card"}},
+						},
 					},
 				},
 			},
@@ -172,9 +177,12 @@ func Test_generateCardRequests(t *testing.T) {
 					},
 				},
 				&Lock{
-					Decks: map[string][2]string{},
-					Images: map[string]map[string]map[string]string{
-						"id_root": {},
+					data: lockData{
+						"id_root": {
+							Path:  "/",
+							Name:  "Notes (root)",
+							Cards: map[string]lockCard{},
+						},
 					},
 					updated: true,
 				},

@@ -64,11 +64,11 @@ func Test_newJobMap(t *testing.T) {
 					"/note.md",
 				},
 				&Lock{
-					Decks: map[string][2]string{
-						"/":                  {"aaaaaaaa", ""},
-						"/german":            {"bbbbbbbb", ""},
-						"/german/vocabulary": {"cccccccc", ""},
-						"/german/grammar":    {"dddddddd", ""},
+					data: lockData{
+						"aaaaaaaa": {Path: "/"},
+						"bbbbbbbb": {Path: "/german"},
+						"cccccccc": {Path: "/german/vocabulary"},
+						"dddddddd": {Path: "/german/grammar"},
 					},
 				},
 			},
