@@ -1,0 +1,22 @@
+name: Mochi Cards
+author: Leon Hollender
+description: Synchronize markdown notes to Mochi cards.
+
+inputs:
+  api_token:
+    description: mochi.cards API token
+    required: true
+  changed_files:
+    description: List of changed files.
+
+outputs:
+  lock_file_updated:
+    description: Either 'true' or 'false' depending on whether the lock file was updated
+
+runs:
+  using: node16
+  main: action.js
+
+branding:
+  icon: upload-cloud
+  color: green

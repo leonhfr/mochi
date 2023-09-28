@@ -1,0 +1,2 @@
+3dc205ee031d63c258f104b8d2f8ea5a2b5d3410727c1b61dc33df59cee33902  mochi_0.0.0-SNAPSHOT-1a94de1_linux_amd64.tar.gz
+adfb5643912e0ea631f526e399d41cae97b7bbc523540c1e0b03fbe3c206d30e  mochi_0.0.0-SNAPSHOT-1a94de1_linux_arm64.tar.gz
