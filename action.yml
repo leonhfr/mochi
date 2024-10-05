@@ -6,6 +6,8 @@ inputs:
   api_token:
     description: mochi.cards API token
     required: true
+  workspace:
+    description: directory to target
 
 runs:
   using: node16
