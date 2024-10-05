@@ -37,6 +37,11 @@ jobs:
           version: latest
           args: release --snapshot --clean
 
+      - name: Run action
+        uses: ./
+        with:
+          api_token: API_TOKEN
+
   action-release:
     needs: checks
     if: startsWith(github.event.ref, 'refs/tags/')
