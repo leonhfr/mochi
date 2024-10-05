@@ -30,15 +30,3 @@ func Test_Exists(t *testing.T) {
 		})
 	}
 }
-
-func Test_ParseJSON(t *testing.T) {
-	var v any
-	err := NewSystem().ParseJSON("../../testdata/mochi-lock.json", &v)
-	assert.NoError(t, err)
-}
-
-func Test_ParseYAML(t *testing.T) {
-	var v any
-	err := NewSystem().ParseYAML("../../testdata/mochi.yml", &v)
-	assert.NoError(t, err)
-}

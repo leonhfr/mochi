@@ -3,7 +3,10 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
+
+	"gopkg.in/yaml.v3"
 )
 
 const configName = "mochi"
@@ -23,28 +26,37 @@ type Sync struct {
 	Path string `yaml:"path"`
 }
 
-// Interface represents the interface to interact with config files.
-type Interface interface {
+// Reader represents the interface to interact with a config file.
+type Reader interface {
 	Exists(string) bool
-	ParseYAML(string, any) error
+	Read(string) (io.ReadCloser, error)
 }
 
 // Parse parses the config in the target directory.
-func Parse(yaml Interface, target string) (Config, error) {
+func Parse(reader Reader, target string) (*Config, error) {
 	for _, ext := range configExtensions {
-		path := buildPath(target, ext)
-		if !yaml.Exists(path) {
+		path := filepath.Join(target, fmt.Sprintf("%s.%s", configName, ext))
+		if !reader.Exists(path) {
 			continue
 		}
-		var config Config
-		if err := yaml.ParseYAML(path, &config); err != nil {
-			return config, err
-		}
-		return config, nil
+
+		return parseConfig(reader, path)
 	}
-	return Config{}, ErrNoConfig
+
+	return nil, ErrNoConfig
 }
 
-func buildPath(target, ext string) string {
-	return filepath.Join(target, fmt.Sprintf("%s.%s", configName, ext))
+func parseConfig(reader Reader, path string) (*Config, error) {
+	r, err := reader.Read(path)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	var config *Config
+	if err := yaml.NewDecoder(r).Decode(&config); err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }

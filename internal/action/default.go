@@ -5,6 +5,7 @@ import (
 
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/file"
+	"github.com/leonhfr/mochi/internal/lock"
 )
 
 // Logger is the interface to log output.
@@ -24,6 +25,11 @@ func Run(token, workspace string, logger Logger) error {
 		return err
 	}
 
+	lf, err := lock.Parse(fs, workspace)
+	if err != nil {
+		return err
+	}
+
 	files, err := fs.List(workspace, []string{".md"})
 	if err != nil {
 		return err
@@ -33,6 +39,7 @@ func Run(token, workspace string, logger Logger) error {
 	logger.Infof("api token: %s", token)
 	logger.Infof("workspace: %s", workspace)
 	logger.Infof("config: %v", cfg)
+	logger.Infof("lockfile: %v", lf.String())
 	logger.Infof("files: %v", files)
 	return nil
 }

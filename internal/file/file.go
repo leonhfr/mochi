@@ -1,14 +1,12 @@
 package file
 
 import (
-	"encoding/json"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
 // System represents an interface with the filesystem.
@@ -58,35 +56,14 @@ func (s *System) Exists(path string) bool {
 	return !info.IsDir()
 }
 
-// ParseJSON parses the file at path into v.
-func (s *System) ParseJSON(path string, v any) error {
+// Read returns an io.ReadCloser from the file at path.
+func (s *System) Read(path string) (io.ReadCloser, error) {
 	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return json.NewDecoder(file).Decode(v)
+	return file, err
 }
 
-// WriteJSON writes v into the file at path.
-func (s *System) WriteJSON(path string, v any) error {
+// Write returns an io.WriteCloser to the file at path.
+func (s *System) Write(path string) (io.WriteCloser, error) {
 	file, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return json.NewEncoder(file).Encode(v)
-}
-
-// ParseYAML parses the file at path into v.
-func (s *System) ParseYAML(path string, v any) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return yaml.NewDecoder(file).Decode(v)
+	return file, err
 }
