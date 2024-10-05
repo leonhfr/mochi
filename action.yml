@@ -10,7 +10,7 @@ inputs:
     description: directory to target
 
 runs:
-  using: node16
+  using: node20
   main: action.js
 
 branding:

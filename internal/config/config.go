@@ -3,10 +3,9 @@ package config
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 
-	"gopkg.in/yaml.v3"
+	"github.com/leonhfr/mochi/internal/file"
 )
 
 const configName = "mochi"
@@ -30,11 +29,11 @@ type Sync struct {
 func Parse(target string) (Config, error) {
 	for _, ext := range configExtensions {
 		path := buildPath(target, ext)
-		if !fileExists(path) {
+		if !file.Exists(path) {
 			continue
 		}
 		var config Config
-		err := parseYAMLFile(path, &config)
+		err := file.ParseYAML(path, &config)
 		if err != nil {
 			return config, err
 		}
@@ -45,24 +44,4 @@ func Parse(target string) (Config, error) {
 
 func buildPath(target, ext string) string {
 	return filepath.Join(target, fmt.Sprintf("%s.%s", configName, ext))
-}
-
-func fileExists(path string) bool {
-	info, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	return !info.IsDir()
-}
-
-func parseYAMLFile(path string, v any) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	if err := yaml.NewDecoder(file).Decode(v); err != nil {
-		return err
-	}
-	return nil
 }

@@ -34,7 +34,7 @@ jobs:
       - name: Build
         uses: goreleaser/goreleaser-action@v6
         with:
-          version: latest
+          version: v2.3.2
           args: release --snapshot --clean
 
   action-run:
@@ -53,7 +53,7 @@ jobs:
       - name: Build
         uses: goreleaser/goreleaser-action@v6
         with:
-          version: latest
+          version: v2.3.2
           args: release --snapshot --clean
 
       - name: Run action
@@ -79,7 +79,7 @@ jobs:
       - name: Build
         uses: goreleaser/goreleaser-action@v6
         with:
-          version: latest
+          version: v2.3.2
           args: release --snapshot --clean
 
       - name: Release
