@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          cache: true
+          go-version-file: go.mod
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.61
+
+      - name: Test
+        run: go test -race -v ./...
+
+      - name: Build
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          version: latest
+          args: release --snapshot --clean
+
+  action-release:
+    needs: checks
+    if: startsWith(github.event.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          cache: true
+          go-version-file: go.mod
+
+      - name: Build
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          version: latest
+          args: release --snapshot --clean
+
+      - name: Release
+        run: |
+          git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git config --global user.name github-actions[bot]
+          git checkout --orphan release
+          git reset
+          git add action.yml action.js dist --force
+          git commit -m"Update binaries"
+          git push origin release --force

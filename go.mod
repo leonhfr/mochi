@@ -5,6 +5,7 @@ go 1.23.2
 require (
 	github.com/carlmjohnson/requests v0.24.2
 	github.com/h2non/gock v1.2.0
+	github.com/sethvargo/go-githubactions v1.3.0
 	github.com/stretchr/testify v1.9.0
 )
 

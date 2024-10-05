@@ -1,0 +1,16 @@
+name: Mochi Sync
+author: leonhfr
+description: Synchronize markdown notes to Mochi cards.
+
+inputs:
+  api_token:
+    description: mochi.cards API token
+    required: true
+
+runs:
+  using: node16
+  main: action.js
+
+branding:
+  icon: upload-cloud
+  color: green
