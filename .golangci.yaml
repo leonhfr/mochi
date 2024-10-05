@@ -1,0 +1,28 @@
+linters:
+  enable:
+    - errcheck
+    - gci
+    - godot
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - makezero
+    - prealloc
+    - revive
+    - staticcheck
+    - typecheck
+    - unused
+
+linters-settings:
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/leonhfr/mochi)
+
+issues:
+  include:
+    # - EXC0005
+    - EXC0012
+    - EXC0014
