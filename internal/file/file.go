@@ -1,6 +1,7 @@
 package file
 
 import (
+	"encoding/json"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -10,10 +11,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// System represents an interface with the filesystem.
+type System struct{}
+
+// NewSystem returns a new System.
+func NewSystem() *System { return &System{} }
+
 // List lists the files recursively in workspace.
 //
 // The function expects the extensions with a dot: [".md"].
-func List(workspace string, extensions []string) ([]string, error) {
+func (s *System) List(workspace string, extensions []string) ([]string, error) {
 	var files []string
 	err := filepath.WalkDir(workspace, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -43,7 +50,7 @@ func List(workspace string, extensions []string) ([]string, error) {
 }
 
 // Exists checks the existence of the file at path.
-func Exists(path string) bool {
+func (s *System) Exists(path string) bool {
 	info, err := os.Stat(path)
 	if err != nil {
 		return false
@@ -51,15 +58,35 @@ func Exists(path string) bool {
 	return !info.IsDir()
 }
 
-// ParseYAML parses the file at path into v.
-func ParseYAML(path string, v any) error {
+// ParseJSON parses the file at path into v.
+func (s *System) ParseJSON(path string, v any) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	if err := yaml.NewDecoder(file).Decode(v); err != nil {
+
+	return json.NewDecoder(file).Decode(v)
+}
+
+// WriteJSON writes v into the file at path.
+func (s *System) WriteJSON(path string, v any) error {
+	file, err := os.Create(path)
+	if err != nil {
 		return err
 	}
-	return nil
+	defer file.Close()
+
+	return json.NewEncoder(file).Encode(v)
+}
+
+// ParseYAML parses the file at path into v.
+func (s *System) ParseYAML(path string, v any) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return yaml.NewDecoder(file).Decode(v)
 }

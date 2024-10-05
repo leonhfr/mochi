@@ -18,12 +18,13 @@ func Run(token, workspace string, logger Logger) error {
 		return fmt.Errorf("api token required")
 	}
 
-	cfg, err := config.Parse(workspace)
+	fs := file.NewSystem()
+	cfg, err := config.Parse(fs, workspace)
 	if err != nil {
 		return err
 	}
 
-	files, err := file.List(workspace, []string{".md"})
+	files, err := fs.List(workspace, []string{".md"})
 	if err != nil {
 		return err
 	}

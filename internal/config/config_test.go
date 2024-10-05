@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/leonhfr/mochi/internal/file"
 )
 
 func Test_Parse(t *testing.T) {
@@ -33,7 +35,7 @@ func Test_Parse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := Parse(tt.target)
+			got, err := Parse(file.NewSystem(), tt.target)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.err, err)
 		})

@@ -11,7 +11,7 @@ lint:
 
 .PHONY: test
 test:
-	go test -race -v -coverprofile=coverage.out -coverpkg=github.com/leonhfr/mochi/... ./...
+	go test -race -v -coverprofile=coverage.out ./...
 
 .PHONY: coverage-html
 coverage-html: test

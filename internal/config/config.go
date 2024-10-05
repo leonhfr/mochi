@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-
-	"github.com/leonhfr/mochi/internal/file"
 )
 
 const configName = "mochi"
@@ -25,16 +23,21 @@ type Sync struct {
 	Path string `yaml:"path"`
 }
 
+// Interface represents the interface to interact with config files.
+type Interface interface {
+	Exists(string) bool
+	ParseYAML(string, any) error
+}
+
 // Parse parses the config in the target directory.
-func Parse(target string) (Config, error) {
+func Parse(yaml Interface, target string) (Config, error) {
 	for _, ext := range configExtensions {
 		path := buildPath(target, ext)
-		if !file.Exists(path) {
+		if !yaml.Exists(path) {
 			continue
 		}
 		var config Config
-		err := file.ParseYAML(path, &config)
-		if err != nil {
+		if err := yaml.ParseYAML(path, &config); err != nil {
 			return config, err
 		}
 		return config, nil
