@@ -13,16 +13,18 @@ type Deck struct {
 
 // DeckFilter filters the directories, only forwarding them
 // if a deck config has been found.
-func DeckFilter(logger Logger, cfg *config.Config, dirc <-chan deck.Directory) <-chan Deck {
-	deckc := make(chan Deck)
+func DeckFilter(logger Logger, cfg *config.Config, in <-chan deck.Directory) <-chan Deck {
+	out := make(chan Deck)
 	go func() {
-		defer close(deckc)
-		for dir := range dirc {
+		defer close(out)
+		for dir := range in {
 			if deck, ok := cfg.Deck(dir.Base); ok {
 				logger.Debugf("deck filter: forwarding %s with %d files", dir.Base, len(dir.Paths))
-				deckc <- Deck{dir: dir, cfg: deck}
+				out <- Deck{dir: dir, cfg: deck}
+			} else {
+				logger.Debugf("deck filter: discarded %s with %d files", dir.Base, len(dir.Paths))
 			}
 		}
 	}()
-	return deckc
+	return out
 }

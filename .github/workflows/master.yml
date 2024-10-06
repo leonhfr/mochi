@@ -62,7 +62,7 @@ jobs:
           api_token: ${{ secrets.MOCHI_TOKEN }}
           workspace: testdata
         env:
-          ACTIONS_STEP_DEBUG: true
+          RUNNER_DEBUG: 1
 
       - name: Print output
         run: echo "${{ steps.run-action.outputs.lockfile_updated }}"
