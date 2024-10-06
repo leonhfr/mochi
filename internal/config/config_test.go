@@ -47,10 +47,13 @@ func Test_Parse(t *testing.T) {
 			},
 			read: &testRead{
 				path: "testdata/mochi.yaml",
-				file: "sync:\n  - path: lorem-ipsum\n",
+				file: "decks:\n  - path: sed-interdum-libero\n    name: Sed interdum libero\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
 				err:  nil,
 			},
-			want: &Config{Sync: []Sync{{Path: "lorem-ipsum"}}},
+			want: &Config{Decks: []Deck{
+				{Path: "/sed-interdum-libero", Name: "Sed interdum libero"},
+				{Path: "/lorem-ipsum", Name: "Lorem ipsum"},
+			}},
 		},
 		{
 			name:   "mochi.yml",
@@ -61,10 +64,10 @@ func Test_Parse(t *testing.T) {
 			},
 			read: &testRead{
 				path: "testdata/mochi.yml",
-				file: "sync:\n  - path: lorem-ipsum\n",
+				file: "decks:\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
 				err:  nil,
 			},
-			want: &Config{Sync: []Sync{{Path: "lorem-ipsum"}}},
+			want: &Config{Decks: []Deck{{Path: "/lorem-ipsum", Name: "Lorem ipsum"}}},
 		},
 	}
 
@@ -82,6 +85,44 @@ func Test_Parse(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.err, err)
 			r.AssertExpectations(t)
+		})
+	}
+}
+
+func Test_Config_Deck(t *testing.T) {
+	tests := []struct {
+		name   string
+		config *Config
+		base   string
+		want   Deck
+		ok     bool
+	}{
+		{
+			name: "should return the expected deck config",
+			config: &Config{Decks: []Deck{
+				{Path: "/sed-interdum-libero"},
+				{Path: "/lorem-ipsum"},
+			}},
+			base: "/lorem-ipsum",
+			want: Deck{Path: "/lorem-ipsum"},
+			ok:   true,
+		},
+		{
+			name: "should return false",
+			config: &Config{Decks: []Deck{
+				{Path: "/sed-interdum-libero"},
+			}},
+			base: "/lorem-ipsum",
+			want: Deck{},
+			ok:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := tt.config.Deck(tt.base)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.ok, ok)
 		})
 	}
 }

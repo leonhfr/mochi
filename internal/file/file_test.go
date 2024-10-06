@@ -7,7 +7,10 @@ import (
 )
 
 func Test_List(t *testing.T) {
-	want := []string{"/lorem-ipsum/Lorem ipsum.md"}
+	want := []string{
+		"/journal/yyyy-mm-dd.md",
+		"/lorem-ipsum/Lorem ipsum.md",
+	}
 	var got []string
 	err := NewSystem().Walk(
 		"../../testdata",

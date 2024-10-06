@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/leonhfr/mochi/internal/config"
-	"github.com/leonhfr/mochi/internal/deck"
 	"github.com/leonhfr/mochi/internal/file"
 	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/worker"
@@ -38,9 +37,10 @@ func Run(ctx context.Context, logger Logger, token, workspace string) error {
 		return err
 	}
 
-	dirs := []deck.Directory{}
-	for dir := range dirc {
-		dirs = append(dirs, dir)
+	deckc := worker.DeckFilter(cfg, dirc)
+	decks := []worker.Deck{}
+	for deck := range deckc {
+		decks = append(decks, deck)
 	}
 
 	logger.Infof("Hello, world!")
@@ -48,6 +48,6 @@ func Run(ctx context.Context, logger Logger, token, workspace string) error {
 	logger.Infof("workspace: %s", workspace)
 	logger.Infof("config: %v", cfg)
 	logger.Infof("lockfile: %v", lf.String())
-	logger.Infof("dirs: %v", dirs)
+	logger.Infof("decks: %v", decks)
 	return nil
 }

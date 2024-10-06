@@ -1,2 +1,3 @@
-sync:
+decks:
   - path: lorem-ipsum
+    name: Lorem ipsum

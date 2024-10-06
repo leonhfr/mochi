@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"slices"
 
 	"gopkg.in/yaml.v3"
 )
@@ -18,12 +19,13 @@ var ErrNoConfig = errors.New("no config found in target")
 
 // Config represents a config.
 type Config struct {
-	Sync []Sync `yaml:"sync"`
+	Decks []Deck `yaml:"decks"` // sorted by longest Path (more specific first)
 }
 
-// Sync represents a sync config.
-type Sync struct {
+// Deck represents a sync config.
+type Deck struct {
 	Path string `yaml:"path"`
+	Name string `yaml:"name"`
 }
 
 // Reader represents the interface to interact with a config file.
@@ -53,10 +55,34 @@ func parseConfig(reader Reader, path string) (*Config, error) {
 	}
 	defer r.Close()
 
-	var config *Config
+	var config Config
 	if err := yaml.NewDecoder(r).Decode(&config); err != nil {
 		return nil, err
 	}
 
-	return config, nil
+	config = cleanConfig(config)
+	return &config, nil
+}
+
+func cleanConfig(config Config) Config {
+	for i, deck := range config.Decks {
+		path := filepath.Clean(filepath.Join("/", deck.Path))
+		config.Decks[i].Path = path
+	}
+
+	slices.SortFunc(config.Decks, func(a, b Deck) int {
+		return len(b.Path) - len(a.Path)
+	})
+
+	return config
+}
+
+// Deck returns the deck config that matches the base path.
+func (c *Config) Deck(base string) (Deck, bool) {
+	for _, deck := range c.Decks {
+		if deck.Path == base {
+			return deck, true
+		}
+	}
+	return Deck{}, false
 }
