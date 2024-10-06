@@ -7,9 +7,9 @@ import (
 
 // Directory represents the path to a directory and its files.
 type Directory struct {
-	Base  string
-	Paths []string
-	level int
+	Path      string
+	FilePaths []string
+	level     int
 }
 
 // Heap represents a priority queue for directories.
@@ -21,18 +21,18 @@ func (h Heap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }        // Swap imp
 
 // Push implements heap.Interface.
 func (h *Heap) Push(x any) {
-	path := x.(string)
-	base := filepath.Dir(path)
+	filePath := x.(string)
+	path := filepath.Dir(filePath)
 	for i, item := range *h {
-		if item.Base == base {
-			(*h)[i].Paths = append((*h)[i].Paths, path)
+		if item.Path == path {
+			(*h)[i].FilePaths = append((*h)[i].FilePaths, filePath)
 			return
 		}
 	}
 	*h = append(*h, Directory{
-		Base:  base,
-		Paths: []string{path},
-		level: getLevel(base),
+		Path:      path,
+		FilePaths: []string{filePath},
+		level:     getLevel(path),
 	})
 }
 
@@ -45,9 +45,9 @@ func (h *Heap) Pop() any {
 	return x
 }
 
-func getLevel(base string) int {
-	if base == "/" {
+func getLevel(path string) int {
+	if path == "/" {
 		return 0
 	}
-	return strings.Count(base, "/")
+	return strings.Count(path, "/")
 }

@@ -90,13 +90,13 @@ func (l *Lock) CleanDecks(decks []mochi.Deck) {
 	}
 }
 
-// GetDeck returns an existing decks information from a base string.
-func (l *Lock) GetDeck(base string) (string, Deck, bool) {
+// GetDeck returns an existing decks information from a directory string.
+func (l *Lock) GetDeck(path string) (string, Deck, bool) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
 	for deckID, deck := range l.data {
-		if deck.Path == base {
+		if deck.Path == path {
 			return deckID, deck, true
 		}
 	}

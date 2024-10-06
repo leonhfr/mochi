@@ -17,7 +17,7 @@ func Test_Sync(t *testing.T) {
 		client   test.Mochi
 		config   test.Config
 		lockfile test.Lockfile
-		base     string
+		path     string
 		deckName string
 		want     string
 		err      error
@@ -34,19 +34,19 @@ func Test_Sync(t *testing.T) {
 			},
 			config: test.Config{
 				GetDeck: []test.ConfigGetDeck{
-					{Base: "/test/data", Deck: config.Deck{Name: "DECK_DATA_NAME"}, OK: true},
+					{Path: "/test/data", Deck: config.Deck{Name: "DECK_DATA_NAME"}, OK: true},
 				},
 			},
 			lockfile: test.Lockfile{
 				GetDeck: []test.LockfileGetDeck{
-					{Base: "/test/data"},
-					{Base: "/test", DeckID: "DECK_TEST_ID", OK: true},
+					{Path: "/test/data"},
+					{Path: "/test", DeckID: "DECK_TEST_ID", OK: true},
 				},
 				SetDeck: []test.LockfileSetDeck{
 					{ID: "DECK_DATA_ID", ParentID: "DECK_TEST_ID", Path: "/test/data", Name: "DECK_DATA_NAME"},
 				},
 			},
-			base:     "/test/data",
+			path:     "/test/data",
 			deckName: "DECK_DATA_NAME",
 			want:     "DECK_DATA_ID",
 		},
@@ -57,7 +57,7 @@ func Test_Sync(t *testing.T) {
 			client := test.NewMockMochi(tt.client)
 			config := test.NewMockConfig(tt.config)
 			lf := test.NewMockLockfile(tt.lockfile)
-			got, err := Sync(context.Background(), client, config, lf, tt.base, tt.deckName)
+			got, err := Sync(context.Background(), client, config, lf, tt.path, tt.deckName)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.err, err)
 			client.AssertExpectations(t)
@@ -73,7 +73,7 @@ func Test_createDeck(t *testing.T) {
 		client   []test.MochiCreateDeck
 		lockfile []test.LockfileSetDeck
 		parentID string
-		base     string
+		path     string
 		deckName string
 		want     string
 		err      error
@@ -96,7 +96,7 @@ func Test_createDeck(t *testing.T) {
 				{ID: "DECK_ID", ParentID: "PARENT_ID", Path: "/test/data", Name: "DECK_NAME"},
 			},
 			parentID: "PARENT_ID",
-			base:     "/test/data",
+			path:     "/test/data",
 			deckName: "DECK_NAME",
 			want:     "DECK_ID",
 		},
@@ -106,7 +106,7 @@ func Test_createDeck(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			client := test.NewMockMochi(test.Mochi{CreateDeck: tt.client})
 			lf := test.NewMockLockfile(test.Lockfile{SetDeck: tt.lockfile})
-			got, err := createDeck(context.Background(), client, lf, tt.parentID, tt.base, tt.deckName)
+			got, err := createDeck(context.Background(), client, lf, tt.parentID, tt.path, tt.deckName)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.err, err)
 			client.AssertExpectations(t)
@@ -162,31 +162,31 @@ func Test_getDeckName(t *testing.T) {
 	tests := []struct {
 		name  string
 		calls []test.ConfigGetDeck
-		base  string
+		path  string
 		want  string
 	}{
 		{
 			name: "config deck has name",
 			calls: []test.ConfigGetDeck{
-				{Base: "/test/data", Deck: config.Deck{Name: "DECK_NAME"}, OK: true},
+				{Path: "/test/data", Deck: config.Deck{Name: "DECK_NAME"}, OK: true},
 			},
-			base: "/test/data",
+			path: "/test/data",
 			want: "DECK_NAME",
 		},
 		{
 			name: "config deck has empty name",
 			calls: []test.ConfigGetDeck{
-				{Base: "/test/data", Deck: config.Deck{}, OK: true},
+				{Path: "/test/data", Deck: config.Deck{}, OK: true},
 			},
-			base: "/test/data",
+			path: "/test/data",
 			want: "data",
 		},
 		{
 			name: "no config deck",
 			calls: []test.ConfigGetDeck{
-				{Base: "/test/data", OK: false},
+				{Path: "/test/data", OK: false},
 			},
-			base: "/test/data",
+			path: "/test/data",
 			want: "data",
 		},
 	}
@@ -194,7 +194,7 @@ func Test_getDeckName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := test.NewMockConfig(test.Config{GetDeck: tt.calls})
-			got := getDeckName(cfg, tt.base)
+			got := getDeckName(cfg, tt.path)
 			assert.Equal(t, tt.want, got)
 			cfg.AssertExpectations(t)
 		})
@@ -204,32 +204,32 @@ func Test_getDeckName(t *testing.T) {
 func Test_getStack(t *testing.T) {
 	tests := []struct {
 		name   string
-		base   string
+		path   string
 		calls  []test.LockfileGetDeck
 		deckID string
 		stack  []string
 	}{
 		{
-			name:  "base is root",
-			base:  "/",
+			name:  "path is root",
+			path:  "/",
 			stack: []string{"/"},
 		},
 		{
 			name: "recursive to root",
-			base: "/test/data/notes",
+			path: "/test/data/notes",
 			calls: []test.LockfileGetDeck{
-				{Base: "/test/data"},
-				{Base: "/test"},
-				{Base: "/"},
+				{Path: "/test/data"},
+				{Path: "/test"},
+				{Path: "/"},
 			},
 			stack: []string{"/test/data/notes", "/test/data", "/test", "/"},
 		},
 		{
 			name: "recursive to existing",
-			base: "/test/data/notes",
+			path: "/test/data/notes",
 			calls: []test.LockfileGetDeck{
-				{Base: "/test/data"},
-				{Base: "/test", DeckID: "DECK_ID", OK: true},
+				{Path: "/test/data"},
+				{Path: "/test", DeckID: "DECK_ID", OK: true},
 			},
 			deckID: "DECK_ID",
 			stack:  []string{"/test/data/notes", "/test/data"},
@@ -239,7 +239,7 @@ func Test_getStack(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			lf := test.NewMockLockfile(test.Lockfile{GetDeck: tt.calls})
-			deckID, stack := getStack(lf, tt.base)
+			deckID, stack := getStack(lf, tt.path)
 			assert.Equal(t, tt.deckID, deckID)
 			assert.Equal(t, tt.stack, stack)
 			lf.AssertExpectations(t)

@@ -89,11 +89,11 @@ func Test_Parse(t *testing.T) {
 	}
 }
 
-func Test_Config_Deck(t *testing.T) {
+func Test_Config_GetDeck(t *testing.T) {
 	tests := []struct {
 		name   string
 		config *Config
-		base   string
+		path   string
 		want   Deck
 		ok     bool
 	}{
@@ -103,7 +103,7 @@ func Test_Config_Deck(t *testing.T) {
 				{Path: "/sed-interdum-libero"},
 				{Path: "/lorem-ipsum"},
 			}},
-			base: "/lorem-ipsum",
+			path: "/lorem-ipsum",
 			want: Deck{Path: "/lorem-ipsum"},
 			ok:   true,
 		},
@@ -112,7 +112,7 @@ func Test_Config_Deck(t *testing.T) {
 			config: &Config{Decks: []Deck{
 				{Path: "/sed-interdum-libero"},
 			}},
-			base: "/lorem-ipsum",
+			path: "/lorem-ipsum",
 			want: Deck{},
 			ok:   false,
 		},
@@ -120,7 +120,7 @@ func Test_Config_Deck(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, ok := tt.config.GetDeck(tt.base)
+			got, ok := tt.config.GetDeck(tt.path)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.ok, ok)
 		})

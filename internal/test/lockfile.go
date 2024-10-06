@@ -13,7 +13,7 @@ type Lockfile struct {
 }
 
 type LockfileGetDeck struct {
-	Base   string
+	Path   string
 	DeckID string
 	Deck   lock.Deck
 	OK     bool
@@ -35,7 +35,7 @@ func NewMockLockfile(calls Lockfile) *MockLockfile {
 	lf := new(MockLockfile)
 	for _, call := range calls.GetDeck {
 		lf.
-			On("GetDeck", call.Base).
+			On("GetDeck", call.Path).
 			Return(call.DeckID, call.Deck, call.OK)
 	}
 	for _, call := range calls.SetDeck {
@@ -55,8 +55,8 @@ type MockLockfile struct {
 	mock.Mock
 }
 
-func (m *MockLockfile) GetDeck(base string) (string, lock.Deck, bool) {
-	args := m.Called(base)
+func (m *MockLockfile) GetDeck(path string) (string, lock.Deck, bool) {
+	args := m.Called(path)
 	return args.String(0), args.Get(1).(lock.Deck), args.Bool(2)
 }
 
