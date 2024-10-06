@@ -17,7 +17,7 @@ type lockData map[string]Deck // indexed by deck id
 
 // Deck contains the information about existing decks.
 type Deck struct {
-	ParentID string `json:"parentID"`
+	ParentID string `json:"parentID,omitempty"`
 	Path     string `json:"path"`
 	Name     string `json:"name"`
 }
@@ -102,6 +102,30 @@ func (l *Lock) GetDeck(base string) (string, Deck, bool) {
 	}
 
 	return "", Deck{}, false
+}
+
+// SetDeck sets a deck in the lockfile.
+func (l *Lock) SetDeck(id, parentID, path, name string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	l.data[id] = Deck{
+		ParentID: parentID,
+		Path:     path,
+		Name:     name,
+	}
+	l.updated = true
+}
+
+// UpdateDeckName updates a deck name in the lockfile.
+func (l *Lock) UpdateDeckName(id, name string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	tmp := l.data[id]
+	tmp.Name = name
+	l.data[id] = tmp
+	l.updated = true
 }
 
 // Updated returns whether the lockfile has been updated.

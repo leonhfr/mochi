@@ -56,7 +56,7 @@ func runWorkers(ctx context.Context, logger Logger, fs *file.System, cfg *config
 	}
 
 	deckc := worker.DeckFilter(logger, cfg, dirc)
-	decks := []worker.Deck{}
+	decks := []worker.DeckJob{}
 	for deck := range deckc {
 		decks = append(decks, deck)
 	}

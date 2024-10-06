@@ -33,6 +33,7 @@ func FileWalk(ctx context.Context, logger Logger, walker Walker, workspace strin
 	out := make(chan deck.Directory)
 	go func() {
 		defer close(out)
+
 		for h.Len() > 0 {
 			select {
 			case out <- heap.Pop(h).(deck.Directory):
