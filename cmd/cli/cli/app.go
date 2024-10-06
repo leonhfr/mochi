@@ -3,6 +3,8 @@ package cli
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/urfave/cli/v2"
@@ -33,9 +35,15 @@ func GetApp(out io.Writer, version, compiled string) (*cli.App, error) {
 			return nil
 		},
 		Action: func(ctx *cli.Context) error {
+			pwd, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+
 			token := ctx.String("token")
 			workspace := ctx.Args().First()
-			_, err := action.Run(ctx.Context, logger, token, workspace)
+			workspace = filepath.Join(pwd, workspace)
+			_, err = action.Run(ctx.Context, logger, token, workspace)
 			return err
 		},
 		Flags: []cli.Flag{

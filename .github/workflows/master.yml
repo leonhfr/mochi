@@ -7,9 +7,6 @@ on:
     branches:
       - master
 
-permissions:
-  contents: write
-
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -40,6 +37,8 @@ jobs:
   action-run:
     needs: checks
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -57,13 +56,21 @@ jobs:
           args: release --snapshot --clean
 
       - name: Run action
+        id: action
         uses: ./
         with:
           api_token: ${{ secrets.MOCHI_TOKEN }}
           workspace: testdata
 
       - name: Print output
-        run: echo "${{ steps.run-action.outputs.lockfile_updated }}"
+        run: echo "${{ steps.action.outputs.lockfile_updated }}"
+
+      - name: Update mochi lock file
+        if: steps.action.outputs.lockfile_updated == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Update mochi lock file
+          file_pattern: testdata/mochi-lock.json
 
       - name: Update mochi lock file
         if: steps.run-action.outputs.lockfile_updated == 'true'
@@ -76,6 +83,8 @@ jobs:
     needs: checks
     if: startsWith(github.event.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -106,6 +115,8 @@ jobs:
     needs: checks
     if: startsWith(github.event.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
