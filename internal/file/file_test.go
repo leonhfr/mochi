@@ -9,7 +9,7 @@ import (
 func Test_List(t *testing.T) {
 	want := []string{"/lorem-ipsum/Lorem ipsum.md"}
 	var got []string
-	err := NewSystem().List(
+	err := NewSystem().Walk(
 		"../../testdata",
 		[]string{".md"},
 		func(path string) { got = append(got, path) },

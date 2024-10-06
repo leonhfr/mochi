@@ -15,10 +15,12 @@ type System struct{}
 // NewSystem returns a new System.
 func NewSystem() *System { return &System{} }
 
-// List lists the files recursively in workspace.
+// Walk walks recursively in workspace and calls the callback
+// for all files that match one of the extension and is not hidden
+// (does not start with a dot ".").
 //
 // The function expects the extensions with a dot: [".md"].
-func (System) List(workspace string, extensions []string, cb func(string)) error {
+func (System) Walk(workspace string, extensions []string, cb func(string)) error {
 	return filepath.WalkDir(workspace, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err

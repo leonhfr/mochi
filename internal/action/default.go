@@ -1,13 +1,14 @@
 package action
 
 import (
-	"container/heap"
+	"context"
 	"fmt"
 
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/deck"
 	"github.com/leonhfr/mochi/internal/file"
 	"github.com/leonhfr/mochi/internal/lock"
+	"github.com/leonhfr/mochi/internal/worker"
 )
 
 // Logger is the interface to log output.
@@ -16,7 +17,7 @@ type Logger interface {
 }
 
 // Run runs the default action.
-func Run(token, workspace string, logger Logger) error {
+func Run(ctx context.Context, logger Logger, token, workspace string) error {
 	if token == "" {
 		return fmt.Errorf("api token required")
 	}
@@ -32,15 +33,14 @@ func Run(token, workspace string, logger Logger) error {
 		return err
 	}
 
-	h := &deck.Heap{}
-	heap.Init(h)
-	err = fs.List(
-		workspace,
-		[]string{".md"},
-		func(path string) { heap.Push(h, path) },
-	)
+	dirc, err := worker.FileWalk(ctx, fs, workspace, []string{".md"})
 	if err != nil {
 		return err
+	}
+
+	dirs := []deck.Directory{}
+	for dir := range dirc {
+		dirs = append(dirs, dir)
 	}
 
 	logger.Infof("Hello, world!")
@@ -48,6 +48,6 @@ func Run(token, workspace string, logger Logger) error {
 	logger.Infof("workspace: %s", workspace)
 	logger.Infof("config: %v", cfg)
 	logger.Infof("lockfile: %v", lf.String())
-	logger.Infof("files: %v", *h)
+	logger.Infof("dirs: %v", dirs)
 	return nil
 }

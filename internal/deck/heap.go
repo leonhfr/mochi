@@ -2,14 +2,14 @@ package deck
 
 import "path/filepath"
 
-// HeapItem represents the path to a directory and its files.
-type HeapItem struct {
+// Directory represents the path to a directory and its files.
+type Directory struct {
 	base  string
 	paths []string
 }
 
 // Heap represents a priority queue for directories.
-type Heap []HeapItem
+type Heap []Directory
 
 func (h Heap) Len() int           { return len(h) }                          // Len implements heap.Interface.
 func (h Heap) Less(i, j int) bool { return len(h[i].base) < len(h[j].base) } // Less implements heap.Interface.
@@ -25,7 +25,7 @@ func (h *Heap) Push(x any) {
 			return
 		}
 	}
-	*h = append(*h, HeapItem{base, []string{path}})
+	*h = append(*h, Directory{base, []string{path}})
 }
 
 // Pop implements heap.Interface.
