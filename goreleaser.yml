@@ -10,6 +10,15 @@ builds:
     goarch:
       - amd64
       - arm64
+  - id: mochi-cli
+    main: ./cmd/cli
+    binary: mochi
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
 
 checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"

@@ -94,3 +94,30 @@ jobs:
           git add action.yml action.js dist --force
           git commit -m"Update binaries"
           git push origin release --force
+
+  cli-release:
+    needs: checks
+    if: startsWith(github.event.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all tags
+        run: git fetch --force --tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          cache: true
+          go-version-file: go.mod
+
+      - name: Release
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: v2.3.2
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
