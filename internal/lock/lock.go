@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"slices"
 	"sync"
+
+	"github.com/leonhfr/mochi/mochi"
 )
 
 const lockName = "mochi-lock.json"
@@ -54,9 +57,39 @@ func Parse(rw ReaderWriter, target string) (*Lock, error) {
 	return lock, nil
 }
 
+// CleanDecks removes from the lockfile the inexistent decks
+// and updates the deck names if they differ.
+func (l *Lock) CleanDecks(decks []mochi.Deck) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	for id, lockDeck := range l.data {
+		index := slices.IndexFunc(decks, func(deck mochi.Deck) bool {
+			return deck.ID == id
+		})
+
+		if index < 0 {
+			delete(l.data, id)
+			l.updated = true
+			continue
+		}
+
+		if deck := decks[index]; deck.Name != lockDeck.Name {
+			lockDeck.Name = deck.Name
+			l.data[id] = lockDeck
+			l.updated = true
+		}
+	}
+}
+
+// Updated returns whether the lockfile has been updated.
+func (l *Lock) Updated() bool {
+	return l.updated
+}
+
 // String implements fmt.Stringer.
 func (l *Lock) String() string {
-	return fmt.Sprint(l.data)
+	return fmt.Sprintf("data(updated: %t): %v", l.updated, l.data)
 }
 
 // Write writes the lockfile to the target directory.

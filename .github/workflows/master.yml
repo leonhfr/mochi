@@ -59,7 +59,7 @@ jobs:
       - name: Run action
         uses: ./
         with:
-          api_token: API_TOKEN
+          api_token: ${{ secrets.MOCHI_TOKEN }}
           workspace: testdata
 
   action-release:

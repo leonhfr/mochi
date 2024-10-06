@@ -9,6 +9,10 @@ inputs:
   workspace:
     description: directory to target
 
+outputs:
+  lockfile_updated:
+    description: whether the lockfile has been updated (true/false)
+
 runs:
   using: node20
   main: action.js
