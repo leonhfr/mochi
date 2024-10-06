@@ -8,7 +8,12 @@ import (
 
 func Test_List(t *testing.T) {
 	want := []string{"/lorem-ipsum/Lorem ipsum.md"}
-	got, err := NewSystem().List("../../testdata", []string{".md"})
+	var got []string
+	err := NewSystem().List(
+		"../../testdata",
+		[]string{".md"},
+		func(path string) { got = append(got, path) },
+	)
 	assert.Equal(t, want, got)
 	assert.NoError(t, err)
 }

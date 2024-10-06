@@ -1,9 +1,11 @@
 package action
 
 import (
+	"container/heap"
 	"fmt"
 
 	"github.com/leonhfr/mochi/internal/config"
+	"github.com/leonhfr/mochi/internal/deck"
 	"github.com/leonhfr/mochi/internal/file"
 	"github.com/leonhfr/mochi/internal/lock"
 )
@@ -30,7 +32,13 @@ func Run(token, workspace string, logger Logger) error {
 		return err
 	}
 
-	files, err := fs.List(workspace, []string{".md"})
+	h := &deck.Heap{}
+	heap.Init(h)
+	err = fs.List(
+		workspace,
+		[]string{".md"},
+		func(path string) { heap.Push(h, path) },
+	)
 	if err != nil {
 		return err
 	}
@@ -40,6 +48,6 @@ func Run(token, workspace string, logger Logger) error {
 	logger.Infof("workspace: %s", workspace)
 	logger.Infof("config: %v", cfg)
 	logger.Infof("lockfile: %v", lf.String())
-	logger.Infof("files: %v", files)
+	logger.Infof("files: %v", *h)
 	return nil
 }
