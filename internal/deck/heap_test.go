@@ -16,9 +16,9 @@ func Test_Heap(t *testing.T) {
 		"/lorem-ipsum/Sed interdum libero.md",
 	}
 	want := []Directory{
-		{Base: "/", Paths: []string{"/README.md"}},
-		{Base: "/lorem-ipsum", Paths: []string{"/lorem-ipsum/Lorem ipsum.md", "/lorem-ipsum/Sed interdum libero.md"}},
-		{Base: "/lorem-ipsum/Notes", Paths: []string{"/lorem-ipsum/Notes/Note 1.md", "/lorem-ipsum/Notes/Note 2.md"}},
+		{level: 0, Base: "/", Paths: []string{"/README.md"}},
+		{level: 1, Base: "/lorem-ipsum", Paths: []string{"/lorem-ipsum/Lorem ipsum.md", "/lorem-ipsum/Sed interdum libero.md"}},
+		{level: 2, Base: "/lorem-ipsum/Notes", Paths: []string{"/lorem-ipsum/Notes/Note 1.md", "/lorem-ipsum/Notes/Note 2.md"}},
 	}
 
 	h := &Heap{}
