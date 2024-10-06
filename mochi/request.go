@@ -66,7 +66,7 @@ func listItems[Item any](ctx context.Context, c *Client, path string, params url
 			return err
 		}
 		bookmark = res.Bookmark
-		if bookmark == "" || bookmark == "nil" {
+		if bookmark == "" || bookmark == "nil" || len(res.Docs) == 0 {
 			break
 		}
 	}
