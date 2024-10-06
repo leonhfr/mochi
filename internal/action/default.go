@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"sync"
 
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/file"
@@ -13,6 +14,7 @@ import (
 // Logger is the interface to log output.
 type Logger interface {
 	Debugf(format string, args ...any)
+	Errorf(format string, args ...any)
 	Infof(format string, args ...any)
 }
 
@@ -44,24 +46,37 @@ func Run(ctx context.Context, logger Logger, token, workspace string) (updated b
 		}
 	}()
 
-	err = runWorkers(ctx, logger, fs, cfg, workspace)
+	err = runWorkers(ctx, logger, client, fs, cfg, lf, workspace)
 
 	return lf.Updated(), err
 }
 
-func runWorkers(ctx context.Context, logger Logger, fs *file.System, cfg *config.Config, workspace string) error {
+func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *file.System, cfg *config.Config, lf *lock.Lock, workspace string) error {
+	wg := &sync.WaitGroup{}
+	errc := make(chan error)
+	defer close(errc)
+	go func() {
+		for err := range errc {
+			logger.Errorf("workers: %v", err)
+		}
+	}()
+
 	dirc, err := worker.FileWalk(ctx, logger, fs, workspace, []string{".md"})
 	if err != nil {
 		return err
 	}
 
 	deckc := worker.DeckFilter(logger, cfg, dirc)
+	syncc := worker.DeckSync(ctx, logger, client, cfg, lf, deckc)
+	res := worker.Unwrap(wg, syncc, errc)
+
 	decks := []worker.DeckJob{}
-	for deck := range deckc {
+	for deck := range res {
 		decks = append(decks, deck)
 	}
 
-	logger.Infof("decks: %v", decks)
+	logger.Infof("deck jobs: %v", decks)
+	wg.Wait()
 	return nil
 }
 

@@ -7,6 +7,7 @@ import (
 
 // DeckJob contains a deck config and its associated files.
 type DeckJob struct {
+	id  string
 	dir deck.Directory
 	cfg config.Deck
 }
