@@ -1,11 +1,13 @@
 package lock
 
 import (
+	"io"
+	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"gotest.tools/v3/assert"
 
-	"github.com/leonhfr/mochi/internal/test"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -40,7 +42,7 @@ func Test_Parse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rw := new(test.MockFile)
+			rw := new(mockFile)
 			rw.On("Exists", tt.path).Return(tt.exists)
 			if tt.exists {
 				rw.On("Read", tt.path).Return(tt.fileContent, tt.fileError)
@@ -135,3 +137,30 @@ func Test_Lock_CleanDecks(t *testing.T) {
 		})
 	}
 }
+
+type mockFile struct {
+	mock.Mock
+}
+
+func (m *mockFile) Exists(p string) bool {
+	args := m.Mock.Called(p)
+	return args.Bool(0)
+}
+
+func (m *mockFile) Read(p string) (io.ReadCloser, error) {
+	args := m.Mock.Called(p)
+	rc := strings.NewReader(args.String(0))
+	return io.NopCloser(rc), args.Error(1)
+}
+
+func (m *mockFile) Write(p string) (io.WriteCloser, error) {
+	args := m.Mock.Called(p)
+	wc := writeCloser{&strings.Builder{}}
+	return wc, args.Error(1)
+}
+
+type writeCloser struct {
+	*strings.Builder
+}
+
+func (writeCloser) Close() error { return nil }

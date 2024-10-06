@@ -1,11 +1,12 @@
 package config
 
 import (
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/leonhfr/mochi/internal/test"
+	"github.com/stretchr/testify/mock"
 )
 
 func Test_Parse(t *testing.T) {
@@ -72,7 +73,7 @@ func Test_Parse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := new(test.MockFile)
+			r := new(mockFile)
 			for _, te := range tt.exists {
 				r.On("Exists", te.path).Return(te.exists)
 			}
@@ -124,4 +125,19 @@ func Test_Config_Deck(t *testing.T) {
 			assert.Equal(t, tt.ok, ok)
 		})
 	}
+}
+
+type mockFile struct {
+	mock.Mock
+}
+
+func (m *mockFile) Exists(p string) bool {
+	args := m.Mock.Called(p)
+	return args.Bool(0)
+}
+
+func (m *mockFile) Read(p string) (io.ReadCloser, error) {
+	args := m.Mock.Called(p)
+	rc := strings.NewReader(args.String(0))
+	return io.NopCloser(rc), args.Error(1)
 }
