@@ -13,11 +13,13 @@ import (
 
 const lockName = "mochi-lock.json"
 
-type lockData map[string]lockDeck // indexed by deck id
+type lockData map[string]Deck // indexed by deck id
 
-type lockDeck struct {
-	Path string `json:"path"`
-	Name string `json:"name"`
+// Deck contains the information about existing decks.
+type Deck struct {
+	ParentID string `json:"parentID"`
+	Path     string `json:"path"`
+	Name     string `json:"name"`
 }
 
 // Lock represents a lockfile.
@@ -74,12 +76,32 @@ func (l *Lock) CleanDecks(decks []mochi.Deck) {
 			continue
 		}
 
-		if deck := decks[index]; deck.Name != lockDeck.Name {
-			lockDeck.Name = deck.Name
+		if decks[index].ParentID != lockDeck.ParentID {
+			delete(l.data, id)
+			l.updated = true
+			continue
+		}
+
+		if decks[index].Name != lockDeck.Name {
+			lockDeck.Name = decks[index].Name
 			l.data[id] = lockDeck
 			l.updated = true
 		}
 	}
+}
+
+// GetDeck returns an existing decks information from a base string.
+func (l *Lock) GetDeck(base string) (string, Deck, bool) {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
+	for deckID, deck := range l.data {
+		if deck.Path == base {
+			return deckID, deck, true
+		}
+	}
+
+	return "", Deck{}, false
 }
 
 // Updated returns whether the lockfile has been updated.

@@ -120,7 +120,7 @@ func Test_Config_Deck(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, ok := tt.config.Deck(tt.base)
+			got, ok := tt.config.GetDeck(tt.base)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.ok, ok)
 		})

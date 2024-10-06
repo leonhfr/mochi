@@ -18,7 +18,7 @@ type Logger interface {
 
 // Run runs the default action.
 func Run(ctx context.Context, logger Logger, token, workspace string) (updated bool, err error) {
-	logger.Debugf("workspace: %s", workspace)
+	logger.Infof("workspace: %s", workspace)
 
 	client := mochi.New(token)
 	fs := file.NewSystem()
@@ -36,7 +36,7 @@ func Run(ctx context.Context, logger Logger, token, workspace string) (updated b
 	}
 
 	logger.Infof("loaded lockfile")
-	logger.Infof("lockfile: %v", lf.String())
+	logger.Debugf("lockfile: %v", lf.String())
 
 	defer func() {
 		if writeErr := lf.Write(); err == nil {
@@ -61,7 +61,7 @@ func runWorkers(ctx context.Context, logger Logger, fs *file.System, cfg *config
 		decks = append(decks, deck)
 	}
 
-	logger.Debugf("decks: %v", decks)
+	logger.Infof("decks: %v", decks)
 	return nil
 }
 

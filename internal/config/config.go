@@ -77,8 +77,8 @@ func cleanConfig(config Config) Config {
 	return config
 }
 
-// Deck returns the deck config that matches the base path.
-func (c *Config) Deck(base string) (Deck, bool) {
+// GetDeck returns the deck config that matches the base path.
+func (c *Config) GetDeck(base string) (Deck, bool) {
 	for _, deck := range c.Decks {
 		if deck.Path == base {
 			return deck, true

@@ -36,7 +36,7 @@ func Test_Parse(t *testing.T) {
 			exists:      true,
 			fileContent: `{"DECK_ID":{"path":"DECK_PATH","name":"DECK_NAME"}}`,
 			wantPath:    "testdata/mochi-lock.json",
-			wantData:    lockData{"DECK_ID": lockDeck{Path: "DECK_PATH", Name: "DECK_NAME"}},
+			wantData:    lockData{"DECK_ID": Deck{Path: "DECK_PATH", Name: "DECK_NAME"}},
 		},
 	}
 
@@ -68,46 +68,61 @@ func Test_Lock_CleanDecks(t *testing.T) {
 		{
 			name: "should not modify the lock",
 			decks: []mochi.Deck{
-				{ID: "DECK_ID_2", Name: "DECK_NAME_2"},
-				{ID: "DECK_ID_1", Name: "DECK_NAME_1"},
+				{ID: "DECK_ID_2", Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
+				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
 			},
 			data: lockData{
-				"DECK_ID_1": {Name: "DECK_NAME_1"},
-				"DECK_ID_2": {Name: "DECK_NAME_2"},
+				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
+				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
 			want: lockData{
-				"DECK_ID_1": {Name: "DECK_NAME_1"},
-				"DECK_ID_2": {Name: "DECK_NAME_2"},
+				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
+				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
 			updated: false,
 		},
 		{
 			name: "should remove decks that are not in the slice",
 			decks: []mochi.Deck{
-				{ID: "DECK_ID_2", Name: "DECK_NAME_2"},
+				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
 			},
 			data: lockData{
-				"DECK_ID_1": {Name: "DECK_NAME_1"},
-				"DECK_ID_2": {Name: "DECK_NAME_2"},
+				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
+				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
 			want: lockData{
-				"DECK_ID_2": {Name: "DECK_NAME_2"},
+				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
+			},
+			updated: true,
+		},
+		{
+			name: "should remove decks whose parent id have changed",
+			decks: []mochi.Deck{
+				{ID: "DECK_ID_2", Name: "DECK_NAME_2", ParentID: ""},
+				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
+			},
+			data: lockData{
+				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
+				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
+			},
+			want: lockData{
+				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
 			},
 			updated: true,
 		},
 		{
 			name: "should update the deck name",
 			decks: []mochi.Deck{
-				{ID: "DECK_ID_2", Name: "NEW_DECK_NAME_2"},
-				{ID: "DECK_ID_1", Name: "DECK_NAME_1"},
+				{ID: "DECK_ID_2", Name: "NEW_DECK_NAME_2", ParentID: "DECK_ID_1"},
+				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
 			},
 			data: lockData{
-				"DECK_ID_1": {Name: "DECK_NAME_1"},
-				"DECK_ID_2": {Name: "DECK_NAME_2"},
+				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
+				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
 			want: lockData{
-				"DECK_ID_1": {Name: "DECK_NAME_1"},
-				"DECK_ID_2": {Name: "NEW_DECK_NAME_2"},
+				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
+				"DECK_ID_2": {Name: "NEW_DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
 			updated: true,
 		},

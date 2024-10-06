@@ -18,11 +18,11 @@ func DeckFilter(logger Logger, cfg *config.Config, in <-chan deck.Directory) <-c
 	go func() {
 		defer close(out)
 		for dir := range in {
-			if deck, ok := cfg.Deck(dir.Base); ok {
-				logger.Debugf("deck filter: forwarding %s with %d files", dir.Base, len(dir.Paths))
+			if deck, ok := cfg.GetDeck(dir.Base); ok {
+				logger.Infof("deck filter: forwarding %s with %d files", dir.Base, len(dir.Paths))
 				out <- Deck{dir: dir, cfg: deck}
 			} else {
-				logger.Debugf("deck filter: discarded %s with %d files", dir.Base, len(dir.Paths))
+				logger.Infof("deck filter: discarded %s with %d files", dir.Base, len(dir.Paths))
 			}
 		}
 	}()

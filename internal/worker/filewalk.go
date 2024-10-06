@@ -28,7 +28,7 @@ func FileWalk(ctx context.Context, logger Logger, walker Walker, workspace strin
 		return out, err
 	}
 
-	logger.Debugf("filewalk: found %d directories", h.Len())
+	logger.Infof("filewalk: found %d directories", h.Len())
 
 	out := make(chan deck.Directory)
 	go func() {
