@@ -5,7 +5,7 @@ import "path/filepath"
 // Directory represents the path to a directory and its files.
 type Directory struct {
 	Base  string
-	paths []string
+	Paths []string
 }
 
 // Heap represents a priority queue for directories.
@@ -21,7 +21,7 @@ func (h *Heap) Push(x any) {
 	base := filepath.Dir(path)
 	for i, item := range *h {
 		if item.Base == base {
-			(*h)[i].paths = append((*h)[i].paths, path)
+			(*h)[i].Paths = append((*h)[i].Paths, path)
 			return
 		}
 	}

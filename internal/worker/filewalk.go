@@ -14,7 +14,7 @@ type Walker interface {
 
 // FileWalk is the worker that recursively walks directories and outputs them by
 // priority (shorter base directory length).
-func FileWalk(ctx context.Context, walker Walker, workspace string, extensions []string) (<-chan deck.Directory, error) {
+func FileWalk(ctx context.Context, logger Logger, walker Walker, workspace string, extensions []string) (<-chan deck.Directory, error) {
 	h := &deck.Heap{}
 	heap.Init(h)
 
@@ -27,6 +27,8 @@ func FileWalk(ctx context.Context, walker Walker, workspace string, extensions [
 		close(out)
 		return out, err
 	}
+
+	logger.Debugf("filewalk: found %d directories", h.Len())
 
 	out := make(chan deck.Directory)
 	go func() {

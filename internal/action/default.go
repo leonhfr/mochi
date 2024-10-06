@@ -12,11 +12,14 @@ import (
 
 // Logger is the interface to log output.
 type Logger interface {
+	Debugf(format string, args ...any)
 	Infof(format string, args ...any)
 }
 
 // Run runs the default action.
 func Run(ctx context.Context, logger Logger, token, workspace string) (updated bool, err error) {
+	logger.Debugf("workspace: %s", workspace)
+
 	client := mochi.New(token)
 	fs := file.NewSystem()
 
@@ -24,11 +27,16 @@ func Run(ctx context.Context, logger Logger, token, workspace string) (updated b
 	if err != nil {
 		return false, err
 	}
+	logger.Infof("loaded config")
+	logger.Debugf("config: %v", cfg)
 
 	lf, err := getLockfile(ctx, client, fs, workspace)
 	if err != nil {
 		return false, err
 	}
+
+	logger.Infof("loaded lockfile")
+	logger.Infof("lockfile: %v", lf.String())
 
 	defer func() {
 		if writeErr := lf.Write(); err == nil {
@@ -36,27 +44,24 @@ func Run(ctx context.Context, logger Logger, token, workspace string) (updated b
 		}
 	}()
 
-	err = runWorkers(ctx, logger, fs, cfg, lf, workspace)
+	err = runWorkers(ctx, logger, fs, cfg, workspace)
 
 	return lf.Updated(), err
 }
 
-func runWorkers(ctx context.Context, logger Logger, fs *file.System, cfg *config.Config, lf *lock.Lock, workspace string) error {
-	dirc, err := worker.FileWalk(ctx, fs, workspace, []string{".md"})
+func runWorkers(ctx context.Context, logger Logger, fs *file.System, cfg *config.Config, workspace string) error {
+	dirc, err := worker.FileWalk(ctx, logger, fs, workspace, []string{".md"})
 	if err != nil {
 		return err
 	}
 
-	deckc := worker.DeckFilter(cfg, dirc)
+	deckc := worker.DeckFilter(logger, cfg, dirc)
 	decks := []worker.Deck{}
 	for deck := range deckc {
 		decks = append(decks, deck)
 	}
 
-	logger.Infof("workspace: %s", workspace)
-	logger.Infof("config: %v", cfg)
-	logger.Infof("lockfile: %v", lf.String())
-	logger.Infof("decks: %v", decks)
+	logger.Debugf("decks: %v", decks)
 	return nil
 }
 
