@@ -25,3 +25,7 @@ issues:
   include:
     - EXC0012
     - EXC0014
+  exclude-rules:
+    - path: internal/test
+      linters:
+        - revive
