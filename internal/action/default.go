@@ -66,16 +66,19 @@ func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *fi
 		return err
 	}
 
-	filteredDeckC := worker.DeckFilter(logger, cfg, dirC)
-	syncedDeckC := worker.DeckSync(ctx, logger, client, cfg, lf, filteredDeckC)
-	resultC := worker.Unwrap(wg, syncedDeckC, errC)
+	filteredDeckC := worker.FilterDeck(logger, cfg, dirC)
+	syncedDeckResultC := worker.SyncDeck(ctx, logger, client, cfg, lf, filteredDeckC)
+	syncedDeckC := worker.Unwrap(wg, syncedDeckResultC, errC)
+	existingCardsResultC := worker.FetchCards(ctx, logger, client, syncedDeckC)
+	existingCardsC := worker.Unwrap(wg, existingCardsResultC, errC)
+	cleanedCardsC := worker.CleanCards(logger, lf, existingCardsC)
 
-	decks := []worker.SyncedDeck{}
-	for deck := range resultC {
-		decks = append(decks, deck)
+	res := []worker.CleanedCards{}
+	for v := range cleanedCardsC {
+		res = append(res, v)
 	}
 
-	logger.Infof("synced decks: %v", decks)
+	logger.Infof("res: %v", res)
 	wg.Wait()
 	return nil
 }

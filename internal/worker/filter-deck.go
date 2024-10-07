@@ -11,9 +11,9 @@ type FilteredDeck struct {
 	filePaths []string
 }
 
-// DeckFilter filters the directories, only forwarding them
+// FilterDeck filters the directories, only forwarding them
 // if a deck config has been found.
-func DeckFilter(logger Logger, cfg *config.Config, in <-chan deck.Directory) <-chan FilteredDeck {
+func FilterDeck(logger Logger, cfg *config.Config, in <-chan deck.Directory) <-chan FilteredDeck {
 	out := make(chan FilteredDeck)
 	go func() {
 		defer close(out)

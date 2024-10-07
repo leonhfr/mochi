@@ -40,11 +40,19 @@ func Test_Parse(t *testing.T) {
 			wantData:    lockData{"DECK_ID": Deck{Path: "DECK_PATH", Name: "DECK_NAME"}},
 		},
 		{
-			name:        "bad config",
+			name:        "missing path and name",
 			target:      "testdata",
 			path:        "testdata/mochi-lock.json",
 			exists:      true,
 			fileContent: `{"DECK_ID":{}}`,
+			err:         true,
+		},
+		{
+			name:        "missing card filename",
+			target:      "testdata",
+			path:        "testdata/mochi-lock.json",
+			exists:      true,
+			fileContent: `{"DECK_ID":{"path":"DECK_PATH","name":"DECK_NAME","cards":{"CARD_ID":{}}}}`,
 			err:         true,
 		},
 	}
@@ -146,6 +154,86 @@ func Test_Lock_CleanDecks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			lock := &Lock{data: tt.data}
 			lock.CleanDecks(tt.decks)
+			assert.Equal(t, lock.data, tt.want)
+			assert.Equal(t, lock.updated, tt.updated)
+		})
+	}
+}
+
+func Test_Lock_CleanCards(t *testing.T) {
+	tests := []struct {
+		name    string
+		deckID  string
+		cardIDs []string
+		data    lockData
+		want    lockData
+		updated bool
+	}{
+		{
+			name:    "should not modify the lock if deck is not found",
+			deckID:  "DECK_ID_1",
+			cardIDs: []string{"CARD_ID_1", "CARD_ID_2", "CARD_ID_3"},
+			data: lockData{
+				"DECK_ID_2": {Cards: map[string]Card{
+					"CARD_ID_1": {},
+					"CARD_ID_2": {},
+					"CARD_ID_3": {},
+				}},
+			},
+			want: lockData{
+				"DECK_ID_2": {Cards: map[string]Card{
+					"CARD_ID_1": {},
+					"CARD_ID_2": {},
+					"CARD_ID_3": {},
+				}},
+			},
+			updated: false,
+		},
+		{
+			name:    "should not modify the lock if cards are present",
+			deckID:  "DECK_ID",
+			cardIDs: []string{"CARD_ID_1", "CARD_ID_2", "CARD_ID_3"},
+			data: lockData{
+				"DECK_ID": {Cards: map[string]Card{
+					"CARD_ID_1": {},
+					"CARD_ID_2": {},
+					"CARD_ID_3": {},
+				}},
+			},
+			want: lockData{
+				"DECK_ID": {Cards: map[string]Card{
+					"CARD_ID_1": {},
+					"CARD_ID_2": {},
+					"CARD_ID_3": {},
+				}},
+			},
+			updated: false,
+		},
+		{
+			name:    "should remove cards that are not in the slice",
+			deckID:  "DECK_ID",
+			cardIDs: []string{"CARD_ID_1", "CARD_ID_2"},
+			data: lockData{
+				"DECK_ID": {Cards: map[string]Card{
+					"CARD_ID_1": {},
+					"CARD_ID_2": {},
+					"CARD_ID_3": {},
+				}},
+			},
+			want: lockData{
+				"DECK_ID": {Cards: map[string]Card{
+					"CARD_ID_1": {},
+					"CARD_ID_2": {},
+				}},
+			},
+			updated: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lock := &Lock{data: tt.data}
+			lock.CleanCards(tt.deckID, tt.cardIDs)
 			assert.Equal(t, lock.data, tt.want)
 			assert.Equal(t, lock.updated, tt.updated)
 		})

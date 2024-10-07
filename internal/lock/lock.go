@@ -25,9 +25,15 @@ type lockData map[string]Deck // indexed by deck id
 
 // Deck contains the information about existing decks.
 type Deck struct {
-	ParentID string `json:"parentID,omitempty"`
-	Path     string `json:"path" validate:"required"`
-	Name     string `json:"name" validate:"required"`
+	ParentID string          `json:"parentID,omitempty"`
+	Path     string          `json:"path" validate:"required"`
+	Name     string          `json:"name" validate:"required"`
+	Cards    map[string]Card `json:"cards,omitempty" validate:"dive"` // indexed by card id
+}
+
+// Card contains the information about existing cards.
+type Card struct {
+	Filename string `json:"filename" validate:"required"` // filename inside directory: note.md
 }
 
 // Lock represents a lockfile.
@@ -103,6 +109,23 @@ func (l *Lock) CleanDecks(decks []mochi.Deck) {
 		if decks[index].Name != lockDeck.Name {
 			lockDeck.Name = decks[index].Name
 			l.data[id] = lockDeck
+			l.updated = true
+		}
+	}
+}
+
+// CleanCards removes from the lockfile the inexistent cards in a deck.
+func (l *Lock) CleanCards(deckID string, cardIDs []string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if _, ok := l.data[deckID]; !ok {
+		return
+	}
+
+	for cardID := range l.data[deckID].Cards {
+		if !slices.Contains(cardIDs, cardID) {
+			delete(l.data[deckID].Cards, cardID)
 			l.updated = true
 		}
 	}

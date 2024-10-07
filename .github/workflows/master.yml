@@ -72,13 +72,6 @@ jobs:
           commit_message: Update mochi lock file
           file_pattern: testdata/mochi-lock.json
 
-      - name: Update mochi lock file
-        if: steps.run-action.outputs.lockfile_updated == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Update mochi lock file
-          file_pattern: testdata/mochi-lock.json
-
   action-release:
     needs: checks
     if: startsWith(github.event.ref, 'refs/tags/')
