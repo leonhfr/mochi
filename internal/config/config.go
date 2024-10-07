@@ -18,7 +18,7 @@ var configExtensions = [2]string{"yaml", "yml"}
 var validate *validator.Validate
 
 func init() {
-	validate = validator.New()
+	validate = validator.New(validator.WithRequiredStructEnabled())
 }
 
 // ErrNoConfig is the error returned when no config is found in the target directory.

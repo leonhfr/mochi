@@ -8,18 +8,26 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/go-playground/validator/v10"
+
 	"github.com/leonhfr/mochi/mochi"
 )
 
 const lockName = "mochi-lock.json"
+
+var validate *validator.Validate
+
+func init() {
+	validate = validator.New(validator.WithRequiredStructEnabled())
+}
 
 type lockData map[string]Deck // indexed by deck id
 
 // Deck contains the information about existing decks.
 type Deck struct {
 	ParentID string `json:"parentID,omitempty"`
-	Path     string `json:"path"`
-	Name     string `json:"name"`
+	Path     string `json:"path" validate:"required"`
+	Name     string `json:"name" validate:"required"`
 }
 
 // Lock represents a lockfile.
@@ -54,6 +62,12 @@ func Parse(rw ReaderWriter, target string) (*Lock, error) {
 
 	if err := json.NewDecoder(r).Decode(&lock.data); err != nil {
 		return nil, err
+	}
+
+	for _, data := range lock.data {
+		if err := validate.Struct(&data); err != nil {
+			return nil, err
+		}
 	}
 
 	return lock, nil

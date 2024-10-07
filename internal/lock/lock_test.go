@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gotest.tools/v3/assert"
 
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -21,7 +21,7 @@ func Test_Parse(t *testing.T) {
 		fileError   error
 		wantPath    string
 		wantData    lockData
-		err         error
+		err         bool
 	}{
 		{
 			name:     "no lockfile found",
@@ -38,6 +38,14 @@ func Test_Parse(t *testing.T) {
 			wantPath:    "testdata/mochi-lock.json",
 			wantData:    lockData{"DECK_ID": Deck{Path: "DECK_PATH", Name: "DECK_NAME"}},
 		},
+		{
+			name:        "bad config",
+			target:      "testdata",
+			path:        "testdata/mochi-lock.json",
+			exists:      true,
+			fileContent: `{"DECK_ID":{}}`,
+			err:         true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -49,9 +57,14 @@ func Test_Parse(t *testing.T) {
 			}
 
 			got, err := Parse(rw, tt.target)
-			assert.Equal(t, tt.wantPath, got.path)
-			assert.DeepEqual(t, tt.wantData, got.data)
-			assert.Equal(t, tt.err, err)
+
+			if tt.err {
+				assert.Error(t, err)
+			} else {
+				assert.Equal(t, tt.wantPath, got.path)
+				assert.Equal(t, tt.wantData, got.data)
+				assert.NoError(t, err)
+			}
 			rw.AssertExpectations(t)
 		})
 	}
@@ -132,7 +145,7 @@ func Test_Lock_CleanDecks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			lock := &Lock{data: tt.data}
 			lock.CleanDecks(tt.decks)
-			assert.DeepEqual(t, lock.data, tt.want)
+			assert.Equal(t, lock.data, tt.want)
 			assert.Equal(t, lock.updated, tt.updated)
 		})
 	}
