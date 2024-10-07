@@ -11,7 +11,7 @@ lint:
 
 .PHONY: test
 test:
-	go test -race -v -coverprofile=coverage.out ./...
+	go test -race -coverprofile=coverage.out ./...
 
 .PHONY: coverage-html
 coverage-html: test

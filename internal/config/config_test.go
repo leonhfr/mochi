@@ -27,7 +27,7 @@ func Test_Parse(t *testing.T) {
 		exists []testExist
 		read   *testRead
 		want   *Config
-		err    error
+		err    bool
 	}{
 		{
 			name:   "no config found",
@@ -36,8 +36,7 @@ func Test_Parse(t *testing.T) {
 				{"testdata/mochi.yaml", false},
 				{"testdata/mochi.yml", false},
 			},
-			want: nil,
-			err:  ErrNoConfig,
+			err: true,
 		},
 		{
 			name:   "mochi.yaml",
@@ -69,6 +68,20 @@ func Test_Parse(t *testing.T) {
 			},
 			want: &Config{Decks: []Deck{{Path: "/lorem-ipsum", Name: "Lorem ipsum"}}},
 		},
+		{
+			name:   "invalid config",
+			target: "testdata",
+			exists: []testExist{
+				{"testdata/mochi.yaml", false},
+				{"testdata/mochi.yml", true},
+			},
+			read: &testRead{
+				path: "testdata/mochi.yml",
+				file: "decks:\n  - name: Lorem ipsum\n",
+				err:  nil,
+			},
+			err: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -83,7 +96,11 @@ func Test_Parse(t *testing.T) {
 
 			got, err := Parse(r, tt.target)
 			assert.Equal(t, tt.want, got)
-			assert.Equal(t, tt.err, err)
+			if tt.err {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 			r.AssertExpectations(t)
 		})
 	}

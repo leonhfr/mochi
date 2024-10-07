@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"slices"
 
+	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,17 +15,23 @@ const configName = "mochi"
 
 var configExtensions = [2]string{"yaml", "yml"}
 
+var validate *validator.Validate
+
+func init() {
+	validate = validator.New()
+}
+
 // ErrNoConfig is the error returned when no config is found in the target directory.
 var ErrNoConfig = errors.New("no config found in target")
 
 // Config represents a config.
 type Config struct {
-	Decks []Deck `yaml:"decks"` // sorted by longest Path (more specific first)
+	Decks []Deck `yaml:"decks" validate:"required,dive"` // sorted by longest Path (more specific first)
 }
 
 // Deck represents a sync config.
 type Deck struct {
-	Path string `yaml:"path"`
+	Path string `yaml:"path" validate:"required"`
 	Name string `yaml:"name"`
 }
 
@@ -57,6 +64,11 @@ func parseConfig(reader Reader, path string) (*Config, error) {
 
 	var config Config
 	if err := yaml.NewDecoder(r).Decode(&config); err != nil {
+		return nil, err
+	}
+
+	fmt.Println(config, err)
+	if err := validate.Struct(&config); err != nil {
 		return nil, err
 	}
 
