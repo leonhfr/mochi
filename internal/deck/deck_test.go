@@ -33,7 +33,7 @@ func Test_Sync(t *testing.T) {
 			},
 			config: test.Config{
 				GetDeck: []test.ConfigGetDeck{
-					{Path: "/test/data", Deck: config.Deck{Name: pointerTo("DECK_DATA_NAME")}, OK: true},
+					{Path: "/test/data", Deck: config.Deck{Name: "DECK_DATA_NAME"}, OK: true},
 				},
 			},
 			lockfile: test.Lockfile{
@@ -166,7 +166,7 @@ func Test_getDeckName(t *testing.T) {
 		{
 			name: "config deck has name",
 			calls: []test.ConfigGetDeck{
-				{Path: "/test/data", Deck: config.Deck{Name: pointerTo("DECK_NAME")}, OK: true},
+				{Path: "/test/data", Deck: config.Deck{Name: "DECK_NAME"}, OK: true},
 			},
 			path: "/test/data",
 			want: "DECK_NAME",
@@ -243,8 +243,4 @@ func Test_getStack(t *testing.T) {
 			lf.AssertExpectations(t)
 		})
 	}
-}
-
-func pointerTo[T ~string](s T) *T {
-	return &s
 }

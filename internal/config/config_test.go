@@ -46,12 +46,12 @@ func Test_Parse(t *testing.T) {
 			},
 			read: &testRead{
 				path: "testdata/mochi.yaml",
-				file: "decks:\n  - path: sed-interdum-libero\n    name: Sed interdum libero\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
+				file: "rootName: ROOT_NAME\ndecks:\n  - path: sed-interdum-libero\n    name: Sed interdum libero\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
 				err:  nil,
 			},
-			want: &Config{Decks: []Deck{
-				{Path: "/sed-interdum-libero", Name: pointerTo("Sed interdum libero")},
-				{Path: "/lorem-ipsum", Name: pointerTo("Lorem ipsum")},
+			want: &Config{RootName: "ROOT_NAME", Decks: []Deck{
+				{Path: "/sed-interdum-libero", Name: "Sed interdum libero"},
+				{Path: "/lorem-ipsum", Name: "Lorem ipsum"},
 			}},
 		},
 		{
@@ -63,10 +63,24 @@ func Test_Parse(t *testing.T) {
 			},
 			read: &testRead{
 				path: "testdata/mochi.yml",
+				file: "rootName: ROOT_NAME\ndecks:\n  - path: lorem-ipsum\n",
+				err:  nil,
+			},
+			want: &Config{RootName: "ROOT_NAME", Decks: []Deck{{Path: "/lorem-ipsum"}}},
+		},
+		{
+			name:   "should set default root deck name",
+			target: "testdata",
+			exists: []testExist{
+				{"testdata/mochi.yaml", false},
+				{"testdata/mochi.yml", true},
+			},
+			read: &testRead{
+				path: "testdata/mochi.yml",
 				file: "decks:\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
 				err:  nil,
 			},
-			want: &Config{Decks: []Deck{{Path: "/lorem-ipsum", Name: pointerTo("Lorem ipsum")}}},
+			want: &Config{RootName: "Root Deck", Decks: []Deck{{Path: "/lorem-ipsum", Name: "Lorem ipsum"}}},
 		},
 		{
 			name:   "invalid config",
@@ -78,20 +92,6 @@ func Test_Parse(t *testing.T) {
 			read: &testRead{
 				path: "testdata/mochi.yml",
 				file: "decks:\n  - name: Lorem ipsum\n",
-				err:  nil,
-			},
-			err: true,
-		},
-		{
-			name:   "empty name",
-			target: "testdata",
-			exists: []testExist{
-				{"testdata/mochi.yaml", false},
-				{"testdata/mochi.yml", true},
-			},
-			read: &testRead{
-				path: "testdata/mochi.yml",
-				file: "decks:\n  - path: lorem-ipsum\n    name:\n",
 				err:  nil,
 			},
 			err: true,
@@ -139,6 +139,16 @@ func Test_Config_GetDeck(t *testing.T) {
 			ok:   true,
 		},
 		{
+			name: "should return the root deck",
+			config: &Config{RootName: "ROOT_NAME", Decks: []Deck{
+				{Path: "/sed-interdum-libero"},
+				{Path: "/lorem-ipsum"},
+			}},
+			path: "/",
+			want: Deck{Path: "/", Name: "ROOT_NAME"},
+			ok:   true,
+		},
+		{
 			name: "should return false",
 			config: &Config{Decks: []Deck{
 				{Path: "/sed-interdum-libero"},
@@ -156,10 +166,6 @@ func Test_Config_GetDeck(t *testing.T) {
 			assert.Equal(t, tt.ok, ok)
 		})
 	}
-}
-
-func pointerTo[T ~string](s T) *T {
-	return &s
 }
 
 type mockFile struct {

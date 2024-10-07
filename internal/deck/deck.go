@@ -77,8 +77,8 @@ func updateDeckName(ctx context.Context, client Client, lf Lockfile, deckID, nam
 
 func getDeckName(config Config, path string) string {
 	deck, ok := config.GetDeck(path)
-	if ok && deck.Name != nil {
-		return *deck.Name
+	if ok && deck.Name != "" {
+		return deck.Name
 	}
 	return filepath.Base(path)
 }

@@ -28,6 +28,7 @@ func Test_Parse(t *testing.T) {
 			target:   "testdata",
 			path:     "testdata/mochi-lock.json",
 			wantPath: "testdata/mochi-lock.json",
+			wantData: lockData{},
 		},
 		{
 			name:        "lockfile found",

@@ -18,7 +18,7 @@ const lockName = "mochi-lock.json"
 var validate *validator.Validate
 
 func init() {
-	validate = validator.New(validator.WithRequiredStructEnabled())
+	validate = validator.New()
 }
 
 type lockData map[string]Deck // indexed by deck id
@@ -49,7 +49,11 @@ type ReaderWriter interface {
 // Parse parses the lockfile in the target directory.
 func Parse(rw ReaderWriter, target string) (*Lock, error) {
 	path := filepath.Join(target, lockName)
-	lock := &Lock{path: path, rw: rw}
+	lock := &Lock{
+		data: make(lockData),
+		path: path,
+		rw:   rw,
+	}
 	if !rw.Exists(path) {
 		return lock, nil
 	}

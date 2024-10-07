@@ -9,7 +9,6 @@ import (
 type FilteredDeck struct {
 	path      string
 	filePaths []string
-	name      *string
 }
 
 // DeckFilter filters the directories, only forwarding them
@@ -25,7 +24,6 @@ func DeckFilter(logger Logger, cfg *config.Config, in <-chan deck.Directory) <-c
 				out <- FilteredDeck{
 					path:      deckConfig.Path,
 					filePaths: dir.FilePaths,
-					name:      deckConfig.Name,
 				}
 			} else {
 				logger.Infof("deck filter: discarded %s with %d files", dir.Path, len(dir.FilePaths))

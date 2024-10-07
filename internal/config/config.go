@@ -11,14 +11,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const configName = "mochi"
+const (
+	configName      = "mochi"
+	defaultRootName = "Root Deck"
+)
 
 var configExtensions = [2]string{"yaml", "yml"}
 
 var validate *validator.Validate
 
 func init() {
-	validate = validator.New(validator.WithRequiredStructEnabled())
+	validate = validator.New()
 }
 
 // ErrNoConfig is the error returned when no config is found in the target directory.
@@ -26,13 +29,14 @@ var ErrNoConfig = errors.New("no config found in target")
 
 // Config represents a config.
 type Config struct {
-	Decks []Deck `yaml:"decks" validate:"required,dive"` // sorted by longest Path (more specific first)
+	RootName string `yaml:"rootName"`
+	Decks    []Deck `yaml:"decks" validate:"required,dive"` // sorted by longest Path (more specific first)
 }
 
 // Deck represents a sync config.
 type Deck struct {
-	Path string  `yaml:"path" validate:"required"`
-	Name *string `yaml:"name" validate:"gt=0"`
+	Path string `yaml:"path" validate:"required"`
+	Name string `yaml:"name"`
 }
 
 // Reader represents the interface to interact with a config file.
@@ -71,6 +75,10 @@ func parseConfig(reader Reader, path string) (*Config, error) {
 		return nil, err
 	}
 
+	if config.RootName == "" {
+		config.RootName = defaultRootName
+	}
+
 	config = cleanConfig(config)
 	return &config, nil
 }
@@ -90,6 +98,10 @@ func cleanConfig(config Config) Config {
 
 // GetDeck returns the deck config that matches the path.
 func (c *Config) GetDeck(path string) (Deck, bool) {
+	if path == "/" {
+		return Deck{Path: "/", Name: c.RootName}, true
+	}
+
 	for _, deck := range c.Decks {
 		if deck.Path == path {
 			return deck, true
