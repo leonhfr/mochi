@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"container/heap"
 	"context"
 
 	"github.com/leonhfr/mochi/internal/deck"
@@ -15,13 +14,12 @@ type Walker interface {
 // FileWalk is the worker that recursively walks directories and outputs them by
 // priority (shorter base directory length).
 func FileWalk(ctx context.Context, logger Logger, walker Walker, workspace string, extensions []string) (<-chan deck.Directory, error) {
-	h := &deck.Heap{}
-	heap.Init(h)
+	h := deck.NewDirHeap()
 
 	if err := walker.Walk(
 		workspace,
 		extensions,
-		func(path string) { heap.Push(h, path) },
+		func(path string) { h.Push(path) },
 	); err != nil {
 		out := make(chan deck.Directory)
 		close(out)
@@ -36,7 +34,7 @@ func FileWalk(ctx context.Context, logger Logger, walker Walker, workspace strin
 
 		for h.Len() > 0 {
 			select {
-			case out <- heap.Pop(h).(deck.Directory):
+			case out <- h.Pop():
 			case <-ctx.Done():
 				return
 			}

@@ -1,7 +1,6 @@
 package deck
 
 import (
-	"container/heap"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,16 +20,14 @@ func Test_Heap(t *testing.T) {
 		{level: 2, Path: "/lorem-ipsum/Notes", FilePaths: []string{"/lorem-ipsum/Notes/Note 1.md", "/lorem-ipsum/Notes/Note 2.md"}},
 	}
 
-	h := &Heap{}
-	heap.Init(h)
-
+	h := NewDirHeap()
 	for _, path := range input {
-		heap.Push(h, path)
+		h.Push(path)
 	}
 
 	var got []Directory
 	for h.Len() > 0 {
-		got = append(got, heap.Pop(h).(Directory))
+		got = append(got, h.Pop())
 	}
 
 	assert.Equal(t, want, got)
