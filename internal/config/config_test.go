@@ -50,8 +50,8 @@ func Test_Parse(t *testing.T) {
 				err:  nil,
 			},
 			want: &Config{Decks: []Deck{
-				{Path: "/sed-interdum-libero", Name: "Sed interdum libero"},
-				{Path: "/lorem-ipsum", Name: "Lorem ipsum"},
+				{Path: "/sed-interdum-libero", Name: pointerTo("Sed interdum libero")},
+				{Path: "/lorem-ipsum", Name: pointerTo("Lorem ipsum")},
 			}},
 		},
 		{
@@ -66,7 +66,7 @@ func Test_Parse(t *testing.T) {
 				file: "decks:\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
 				err:  nil,
 			},
-			want: &Config{Decks: []Deck{{Path: "/lorem-ipsum", Name: "Lorem ipsum"}}},
+			want: &Config{Decks: []Deck{{Path: "/lorem-ipsum", Name: pointerTo("Lorem ipsum")}}},
 		},
 		{
 			name:   "invalid config",
@@ -78,6 +78,20 @@ func Test_Parse(t *testing.T) {
 			read: &testRead{
 				path: "testdata/mochi.yml",
 				file: "decks:\n  - name: Lorem ipsum\n",
+				err:  nil,
+			},
+			err: true,
+		},
+		{
+			name:   "empty name",
+			target: "testdata",
+			exists: []testExist{
+				{"testdata/mochi.yaml", false},
+				{"testdata/mochi.yml", true},
+			},
+			read: &testRead{
+				path: "testdata/mochi.yml",
+				file: "decks:\n  - path: lorem-ipsum\n    name:\n",
 				err:  nil,
 			},
 			err: true,
@@ -142,6 +156,10 @@ func Test_Config_GetDeck(t *testing.T) {
 			assert.Equal(t, tt.ok, ok)
 		})
 	}
+}
+
+func pointerTo[T ~string](s T) *T {
+	return &s
 }
 
 type mockFile struct {

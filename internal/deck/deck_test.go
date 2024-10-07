@@ -18,7 +18,6 @@ func Test_Sync(t *testing.T) {
 		config   test.Config
 		lockfile test.Lockfile
 		path     string
-		deckName string
 		want     string
 		err      error
 	}{
@@ -34,7 +33,7 @@ func Test_Sync(t *testing.T) {
 			},
 			config: test.Config{
 				GetDeck: []test.ConfigGetDeck{
-					{Path: "/test/data", Deck: config.Deck{Name: "DECK_DATA_NAME"}, OK: true},
+					{Path: "/test/data", Deck: config.Deck{Name: pointerTo("DECK_DATA_NAME")}, OK: true},
 				},
 			},
 			lockfile: test.Lockfile{
@@ -46,9 +45,8 @@ func Test_Sync(t *testing.T) {
 					{ID: "DECK_DATA_ID", ParentID: "DECK_TEST_ID", Path: "/test/data", Name: "DECK_DATA_NAME"},
 				},
 			},
-			path:     "/test/data",
-			deckName: "DECK_DATA_NAME",
-			want:     "DECK_DATA_ID",
+			path: "/test/data",
+			want: "DECK_DATA_ID",
 		},
 	}
 
@@ -57,7 +55,7 @@ func Test_Sync(t *testing.T) {
 			client := test.NewMockMochi(tt.client)
 			config := test.NewMockConfig(tt.config)
 			lf := test.NewMockLockfile(tt.lockfile)
-			got, err := Sync(context.Background(), client, config, lf, tt.path, tt.deckName)
+			got, err := Sync(context.Background(), client, config, lf, tt.path)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.err, err)
 			client.AssertExpectations(t)
@@ -168,7 +166,7 @@ func Test_getDeckName(t *testing.T) {
 		{
 			name: "config deck has name",
 			calls: []test.ConfigGetDeck{
-				{Path: "/test/data", Deck: config.Deck{Name: "DECK_NAME"}, OK: true},
+				{Path: "/test/data", Deck: config.Deck{Name: pointerTo("DECK_NAME")}, OK: true},
 			},
 			path: "/test/data",
 			want: "DECK_NAME",
@@ -245,4 +243,8 @@ func Test_getStack(t *testing.T) {
 			lf.AssertExpectations(t)
 		})
 	}
+}
+
+func pointerTo[T ~string](s T) *T {
+	return &s
 }

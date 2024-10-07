@@ -23,7 +23,7 @@ func DeckSync(ctx context.Context, logger Logger, client *mochi.Client, cfg *con
 
 		for fd := range in {
 			logger.Infof("deck sync: %s", fd.path)
-			deckID, err := deck.Sync(ctx, client, cfg, lf, fd.path, fd.name)
+			deckID, err := deck.Sync(ctx, client, cfg, lf, fd.path)
 			out <- Result[SyncedDeck]{
 				data: SyncedDeck{id: deckID, filePaths: fd.filePaths},
 				err:  err,

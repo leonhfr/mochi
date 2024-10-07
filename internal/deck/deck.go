@@ -31,9 +31,9 @@ type Lockfile interface {
 //
 // It will create any intermediate decks as required until a root deck is reached.
 // If the names do not match, the remote deck will be updated.
-func Sync(ctx context.Context, client Client, config Config, lf Lockfile, path string, name string) (deckID string, err error) {
+func Sync(ctx context.Context, client Client, config Config, lf Lockfile, path string) (deckID string, err error) {
 	id, deck, ok := lf.GetDeck(path)
-	if ok && name != "" && deck.Name != name {
+	if name := getDeckName(config, path); ok && deck.Name != name {
 		err = updateDeckName(ctx, client, lf, deckID, name)
 		return id, err
 	} else if ok {
@@ -77,8 +77,8 @@ func updateDeckName(ctx context.Context, client Client, lf Lockfile, deckID, nam
 
 func getDeckName(config Config, path string) string {
 	deck, ok := config.GetDeck(path)
-	if ok && len(deck.Name) > 0 {
-		return deck.Name
+	if ok && deck.Name != nil {
+		return *deck.Name
 	}
 	return filepath.Base(path)
 }

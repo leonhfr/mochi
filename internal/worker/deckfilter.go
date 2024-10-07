@@ -9,7 +9,7 @@ import (
 type FilteredDeck struct {
 	path      string
 	filePaths []string
-	name      string
+	name      *string
 }
 
 // DeckFilter filters the directories, only forwarding them

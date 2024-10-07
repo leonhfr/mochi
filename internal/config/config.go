@@ -31,8 +31,8 @@ type Config struct {
 
 // Deck represents a sync config.
 type Deck struct {
-	Path string `yaml:"path" validate:"required"`
-	Name string `yaml:"name"`
+	Path string  `yaml:"path" validate:"required"`
+	Name *string `yaml:"name" validate:"gt=0"`
 }
 
 // Reader represents the interface to interact with a config file.
@@ -67,7 +67,6 @@ func parseConfig(reader Reader, path string) (*Config, error) {
 		return nil, err
 	}
 
-	fmt.Println(config, err)
 	if err := validate.Struct(&config); err != nil {
 		return nil, err
 	}
