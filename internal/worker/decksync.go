@@ -9,19 +9,23 @@ import (
 	"github.com/leonhfr/mochi/mochi"
 )
 
-// DeckSync creates any missing decks and
-// updates any mismatched name.
-func DeckSync(ctx context.Context, logger Logger, client *mochi.Client, cfg *config.Config, lf *lock.Lock, in <-chan DeckJob) <-chan Result[DeckJob] {
-	out := make(chan Result[DeckJob])
+// SyncedDeck contains a synced deck.
+type SyncedDeck struct {
+	id        string
+	filePaths []string
+}
+
+// DeckSync creates any missing decks and updates any mismatched name.
+func DeckSync(ctx context.Context, logger Logger, client *mochi.Client, cfg *config.Config, lf *lock.Lock, in <-chan FilteredDeck) <-chan Result[SyncedDeck] {
+	out := make(chan Result[SyncedDeck])
 	go func() {
 		defer close(out)
 
-		for d := range in {
-			logger.Infof("deck sync: %s", d.dir.Path)
-			deckID, err := deck.Sync(ctx, client, cfg, lf, d.dir.Path, d.cfg.Name)
-			d.id = deckID
-			out <- Result[DeckJob]{
-				data: d,
+		for fd := range in {
+			logger.Infof("deck sync: %s", fd.path)
+			deckID, err := deck.Sync(ctx, client, cfg, lf, fd.path, fd.name)
+			out <- Result[SyncedDeck]{
+				data: SyncedDeck{id: deckID, filePaths: fd.filePaths},
 				err:  err,
 			}
 		}

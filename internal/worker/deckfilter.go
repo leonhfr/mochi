@@ -5,24 +5,28 @@ import (
 	"github.com/leonhfr/mochi/internal/deck"
 )
 
-// DeckJob contains a deck config and its associated files.
-type DeckJob struct {
-	id  string
-	dir deck.Directory
-	cfg config.Deck
+// FilteredDeck represents a deck whose config has been matched.
+type FilteredDeck struct {
+	path      string
+	filePaths []string
+	name      string
 }
 
 // DeckFilter filters the directories, only forwarding them
 // if a deck config has been found.
-func DeckFilter(logger Logger, cfg *config.Config, in <-chan deck.Directory) <-chan DeckJob {
-	out := make(chan DeckJob)
+func DeckFilter(logger Logger, cfg *config.Config, in <-chan deck.Directory) <-chan FilteredDeck {
+	out := make(chan FilteredDeck)
 	go func() {
 		defer close(out)
 
 		for dir := range in {
-			if deck, ok := cfg.GetDeck(dir.Path); ok {
+			if deckConfig, ok := cfg.GetDeck(dir.Path); ok {
 				logger.Infof("deck filter: forwarding %s with %d files", dir.Path, len(dir.FilePaths))
-				out <- DeckJob{dir: dir, cfg: deck}
+				out <- FilteredDeck{
+					path:      deckConfig.Path,
+					filePaths: dir.FilePaths,
+					name:      deckConfig.Name,
+				}
 			} else {
 				logger.Infof("deck filter: discarded %s with %d files", dir.Path, len(dir.FilePaths))
 			}

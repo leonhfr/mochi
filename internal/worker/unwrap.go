@@ -8,11 +8,11 @@ type Result[Data any] struct {
 	err  error
 }
 
-// Unwrap forwards all errors to the errc channel. If the error is nil,
+// Unwrap forwards all errors to the errC channel. If the error is nil,
 // the value is written to the returned channel.
 //
 // When in is closed, the function releases its counter in the wait group.
-func Unwrap[Data any](wg *sync.WaitGroup, in <-chan Result[Data], errc chan<- error) <-chan Data {
+func Unwrap[Data any](wg *sync.WaitGroup, in <-chan Result[Data], errC chan<- error) <-chan Data {
 	out := make(chan Data)
 	wg.Add(1)
 	go func() {
@@ -21,7 +21,7 @@ func Unwrap[Data any](wg *sync.WaitGroup, in <-chan Result[Data], errc chan<- er
 
 		for result := range in {
 			if result.err != nil {
-				errc <- result.err
+				errC <- result.err
 			} else {
 				out <- result.data
 			}

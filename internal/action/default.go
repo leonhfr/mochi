@@ -53,29 +53,29 @@ func Run(ctx context.Context, logger Logger, token, workspace string) (updated b
 
 func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *file.System, cfg *config.Config, lf *lock.Lock, workspace string) error {
 	wg := &sync.WaitGroup{}
-	errc := make(chan error)
-	defer close(errc)
+	errC := make(chan error)
+	defer close(errC)
 	go func() {
-		for err := range errc {
+		for err := range errC {
 			logger.Errorf("workers: %v", err)
 		}
 	}()
 
-	dirc, err := worker.FileWalk(ctx, logger, fs, workspace, []string{".md"})
+	dirC, err := worker.FileWalk(ctx, logger, fs, workspace, []string{".md"})
 	if err != nil {
 		return err
 	}
 
-	deckc := worker.DeckFilter(logger, cfg, dirc)
-	syncc := worker.DeckSync(ctx, logger, client, cfg, lf, deckc)
-	res := worker.Unwrap(wg, syncc, errc)
+	filteredDeckC := worker.DeckFilter(logger, cfg, dirC)
+	syncedDeckC := worker.DeckSync(ctx, logger, client, cfg, lf, filteredDeckC)
+	resultC := worker.Unwrap(wg, syncedDeckC, errC)
 
-	decks := []worker.DeckJob{}
-	for deck := range res {
+	decks := []worker.SyncedDeck{}
+	for deck := range resultC {
 		decks = append(decks, deck)
 	}
 
-	logger.Infof("deck jobs: %v", decks)
+	logger.Infof("synced decks: %v", decks)
 	wg.Wait()
 	return nil
 }
