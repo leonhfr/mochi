@@ -2,6 +2,7 @@ package card
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -19,6 +20,7 @@ type WriteLockfile interface {
 
 // SyncRequest is the interface that should be implemented to execute a request.
 type SyncRequest interface {
+	fmt.Stringer
 	Sync(ctx context.Context, client Client, lf WriteLockfile) error
 }
 
@@ -49,6 +51,11 @@ func (r *createCardRequest) Sync(ctx context.Context, c Client, lf WriteLockfile
 	return lf.SetCard(r.req.DeckID, card.ID, r.filename)
 }
 
+// String implements the fmt.Stringer interface.
+func (r *createCardRequest) String() string {
+	return fmt.Sprintf("create request for file %s", r.filename)
+}
+
 type updateCardRequest struct {
 	req    mochi.UpdateCardRequest
 	cardID string
@@ -67,6 +74,11 @@ func (r *updateCardRequest) Sync(ctx context.Context, c Client, _ WriteLockfile)
 	return err
 }
 
+// String implements the fmt.Stringer interface.
+func (r *updateCardRequest) String() string {
+	return fmt.Sprintf("update request for card ID %s", r.cardID)
+}
+
 type archiveCardRequest struct {
 	req    mochi.UpdateCardRequest
 	cardID string
@@ -83,4 +95,9 @@ func newArchiveCardRequest(cardID string) *archiveCardRequest {
 func (r *archiveCardRequest) Sync(ctx context.Context, c Client, _ WriteLockfile) error {
 	_, err := c.UpdateCard(ctx, r.cardID, r.req)
 	return err
+}
+
+// String implements the fmt.Stringer interface.
+func (r *archiveCardRequest) String() string {
+	return fmt.Sprintf("archive request for card ID %s", r.cardID)
 }

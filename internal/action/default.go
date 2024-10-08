@@ -74,13 +74,13 @@ func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *fi
 	existingCardsResultC := worker.FetchCards(ctx, logger, client, syncedDeckC)
 	existingCardsC := worker.Unwrap(wg, existingCardsResultC, errC)
 	cleanedCardsC := worker.CleanCards(logger, lf, existingCardsC)
+	parsedCardsResultC := worker.ParseCards(logger, fs, parser, cleanedCardsC)
+	parsedCardsC := worker.Unwrap(wg, parsedCardsResultC, errC)
+	syncRequestsC := worker.SyncRequests(logger, lf, parsedCardsC)
+	executedRequestsC := worker.ExecuteRequests(ctx, logger, client, lf, syncRequestsC)
+	end := worker.Unwrap(wg, executedRequestsC, errC)
 
-	res := []worker.CleanedCards{}
-	for v := range cleanedCardsC {
-		res = append(res, v)
-	}
-
-	logger.Infof("res: %v", res)
+	<-end
 	wg.Wait()
 	return nil
 }

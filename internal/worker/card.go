@@ -3,7 +3,10 @@ package worker
 import (
 	"context"
 
+	"github.com/leonhfr/mochi/internal/card"
+	"github.com/leonhfr/mochi/internal/file"
 	"github.com/leonhfr/mochi/internal/lock"
+	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -62,6 +65,37 @@ func CleanCards(logger Logger, lf *lock.Lock, in <-chan ExistingCards) <-chan Cl
 			}
 			lf.CleanCards(existingCards.deckID, cardIDs)
 			out <- CleanedCards(existingCards)
+		}
+	}()
+	return out
+}
+
+// ParsedCards contains a deck with existing and parsed cards.
+type ParsedCards struct {
+	deckID      string
+	filePaths   []string
+	mochiCards  []mochi.Card
+	parsedCards []parser.Card
+}
+
+// ParseCards parses the files and converts them to cards.
+func ParseCards(logger Logger, fs *file.System, parser *parser.Parser, in <-chan CleanedCards) <-chan Result[ParsedCards] {
+	out := make(chan Result[ParsedCards])
+	go func() {
+		defer close(out)
+
+		for cleanedCards := range in {
+			logger.Infof("parsing cards for deck %s", cleanedCards.deckID)
+			parsedCards, err := card.Parse(fs, parser, cleanedCards.filePaths)
+			out <- Result[ParsedCards]{
+				data: ParsedCards{
+					deckID:      cleanedCards.deckID,
+					filePaths:   cleanedCards.filePaths,
+					mochiCards:  cleanedCards.cards,
+					parsedCards: parsedCards,
+				},
+				err: err,
+			}
 		}
 	}()
 	return out

@@ -51,7 +51,7 @@ type ReadLockfile interface {
 
 // SyncRequests parses the note files and returns the requests
 // required to sync them.
-func SyncRequests(lf ReadLockfile, filename, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []SyncRequest {
+func SyncRequests(lf ReadLockfile, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []SyncRequest {
 	groupedMochiCards, notMatched := groupMochiCardsByFilename(lf, deckID, mochiCards)
 	groupedParsedCards := groupParsedCardsByFilename(parsedCards)
 	groupedCards := groupCardsByFilename(groupedMochiCards, groupedParsedCards)
@@ -59,7 +59,7 @@ func SyncRequests(lf ReadLockfile, filename, deckID string, mochiCards []mochi.C
 	for _, mochiCard := range notMatched {
 		reqs = append(reqs, newArchiveCardRequest(mochiCard.ID))
 	}
-	for _, group := range groupedCards {
+	for filename, group := range groupedCards {
 		createReqs, updateReqs, archiveReqs := upsertSyncRequests(filename, deckID, group.mochi, group.parsed)
 		for _, r := range createReqs {
 			reqs = append(reqs, r)
