@@ -109,7 +109,7 @@ func executeRequest(ctx context.Context, rb *requests.Builder) error {
 
 type errorResponse struct {
 	errors     []string
-	validation map[string]string
+	validation map[string][]string
 }
 
 func (er *errorResponse) error() error {
@@ -142,9 +142,9 @@ func (er *errorResponse) UnmarshalJSON(input []byte) error {
 	}
 
 	type validationErrors struct {
-		Errors map[string]string `json:"errors"`
+		Errors map[string][]string `json:"errors"`
 	}
-	parsedValidationErrors := validationErrors{Errors: map[string]string{}}
+	var parsedValidationErrors validationErrors
 	err = json.Unmarshal(input, &parsedValidationErrors)
 	if err == nil {
 		er.errors = nil

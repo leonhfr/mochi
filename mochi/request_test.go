@@ -33,8 +33,8 @@ func Test_errorResponse_error(t *testing.T) {
 		},
 		{
 			name: "should return a validation error",
-			er:   &errorResponse{validation: map[string]string{"FIELD_1": "ERROR_MESSAGE_1", "FIELD_2": "ERROR_MESSAGE_2"}},
-			want: "mochi(validation): FIELD_1: ERROR_MESSAGE_1 FIELD_2: ERROR_MESSAGE_2",
+			er:   &errorResponse{validation: map[string][]string{"FIELD_1": {"ERROR_MESSAGE_1"}, "FIELD_2": {"ERROR_MESSAGE_2"}}},
+			want: "mochi(validation): FIELD_1: [ERROR_MESSAGE_1] FIELD_2: [ERROR_MESSAGE_2]",
 		},
 	}
 
@@ -65,8 +65,8 @@ func Test_errorResponse_UnmarshalJSON(t *testing.T) {
 		},
 		{
 			name:  "should parse validation errors",
-			input: `{"errors":{"FIELD":"ERROR_MESSAGE"}}`,
-			want:  errorResponse{validation: map[string]string{"FIELD": "ERROR_MESSAGE"}},
+			input: `{"errors":{"FIELD":["ERROR_MESSAGE"]}}`,
+			want:  errorResponse{validation: map[string][]string{"FIELD": {"ERROR_MESSAGE"}}},
 			err:   "",
 		},
 		{
