@@ -3,9 +3,6 @@ package parser
 import (
 	"path/filepath"
 	"strings"
-
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 func getFilename(path string) string {
@@ -17,5 +14,5 @@ func getNameFromPath(path string) string {
 	for _, ext := range extensions {
 		base = strings.TrimSuffix(base, ext)
 	}
-	return cases.Title(language.Und).String(base)
+	return base
 }

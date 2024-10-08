@@ -131,7 +131,9 @@ func (er *errorResponse) error() error {
 }
 
 func (er *errorResponse) UnmarshalJSON(input []byte) error {
-	var parsedErrors struct{ Errors []string }
+	var parsedErrors struct {
+		Errors []string `json:"errors"`
+	}
 	err := json.Unmarshal(input, &parsedErrors)
 	if err == nil {
 		er.errors = parsedErrors.Errors
@@ -139,7 +141,10 @@ func (er *errorResponse) UnmarshalJSON(input []byte) error {
 		return nil
 	}
 
-	var parsedValidationErrors struct{ Errors map[string]string }
+	type validationErrors struct {
+		Errors map[string]string `json:"errors"`
+	}
+	parsedValidationErrors := validationErrors{Errors: map[string]string{}}
 	err = json.Unmarshal(input, &parsedValidationErrors)
 	if err == nil {
 		er.errors = nil

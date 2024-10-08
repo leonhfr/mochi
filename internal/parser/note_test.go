@@ -20,7 +20,7 @@ func Test_Note_Convert(t *testing.T) {
 			path:   "/testdata/lorem-ipsum/Lorem ipsum.md",
 			source: "# Title 1\nParagraph.\n",
 			want: []Card{{
-				Name:     "Lorem Ipsum",
+				Name:     "Lorem ipsum",
 				Content:  "# Title 1\nParagraph.\n",
 				Filename: "Lorem ipsum.md",
 			}},
