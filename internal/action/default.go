@@ -7,6 +7,7 @@ import (
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/file"
 	"github.com/leonhfr/mochi/internal/lock"
+	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/worker"
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -24,6 +25,7 @@ func Run(ctx context.Context, logger Logger, token, workspace string) (updated b
 
 	client := mochi.New(token)
 	fs := file.NewSystem()
+	parser := parser.New()
 
 	cfg, err := config.Parse(fs, workspace)
 	if err != nil {
@@ -46,12 +48,12 @@ func Run(ctx context.Context, logger Logger, token, workspace string) (updated b
 		}
 	}()
 
-	err = runWorkers(ctx, logger, client, fs, cfg, lf, workspace)
+	err = runWorkers(ctx, logger, client, fs, parser, cfg, lf, workspace)
 
 	return lf.Updated(), err
 }
 
-func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *file.System, cfg *config.Config, lf *lock.Lock, workspace string) error {
+func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *file.System, parser *parser.Parser, cfg *config.Config, lf *lock.Lock, workspace string) error {
 	wg := &sync.WaitGroup{}
 	errC := make(chan error)
 	defer close(errC)
@@ -61,7 +63,7 @@ func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *fi
 		}
 	}()
 
-	dirC, err := worker.FileWalk(ctx, logger, fs, workspace, []string{".md"})
+	dirC, err := worker.FileWalk(ctx, logger, fs, workspace, parser.Extensions())
 	if err != nil {
 		return err
 	}
