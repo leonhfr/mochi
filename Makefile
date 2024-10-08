@@ -1,5 +1,5 @@
 .PHONY: default
-default: lint test
+default: tidy lint test
 
 .PHONY: build
 build:
@@ -16,3 +16,7 @@ test:
 .PHONY: coverage-html
 coverage-html: test
 	go tool cover -html=coverage.out
+
+.PHONY: tidy
+tidy:
+	go mod tidy

@@ -1,3 +1,4 @@
+rootName: testdata
 decks:
   - path: lorem-ipsum
     name: Lorem ipsum
