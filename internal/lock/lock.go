@@ -154,6 +154,7 @@ func (l *Lock) SetDeck(id, parentID, path, name string) {
 		ParentID: parentID,
 		Path:     path,
 		Name:     name,
+		Cards:    make(map[string]Card),
 	}
 	l.updated = true
 }
@@ -167,6 +168,47 @@ func (l *Lock) UpdateDeckName(id, name string) {
 	tmp.Name = name
 	l.data[id] = tmp
 	l.updated = true
+}
+
+// GetCard returns an existing cards data.
+func (l *Lock) GetCard(deckID string, cardID string) (Card, bool) {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
+	if _, ok := l.data[deckID]; !ok {
+		return Card{}, false
+	}
+
+	card, ok := l.data[deckID].Cards[cardID]
+	return card, ok
+}
+
+// SetCard sets a card in the given deck.
+func (l *Lock) SetCard(deckID string, cardID string, filename string) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if _, ok := l.data[deckID]; !ok {
+		return fmt.Errorf("deck %s not found", deckID)
+	}
+
+	if l.data[deckID].Cards == nil {
+		l.data[deckID] = Deck{
+			Path:  l.data[deckID].Path,
+			Name:  l.data[deckID].Name,
+			Cards: map[string]Card{},
+		}
+	}
+
+	if _, ok := l.data[deckID].Cards[cardID]; ok {
+		return nil
+	}
+
+	l.data[deckID].Cards[cardID] = Card{
+		Filename: filename,
+	}
+	l.updated = true
+	return nil
 }
 
 // Updated returns whether the lockfile has been updated.
