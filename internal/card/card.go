@@ -2,6 +2,7 @@ package card
 
 import (
 	"fmt"
+	"path/filepath"
 	"slices"
 
 	"github.com/leonhfr/mochi/internal/lock"
@@ -20,10 +21,10 @@ type Parser interface {
 }
 
 // Parse parses the note files for cards.
-func Parse(r Reader, p Parser, filePaths []string) ([]parser.Card, error) {
+func Parse(r Reader, p Parser, workspace string, filePaths []string) ([]parser.Card, error) {
 	var cards []parser.Card
 	for _, path := range filePaths {
-		parsed, err := parseFile(r, p, path)
+		parsed, err := parseFile(r, p, workspace, path)
 		if err != nil {
 			return nil, err
 		}
@@ -32,7 +33,8 @@ func Parse(r Reader, p Parser, filePaths []string) ([]parser.Card, error) {
 	return cards, nil
 }
 
-func parseFile(r Reader, p Parser, path string) ([]parser.Card, error) {
+func parseFile(r Reader, p Parser, workspace, path string) ([]parser.Card, error) {
+	path = filepath.Join(workspace, path)
 	bytes, err := r.ReadBytes(path)
 	if err != nil {
 		return nil, err

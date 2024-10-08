@@ -22,12 +22,12 @@ func Test_Parse(t *testing.T) {
 		Source: []byte("TEST"),
 		Cards:  []parser.Card{{Name: "TEST"}},
 	}}
-	filePaths := []string{"/testdata/lorem-ipsum.md"}
+	filePaths := []string{"/lorem-ipsum.md"}
 	want := []parser.Card{{Name: "TEST"}}
 
 	r := newMockReader(readCalls)
 	p := test.NewMockParser(parserCalls)
-	got, err := Parse(r, p, filePaths)
+	got, err := Parse(r, p, "/testdata", filePaths)
 	assert.Equal(t, want, got)
 	assert.NoError(t, err)
 	r.AssertExpectations(t)
@@ -50,7 +50,7 @@ func Test_parseFile(t *testing.T) {
 				bytes: []byte("TEST"),
 				err:   errors.New("ERROR"),
 			}},
-			path: "/testdata/lorem-ipsum.md",
+			path: "/lorem-ipsum.md",
 			err:  true,
 		},
 		{
@@ -64,7 +64,7 @@ func Test_parseFile(t *testing.T) {
 				Source: []byte("TEST"),
 				Err:    errors.New("ERROR"),
 			}},
-			path: "/testdata/lorem-ipsum.md",
+			path: "/lorem-ipsum.md",
 			err:  true,
 		},
 		{
@@ -78,7 +78,7 @@ func Test_parseFile(t *testing.T) {
 				Source: []byte("TEST"),
 				Cards:  []parser.Card{{Name: "TEST"}},
 			}},
-			path: "/testdata/lorem-ipsum.md",
+			path: "/lorem-ipsum.md",
 			want: []parser.Card{{Name: "TEST"}},
 		},
 	}
@@ -87,7 +87,7 @@ func Test_parseFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := newMockReader(tt.readCalls)
 			p := test.NewMockParser(tt.parserCalls)
-			got, err := parseFile(r, p, tt.path)
+			got, err := parseFile(r, p, "/testdata", tt.path)
 			assert.Equal(t, tt.want, got)
 			if tt.err {
 				assert.Error(t, err)

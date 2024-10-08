@@ -79,14 +79,14 @@ type ParsedCards struct {
 }
 
 // ParseCards parses the files and converts them to cards.
-func ParseCards(logger Logger, fs *file.System, parser *parser.Parser, in <-chan CleanedCards) <-chan Result[ParsedCards] {
+func ParseCards(logger Logger, fs *file.System, parser *parser.Parser, workspace string, in <-chan CleanedCards) <-chan Result[ParsedCards] {
 	out := make(chan Result[ParsedCards])
 	go func() {
 		defer close(out)
 
 		for cleanedCards := range in {
 			logger.Infof("parsing cards for deck %s", cleanedCards.deckID)
-			parsedCards, err := card.Parse(fs, parser, cleanedCards.filePaths)
+			parsedCards, err := card.Parse(fs, parser, workspace, cleanedCards.filePaths)
 			out <- Result[ParsedCards]{
 				data: ParsedCards{
 					deckID:      cleanedCards.deckID,
