@@ -67,3 +67,13 @@ func (System) Write(path string) (io.WriteCloser, error) {
 	file, err := os.Create(path)
 	return file, err
 }
+
+// ReadBytes reads the file at path and returns its whole content.
+func (s System) ReadBytes(path string) ([]byte, error) {
+	rc, err := s.Read(path)
+	if err != nil {
+		return nil, err
+	}
+	defer rc.Close()
+	return io.ReadAll(rc)
+}

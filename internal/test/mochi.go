@@ -29,6 +29,10 @@ type MochiUpdateDeck struct {
 	Err  error
 }
 
+type MockMochi struct {
+	mock.Mock
+}
+
 func NewMockMochi(calls Mochi) *MockMochi {
 	m := new(MockMochi)
 	for _, call := range calls.CreateDeck {
@@ -42,10 +46,6 @@ func NewMockMochi(calls Mochi) *MockMochi {
 			Return(call.Deck, call.Err)
 	}
 	return m
-}
-
-type MockMochi struct {
-	mock.Mock
 }
 
 func (m *MockMochi) CreateDeck(ctx context.Context, req mochi.CreateDeckRequest) (mochi.Deck, error) {
