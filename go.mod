@@ -9,6 +9,7 @@ require (
 	github.com/sethvargo/go-githubactions v1.3.0
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli/v2 v2.27.4
+	github.com/yuin/goldmark v1.7.4
 	gopkg.in/yaml.v3 v3.0.1
 )
 

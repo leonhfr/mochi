@@ -2,3 +2,6 @@ rootName: testdata
 decks:
   - path: lorem-ipsum
     name: Lorem ipsum
+  - path: headings
+    name: Headings parser
+    parser: headings

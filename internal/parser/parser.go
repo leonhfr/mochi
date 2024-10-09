@@ -23,7 +23,8 @@ type Parser struct {
 func New() *Parser {
 	return &Parser{
 		parsers: map[string]cardParser{
-			"note": newNote(),
+			"note":     newNote(),
+			"headings": newHeadings(),
 		},
 		def: newNote(),
 	}

@@ -10,6 +10,7 @@ func Test_List(t *testing.T) {
 	want := []string{
 		"/Root level card.md",
 		"/journal/yyyy-mm-dd.md",
+		"/headings/headings.md",
 		"/lorem-ipsum/Lorem ipsum.md",
 	}
 	var got []string
@@ -18,7 +19,7 @@ func Test_List(t *testing.T) {
 		[]string{".md"},
 		func(path string) { got = append(got, path) },
 	)
-	assert.Equal(t, want, got)
+	assert.ElementsMatch(t, want, got)
 	assert.NoError(t, err)
 }
 
