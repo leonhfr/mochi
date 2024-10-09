@@ -86,7 +86,7 @@ func ParseCards(logger Logger, fs *file.System, parser *parser.Parser, workspace
 
 		for cleanedCards := range in {
 			logger.Infof("parsing cards for deck %s", cleanedCards.deckID)
-			parsedCards, err := card.Parse(fs, parser, workspace, cleanedCards.filePaths)
+			parsedCards, err := card.Parse(fs, parser, workspace, "note", cleanedCards.filePaths)
 			out <- Result[ParsedCards]{
 				data: ParsedCards{
 					deckID:      cleanedCards.deckID,

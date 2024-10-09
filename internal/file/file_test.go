@@ -8,6 +8,7 @@ import (
 
 func Test_List(t *testing.T) {
 	want := []string{
+		"/Root level card.md",
 		"/journal/yyyy-mm-dd.md",
 		"/lorem-ipsum/Lorem ipsum.md",
 	}

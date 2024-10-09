@@ -35,8 +35,9 @@ type Config struct {
 
 // Deck represents a sync config.
 type Deck struct {
-	Path string `yaml:"path" validate:"required"`
-	Name string `yaml:"name"`
+	Path   string `yaml:"path" validate:"required"`
+	Name   string `yaml:"name"`
+	Parser string `yaml:"parser" validate:"parser"`
 }
 
 // Reader represents the interface to interact with a config file.
@@ -46,7 +47,11 @@ type Reader interface {
 }
 
 // Parse parses the config in the target directory.
-func Parse(reader Reader, target string) (*Config, error) {
+func Parse(reader Reader, target string, parsers []string) (*Config, error) {
+	if err := validate.RegisterValidation("parser", getValidatorFunc(parsers)); err != nil {
+		return nil, err
+	}
+
 	for _, ext := range configExtensions {
 		path := filepath.Join(target, fmt.Sprintf("%s.%s", configName, ext))
 		if !reader.Exists(path) {
@@ -108,4 +113,10 @@ func (c *Config) GetDeck(path string) (Deck, bool) {
 		}
 	}
 	return Deck{}, false
+}
+
+func getValidatorFunc(parsers []string) validator.Func {
+	return func(fl validator.FieldLevel) bool {
+		return fl.Field().IsZero() || slices.Contains(parsers, fl.Field().String())
+	}
 }

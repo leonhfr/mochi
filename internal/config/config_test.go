@@ -22,16 +22,18 @@ func Test_Parse(t *testing.T) {
 		}
 	)
 	tests := []struct {
-		name   string
-		target string
-		exists []testExist
-		read   *testRead
-		want   *Config
-		err    bool
+		name    string
+		target  string
+		parsers []string
+		exists  []testExist
+		read    *testRead
+		want    *Config
+		err     bool
 	}{
 		{
-			name:   "no config found",
-			target: "testdata",
+			name:    "no config found",
+			target:  "testdata",
+			parsers: []string{"note"},
 			exists: []testExist{
 				{"testdata/mochi.yaml", false},
 				{"testdata/mochi.yml", false},
@@ -39,8 +41,9 @@ func Test_Parse(t *testing.T) {
 			err: true,
 		},
 		{
-			name:   "mochi.yaml",
-			target: "testdata",
+			name:    "mochi.yaml",
+			target:  "testdata",
+			parsers: []string{"note"},
 			exists: []testExist{
 				{"testdata/mochi.yaml", true},
 			},
@@ -55,8 +58,9 @@ func Test_Parse(t *testing.T) {
 			}},
 		},
 		{
-			name:   "mochi.yml",
-			target: "testdata",
+			name:    "mochi.yml",
+			target:  "testdata",
+			parsers: []string{"note"},
 			exists: []testExist{
 				{"testdata/mochi.yaml", false},
 				{"testdata/mochi.yml", true},
@@ -69,8 +73,9 @@ func Test_Parse(t *testing.T) {
 			want: &Config{RootName: "ROOT_NAME", Decks: []Deck{{Path: "/lorem-ipsum"}}},
 		},
 		{
-			name:   "should set default root deck name",
-			target: "testdata",
+			name:    "should set default root deck name",
+			target:  "testdata",
+			parsers: []string{"note"},
 			exists: []testExist{
 				{"testdata/mochi.yaml", false},
 				{"testdata/mochi.yml", true},
@@ -83,8 +88,9 @@ func Test_Parse(t *testing.T) {
 			want: &Config{RootName: "Root Deck", Decks: []Deck{{Path: "/lorem-ipsum", Name: "Lorem ipsum"}}},
 		},
 		{
-			name:   "invalid config",
-			target: "testdata",
+			name:    "invalid config",
+			target:  "testdata",
+			parsers: []string{"note"},
 			exists: []testExist{
 				{"testdata/mochi.yaml", false},
 				{"testdata/mochi.yml", true},
@@ -108,7 +114,7 @@ func Test_Parse(t *testing.T) {
 				r.On("Read", tt.read.path).Return(tt.read.file, tt.read.err)
 			}
 
-			got, err := Parse(r, tt.target)
+			got, err := Parse(r, tt.target, tt.parsers)
 			assert.Equal(t, tt.want, got)
 			if tt.err {
 				assert.Error(t, err)

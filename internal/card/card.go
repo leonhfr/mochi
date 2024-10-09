@@ -1,7 +1,6 @@
 package card
 
 import (
-	"fmt"
 	"path/filepath"
 	"slices"
 
@@ -17,14 +16,14 @@ type Reader interface {
 
 // Parser represents the interface to parse note files.
 type Parser interface {
-	Convert(path string, source []byte) ([]parser.Card, error)
+	Convert(parserName, path string, source []byte) ([]parser.Card, error)
 }
 
 // Parse parses the note files for cards.
-func Parse(r Reader, p Parser, workspace string, filePaths []string) ([]parser.Card, error) {
+func Parse(r Reader, p Parser, workspace, parserName string, filePaths []string) ([]parser.Card, error) {
 	var cards []parser.Card
 	for _, path := range filePaths {
-		parsed, err := parseFile(r, p, workspace, path)
+		parsed, err := parseFile(r, p, workspace, parserName, path)
 		if err != nil {
 			return nil, err
 		}
@@ -33,13 +32,13 @@ func Parse(r Reader, p Parser, workspace string, filePaths []string) ([]parser.C
 	return cards, nil
 }
 
-func parseFile(r Reader, p Parser, workspace, path string) ([]parser.Card, error) {
+func parseFile(r Reader, p Parser, workspace, parserName, path string) ([]parser.Card, error) {
 	path = filepath.Join(workspace, path)
 	bytes, err := r.ReadBytes(path)
 	if err != nil {
 		return nil, err
 	}
-	cards, err := p.Convert(path, bytes)
+	cards, err := p.Convert(parserName, path, bytes)
 	if err != nil {
 		return nil, err
 	}
@@ -90,14 +89,11 @@ func upsertSyncRequests(filename, deckID string, mochiCards []mochi.Card, parsed
 	archiveReqs := []*archiveCardRequest{}
 
 	for _, mochiCard := range mochiCards {
-		fmt.Println(mochiCard)
 		index := slices.IndexFunc(tmp, indexFunc(mochiCard))
 		if index < 0 {
 			archiveReqs = append(archiveReqs, newArchiveCardRequest(mochiCard.ID))
 			continue
 		}
-
-		fmt.Println("HEY")
 
 		if mochiCard.Content != tmp[index].Content {
 			updateReqs = append(updateReqs, newUpdateCardRequest(mochiCard.ID, tmp[index].Content))

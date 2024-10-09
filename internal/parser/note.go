@@ -12,7 +12,7 @@ func newNote() *note {
 }
 
 // Convert implements the cardParser interface.
-func (n *note) Convert(path string, source []byte) ([]Card, error) {
+func (n *note) convert(path string, source []byte) ([]Card, error) {
 	return []Card{
 		{
 			Name:     getNameFromPath(path),

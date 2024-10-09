@@ -27,7 +27,7 @@ func Run(ctx context.Context, logger Logger, token, workspace string) (updated b
 	fs := file.NewSystem()
 	parser := parser.New()
 
-	cfg, err := config.Parse(fs, workspace)
+	cfg, err := config.Parse(fs, workspace, parser.List())
 	if err != nil {
 		return false, err
 	}
