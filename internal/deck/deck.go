@@ -89,7 +89,7 @@ func getStack(lockfile Lockfile, path string) (string, []string) {
 	}
 
 	stack := []string{path}
-	for path != "/" {
+	for !isTopLevelDirectory(path) {
 		path = filepath.Dir(path)
 		deckID, _, ok := lockfile.GetDeck(path)
 		if ok {
@@ -99,4 +99,9 @@ func getStack(lockfile Lockfile, path string) (string, []string) {
 	}
 
 	return "", stack
+}
+
+func isTopLevelDirectory(path string) bool {
+	dir, _ := filepath.Split(path)
+	return dir == "/"
 }

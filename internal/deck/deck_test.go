@@ -213,14 +213,13 @@ func Test_getStack(t *testing.T) {
 			stack: []string{"/"},
 		},
 		{
-			name: "recursive to root",
+			name: "recursive to top level directory",
 			path: "/test/data/notes",
 			calls: []test.LockfileGetDeck{
 				{Path: "/test/data"},
 				{Path: "/test"},
-				{Path: "/"},
 			},
-			stack: []string{"/test/data/notes", "/test/data", "/test", "/"},
+			stack: []string{"/test/data/notes", "/test/data", "/test"},
 		},
 		{
 			name: "recursive to existing",
@@ -241,6 +240,24 @@ func Test_getStack(t *testing.T) {
 			assert.Equal(t, tt.deckID, deckID)
 			assert.Equal(t, tt.stack, stack)
 			lf.AssertExpectations(t)
+		})
+	}
+}
+
+func Test_isTopLevelDirectory(t *testing.T) {
+	tests := []struct {
+		path string
+		want bool
+	}{
+		{path: "/", want: true},
+		{path: "/testdata", want: true},
+		{path: "/testdata/lorem-ipsum"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.path, func(t *testing.T) {
+			got := isTopLevelDirectory(tt.path)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
