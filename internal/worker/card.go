@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/leonhfr/mochi/internal/card"
+	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/file"
 	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/parser"
@@ -13,6 +14,7 @@ import (
 // ExistingCards contains a deck with existing cards.
 type ExistingCards struct {
 	deckID    string
+	config    config.Deck
 	filePaths []string
 	cards     []mochi.Card
 }
@@ -24,16 +26,17 @@ func FetchCards(ctx context.Context, logger Logger, client *mochi.Client, in <-c
 		defer close(out)
 
 		for syncedDeck := range in {
-			logger.Infof("fetch cards for deck %s", syncedDeck.id)
+			logger.Infof("fetch cards for deck %s", syncedDeck.deckID)
 			var cards []mochi.Card
 			err := client.ListCardsInDeck(
 				ctx,
-				syncedDeck.id,
+				syncedDeck.deckID,
 				func(cc []mochi.Card) error { cards = append(cards, cc...); return nil },
 			)
 			out <- Result[ExistingCards]{
 				data: ExistingCards{
-					deckID:    syncedDeck.id,
+					deckID:    syncedDeck.deckID,
+					config:    syncedDeck.config,
 					filePaths: syncedDeck.filePaths,
 					cards:     cards,
 				},
@@ -47,6 +50,7 @@ func FetchCards(ctx context.Context, logger Logger, client *mochi.Client, in <-c
 // CleanedCards contains a deck with existing cards.
 type CleanedCards struct {
 	deckID    string
+	config    config.Deck
 	filePaths []string
 	cards     []mochi.Card
 }
@@ -86,7 +90,7 @@ func ParseCards(logger Logger, fs *file.System, parser *parser.Parser, workspace
 
 		for cleanedCards := range in {
 			logger.Infof("parsing cards for deck %s", cleanedCards.deckID)
-			parsedCards, err := card.Parse(fs, parser, workspace, "note", cleanedCards.filePaths)
+			parsedCards, err := card.Parse(fs, parser, workspace, cleanedCards.config.Parser, cleanedCards.filePaths)
 			out <- Result[ParsedCards]{
 				data: ParsedCards{
 					deckID:      cleanedCards.deckID,

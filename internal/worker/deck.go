@@ -11,7 +11,7 @@ import (
 
 // FilteredDeck represents a deck whose config has been matched.
 type FilteredDeck struct {
-	path      string
+	config    config.Deck
 	filePaths []string
 }
 
@@ -26,7 +26,7 @@ func FilterDeck(logger Logger, cfg *config.Config, in <-chan deck.Directory) <-c
 			if deckConfig, ok := cfg.GetDeck(dir.Path); ok {
 				logger.Infof("deck filter: forwarding %s with %d files", dir.Path, len(dir.FilePaths))
 				out <- FilteredDeck{
-					path:      deckConfig.Path,
+					config:    deckConfig,
 					filePaths: dir.FilePaths,
 				}
 			} else {
@@ -39,7 +39,8 @@ func FilterDeck(logger Logger, cfg *config.Config, in <-chan deck.Directory) <-c
 
 // SyncedDeck contains a synced deck.
 type SyncedDeck struct {
-	id        string
+	deckID    string
+	config    config.Deck
 	filePaths []string
 }
 
@@ -50,11 +51,15 @@ func SyncDeck(ctx context.Context, logger Logger, client *mochi.Client, cfg *con
 		defer close(out)
 
 		for filteredDeck := range in {
-			logger.Infof("deck sync: %s", filteredDeck.path)
-			deckID, err := deck.Sync(ctx, client, cfg, lf, filteredDeck.path)
+			logger.Infof("deck sync: %s", filteredDeck.config.Path)
+			deckID, err := deck.Sync(ctx, client, cfg, lf, filteredDeck.config.Path)
 			out <- Result[SyncedDeck]{
-				data: SyncedDeck{id: deckID, filePaths: filteredDeck.filePaths},
-				err:  err,
+				data: SyncedDeck{
+					deckID:    deckID,
+					config:    filteredDeck.config,
+					filePaths: filteredDeck.filePaths,
+				},
+				err: err,
 			}
 		}
 	}()
