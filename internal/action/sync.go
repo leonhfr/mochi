@@ -21,21 +21,21 @@ type Logger interface {
 	Infof(format string, args ...any)
 }
 
-// Run runs the default action.
-func Run(ctx context.Context, logger Logger, token, workspace string) (updated bool, err error) {
+// Sync syncs the cards.
+func Sync(ctx context.Context, logger Logger, token, workspace string) (updated bool, err error) {
 	logger.Infof("workspace: %s", workspace)
 
 	fs := file.NewSystem()
 	parser := parser.New()
 
-	cfg, err := config.Parse(fs, workspace, parser.List())
+	config, err := config.Parse(fs, workspace, parser.List())
 	if err != nil {
 		return false, err
 	}
 	logger.Infof("loaded config")
-	logger.Debugf("config: %v", cfg)
+	logger.Debugf("config: %v", config)
 
-	rate, burst := getRate(cfg.RateLimit)
+	rate, burst := getRate(config.RateLimit)
 	client := mochi.New(
 		token,
 		mochi.WithTransport(throttle.New(rate, burst)),
@@ -55,15 +55,16 @@ func Run(ctx context.Context, logger Logger, token, workspace string) (updated b
 		}
 	}()
 
-	err = runWorkers(ctx, logger, client, fs, parser, cfg, lf, workspace)
+	err = runWorkers(ctx, logger, client, fs, parser, config, lf, workspace)
 
 	return lf.Updated(), err
 }
 
-func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *file.System, parser *parser.Parser, cfg *config.Config, lf *lock.Lock, workspace string) error {
+func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *file.System, parser *parser.Parser, config *config.Config, lf *lock.Lock, workspace string) error {
 	wg := &sync.WaitGroup{}
 	errC := make(chan error)
 	defer close(errC)
+
 	go func() {
 		for err := range errC {
 			logger.Errorf("workers: %v", err)
@@ -75,14 +76,13 @@ func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *fi
 		return err
 	}
 
-	deckR := worker.SyncDecks(ctx, logger, client, cfg, lf, dirC)
+	deckR := worker.SyncDecks(ctx, logger, client, config, lf, dirC)
 	deckC := worker.Unwrap(wg, deckR, errC)
 	syncR := worker.SyncRequests(ctx, logger, client, fs, parser, lf, workspace, deckC)
 	syncC := worker.Unwrap(wg, syncR, errC)
 	doneC := worker.ExecuteRequests(ctx, logger, client, lf, syncC)
-	end := worker.Unwrap(wg, doneC, errC)
+	_ = worker.Unwrap(wg, doneC, errC)
 
-	<-end
 	wg.Wait()
 	return nil
 }

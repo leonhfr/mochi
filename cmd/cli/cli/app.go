@@ -43,7 +43,7 @@ func GetApp(out io.Writer, version, compiled string) (*cli.App, error) {
 			token := ctx.String("token")
 			workspace := ctx.Args().First()
 			workspace = filepath.Join(pwd, workspace)
-			_, err = action.Run(ctx.Context, logger, token, workspace)
+			_, err = action.Sync(ctx.Context, logger, token, workspace)
 			return err
 		},
 		Flags: []cli.Flag{
