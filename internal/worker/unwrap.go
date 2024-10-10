@@ -13,7 +13,7 @@ type Result[Data any] struct {
 //
 // When in is closed, the function releases its counter in the wait group.
 func Unwrap[Data any](wg *sync.WaitGroup, in <-chan Result[Data], errC chan<- error) <-chan Data {
-	out := make(chan Data)
+	out := make(chan Data, cap(in))
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

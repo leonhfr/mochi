@@ -28,7 +28,7 @@ func FileWalk(ctx context.Context, logger Logger, walker Walker, workspace strin
 
 	logger.Infof("filewalk: found %d directories", h.Len())
 
-	out := make(chan deck.Directory)
+	out := make(chan deck.Directory, h.Len())
 	go func() {
 		defer close(out)
 

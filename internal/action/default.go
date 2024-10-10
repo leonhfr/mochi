@@ -68,17 +68,12 @@ func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *fi
 		return err
 	}
 
-	filteredDeckC := worker.FilterDeck(logger, cfg, dirC)
-	syncedDeckResultC := worker.SyncDeck(ctx, logger, client, cfg, lf, filteredDeckC)
-	syncedDeckC := worker.Unwrap(wg, syncedDeckResultC, errC)
-	existingCardsResultC := worker.FetchCards(ctx, logger, client, syncedDeckC)
-	existingCardsC := worker.Unwrap(wg, existingCardsResultC, errC)
-	cleanedCardsC := worker.CleanCards(logger, lf, existingCardsC)
-	parsedCardsResultC := worker.ParseCards(logger, fs, parser, workspace, cleanedCardsC)
-	parsedCardsC := worker.Unwrap(wg, parsedCardsResultC, errC)
-	syncRequestsC := worker.SyncRequests(logger, lf, parsedCardsC)
-	executedRequestsC := worker.ExecuteRequests(ctx, logger, client, lf, syncRequestsC)
-	end := worker.Unwrap(wg, executedRequestsC, errC)
+	deckR := worker.SyncDecks(ctx, logger, client, cfg, lf, dirC)
+	deckC := worker.Unwrap(wg, deckR, errC)
+	syncR := worker.CardRequests(ctx, logger, client, fs, parser, lf, workspace, deckC)
+	syncC := worker.Unwrap(wg, syncR, errC)
+	doneC := worker.ExecuteRequests(ctx, logger, client, lf, syncC)
+	end := worker.Unwrap(wg, doneC, errC)
 
 	<-end
 	wg.Wait()
