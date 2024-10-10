@@ -10,18 +10,17 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-const headingsLevel = 1
-
 // headings represents a headings parser.
 //
 // Each headings until a determined depth returns a separate card.
 // The card names are formatted from the card name and the heading.
 type headings struct {
 	parser parser.Parser
+	level  int
 }
 
 // newHeadings returns a new note parser.
-func newHeadings() *headings {
+func newHeadings(level int) *headings {
 	return &headings{
 		parser: parser.NewParser(
 			parser.WithBlockParsers(
@@ -30,6 +29,7 @@ func newHeadings() *headings {
 				util.Prioritized(parser.NewParagraphParser(), 300),
 			),
 		),
+		level: level,
 	}
 }
 
@@ -41,9 +41,9 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 
 	doc := h.parser.Parse(text.NewReader(source))
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
-		if heading, ok := n.(*ast.Heading); ok && entering && heading.Level <= headingsLevel {
+		if heading, ok := n.(*ast.Heading); ok && entering && heading.Level <= h.level {
 			if len(title) > 0 {
-				cards = append(cards, newHeadingsCard(path, title, paragraphs))
+				cards = append(cards, newHeadingsCard(path, title, h.level, paragraphs))
 			}
 
 			title = string(heading.Text(source))
@@ -73,7 +73,7 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 		return nil, err
 	}
 
-	cards = append(cards, newHeadingsCard(path, title, paragraphs))
+	cards = append(cards, newHeadingsCard(path, title, h.level, paragraphs))
 	return cards, nil
 }
 
@@ -92,8 +92,8 @@ func parseParagraph(paragraph *ast.Paragraph, source []byte) (string, error) {
 	return strings.Join(lines, "\n"), err
 }
 
-func newHeadingsCard(path, name string, paragraphs []string) Card {
-	title := formatHeading(name, headingsLevel)
+func newHeadingsCard(path, name string, level int, paragraphs []string) Card {
+	title := formatHeading(name, level)
 	content := concatenateBlocks(append([]string{title}, paragraphs...)) + "\n"
 	return Card{
 		Name:     name,

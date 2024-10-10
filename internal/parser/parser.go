@@ -2,6 +2,8 @@ package parser
 
 import (
 	"io"
+	"path/filepath"
+	"strings"
 
 	"github.com/adrg/frontmatter"
 )
@@ -31,7 +33,7 @@ func New() *Parser {
 		cardParser: newNote(),
 		parsers: map[string]cardParser{
 			"note":     newNote(),
-			"headings": newHeadings(),
+			"headings": newHeadings(1),
 		},
 	}
 }
@@ -75,4 +77,16 @@ func (p *Parser) List() []string {
 // Extensions returns the list of supported extensions.
 func (p *Parser) Extensions() []string {
 	return extensions
+}
+
+func getFilename(path string) string {
+	return filepath.Base(path)
+}
+
+func getNameFromPath(path string) string {
+	base := filepath.Base(path)
+	for _, ext := range extensions {
+		base = strings.TrimSuffix(base, ext)
+	}
+	return base
 }
