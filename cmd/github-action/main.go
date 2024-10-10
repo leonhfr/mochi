@@ -27,7 +27,12 @@ func run(ctx context.Context, gha *githubactions.Action) error {
 		return err
 	}
 
-	updated, err := action.Sync(ctx, gha, token, workspace)
+	client, fs, parser, config, lf, err := action.Load(ctx, gha, token, workspace)
+	if err != nil {
+		return err
+	}
+
+	updated, err := action.Sync(ctx, gha, client, fs, parser, config, lf, workspace)
 	github.SetOutput(gha, updated)
 	return err
 }

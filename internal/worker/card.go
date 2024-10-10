@@ -11,20 +11,20 @@ import (
 
 const inflightSyncRequests = 20
 
-// SyncClient is the interface the mochi client should implement to generate the sync requests.
-type SyncClient interface {
+// Client is the interface the mochi client should implement to generate the sync requests.
+type Client interface {
 	ListCardsInDeck(ctx context.Context, deckID string, cb func([]mochi.Card) error) error
 }
 
-// SyncLockfile is the interface the lockfile should implement to generate the sync requests.
-type SyncLockfile interface {
-	card.ReadLockfile
+// Lockfile is the interface the lockfile should implement to generate the sync requests.
+type Lockfile interface {
+	card.Lockfile
 	CleanCards(deckID string, cardIDs []string)
 }
 
 // SyncRequests returns a stream of requests to sync the cards.
-func SyncRequests(ctx context.Context, logger Logger, client SyncClient, cr card.Reader, parser card.Parser, lf SyncLockfile, workspace string, in <-chan Deck) <-chan Result[card.SyncRequest] {
-	out := make(chan Result[card.SyncRequest], inflightSyncRequests)
+func SyncRequests(ctx context.Context, logger Logger, client Client, cr card.Reader, parser card.Parser, lf Lockfile, workspace string, in <-chan Deck) <-chan Result[card.Request] {
+	out := make(chan Result[card.Request], inflightSyncRequests)
 	go func() {
 		defer close(out)
 
@@ -34,12 +34,12 @@ func SyncRequests(ctx context.Context, logger Logger, client SyncClient, cr card
 			s.Go(func() stream.Callback {
 				reqs, err := syncRequests(ctx, logger, client, cr, parser, lf, workspace, deck)
 				if err != nil {
-					return func() { out <- Result[card.SyncRequest]{err: err} }
+					return func() { out <- Result[card.Request]{err: err} }
 				}
 
 				return func() {
 					for _, req := range reqs {
-						out <- Result[card.SyncRequest]{data: req}
+						out <- Result[card.Request]{data: req}
 					}
 				}
 			})
@@ -51,7 +51,7 @@ func SyncRequests(ctx context.Context, logger Logger, client SyncClient, cr card
 }
 
 // ExecuteRequests executes the sync requests.
-func ExecuteRequests(ctx context.Context, logger Logger, client card.Client, lf card.WriteLockfile, in <-chan card.SyncRequest) <-chan Result[struct{}] {
+func ExecuteRequests(ctx context.Context, logger Logger, client card.Client, lf card.Lockfile, in <-chan card.Request) <-chan Result[struct{}] {
 	out := make(chan Result[struct{}])
 	go func() {
 		defer close(out)
@@ -75,7 +75,7 @@ func ExecuteRequests(ctx context.Context, logger Logger, client card.Client, lf 
 	return out
 }
 
-func syncRequests(ctx context.Context, logger Logger, client SyncClient, cr card.Reader, parser card.Parser, lf SyncLockfile, workspace string, deck Deck) ([]card.SyncRequest, error) {
+func syncRequests(ctx context.Context, logger Logger, client Client, cr card.Reader, parser card.Parser, lf Lockfile, workspace string, deck Deck) ([]card.Request, error) {
 	logger.Infof("card sync(deckID %s): fetching cards", deck.deckID)
 	mochiCards, err := fetchCardsInDeck(ctx, client, deck.deckID)
 	if err != nil {
@@ -97,7 +97,7 @@ func syncRequests(ctx context.Context, logger Logger, client SyncClient, cr card
 	return reqs, nil
 }
 
-func fetchCardsInDeck(ctx context.Context, client SyncClient, deckID string) ([]mochi.Card, error) {
+func fetchCardsInDeck(ctx context.Context, client Client, deckID string) ([]mochi.Card, error) {
 	var cards []mochi.Card
 	err := client.ListCardsInDeck(
 		ctx,
@@ -107,7 +107,7 @@ func fetchCardsInDeck(ctx context.Context, client SyncClient, deckID string) ([]
 	return cards, err
 }
 
-func cleanCards(lf SyncLockfile, deckID string, mochiCards []mochi.Card) {
+func cleanCards(lf Lockfile, deckID string, mochiCards []mochi.Card) {
 	cardIDs := make([]string, 0, len(mochiCards))
 	for _, card := range mochiCards {
 		cardIDs = append(cardIDs, card.ID)

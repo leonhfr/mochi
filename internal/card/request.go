@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -13,15 +14,16 @@ type Client interface {
 	UpdateCard(ctx context.Context, id string, req mochi.UpdateCardRequest) (mochi.Card, error)
 }
 
-// WriteLockfile is the interface that should be implemented to update the lockfile.
-type WriteLockfile interface {
+// Lockfile is the interface that should be implemented to update the lockfile.
+type Lockfile interface {
+	GetCard(deckID string, cardID string) (lock.Card, bool)
 	SetCard(deckID string, cardID string, filename string) error
 }
 
-// SyncRequest is the interface that should be implemented to execute a request.
-type SyncRequest interface {
+// Request is the interface that should be implemented to execute a request.
+type Request interface {
 	fmt.Stringer
-	Sync(ctx context.Context, client Client, lf WriteLockfile) error
+	Sync(ctx context.Context, client Client, lf Lockfile) error
 }
 
 type createCardRequest struct {
@@ -43,7 +45,7 @@ func newCreateCardRequest(filename, deckID, name, content string) *createCardReq
 }
 
 // Sync implements the SyncRequest interface.
-func (r *createCardRequest) Sync(ctx context.Context, c Client, lf WriteLockfile) error {
+func (r *createCardRequest) Sync(ctx context.Context, c Client, lf Lockfile) error {
 	card, err := c.CreateCard(ctx, r.req)
 	if err != nil {
 		return err
@@ -69,7 +71,7 @@ func newUpdateCardRequest(cardID, content string) *updateCardRequest {
 }
 
 // Sync implements the SyncRequest interface.
-func (r *updateCardRequest) Sync(ctx context.Context, c Client, _ WriteLockfile) error {
+func (r *updateCardRequest) Sync(ctx context.Context, c Client, _ Lockfile) error {
 	_, err := c.UpdateCard(ctx, r.cardID, r.req)
 	return err
 }
@@ -92,7 +94,7 @@ func newArchiveCardRequest(cardID string) *archiveCardRequest {
 }
 
 // Sync implements the SyncRequest interface.
-func (r *archiveCardRequest) Sync(ctx context.Context, c Client, _ WriteLockfile) error {
+func (r *archiveCardRequest) Sync(ctx context.Context, c Client, _ Lockfile) error {
 	_, err := c.UpdateCard(ctx, r.cardID, r.req)
 	return err
 }

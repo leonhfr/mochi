@@ -3,64 +3,18 @@ package action
 import (
 	"context"
 	"sync"
-	"time"
 
-	"github.com/leonhfr/mochi/internal/config"
-	"github.com/leonhfr/mochi/internal/file"
-	"github.com/leonhfr/mochi/internal/lock"
-	"github.com/leonhfr/mochi/internal/parser"
-	"github.com/leonhfr/mochi/internal/throttle"
 	"github.com/leonhfr/mochi/internal/worker"
-	"github.com/leonhfr/mochi/mochi"
 )
 
-// Logger is the interface to log output.
-type Logger interface {
-	Debugf(format string, args ...any)
-	Errorf(format string, args ...any)
-	Infof(format string, args ...any)
-}
-
 // Sync syncs the cards.
-func Sync(ctx context.Context, logger Logger, token, workspace string) (updated bool, err error) {
-	logger.Infof("workspace: %s", workspace)
-
-	fs := file.NewSystem()
-	parser := parser.New()
-
-	config, err := config.Parse(fs, workspace, parser.List())
-	if err != nil {
-		return false, err
-	}
-	logger.Infof("loaded config")
-	logger.Debugf("config: %v", config)
-
-	rate, burst := getRate(config.RateLimit)
-	client := mochi.New(
-		token,
-		mochi.WithTransport(throttle.New(rate, burst)),
-	)
-
-	lf, err := getLockfile(ctx, client, fs, workspace)
-	if err != nil {
-		return false, err
-	}
-
-	logger.Infof("loaded lockfile")
-	logger.Debugf("lockfile: %v", lf.String())
-
+func Sync(ctx context.Context, logger Logger, client Client, fs Filesystem, parser Parser, config Config, lf Lockfile, workspace string) (updated bool, err error) {
 	defer func() {
 		if writeErr := lf.Write(); err == nil {
 			err = writeErr
 		}
 	}()
 
-	err = runWorkers(ctx, logger, client, fs, parser, config, lf, workspace)
-
-	return lf.Updated(), err
-}
-
-func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *file.System, parser *parser.Parser, config *config.Config, lf *lock.Lock, workspace string) error {
 	wg := &sync.WaitGroup{}
 	errC := make(chan error)
 	defer close(errC)
@@ -73,7 +27,7 @@ func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *fi
 
 	dirC, err := worker.FileWalk(ctx, logger, fs, workspace, parser.Extensions())
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	deckR := worker.SyncDecks(ctx, logger, client, config, lf, dirC)
@@ -84,27 +38,6 @@ func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *fi
 	_ = worker.Unwrap(wg, doneC, errC)
 
 	wg.Wait()
-	return nil
-}
 
-func getRate(rateLimit int) (time.Duration, int) {
-	return time.Second / time.Duration(rateLimit), rateLimit
-}
-
-func getLockfile(ctx context.Context, client *mochi.Client, fs *file.System, workspace string) (*lock.Lock, error) {
-	lf, err := lock.Parse(fs, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var decks []mochi.Deck
-	if err := client.ListDecks(ctx, func(dd []mochi.Deck) error {
-		decks = append(decks, dd...)
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	lf.CleanDecks(decks)
-	return lf, nil
+	return lf.Updated(), err
 }

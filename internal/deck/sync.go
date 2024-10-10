@@ -9,8 +9,8 @@ import (
 	"github.com/leonhfr/mochi/mochi"
 )
 
-// SyncClient is the interface to sync mochi decks.
-type SyncClient interface {
+// Client is the interface to sync mochi decks.
+type Client interface {
 	CreateDeck(context.Context, mochi.CreateDeckRequest) (mochi.Deck, error)
 	UpdateDeck(context.Context, string, mochi.UpdateDeckRequest) (mochi.Deck, error)
 }
@@ -31,7 +31,7 @@ type Lockfile interface {
 //
 // It will create any intermediate decks as required until a root deck is reached.
 // If the names do not match, the remote deck will be updated.
-func Sync(ctx context.Context, client SyncClient, config Config, lf Lockfile, path string) (deckID string, err error) {
+func Sync(ctx context.Context, client Client, config Config, lf Lockfile, path string) (deckID string, err error) {
 	id, deck, ok := lf.GetDeck(path)
 	if name := getDeckName(config, path); ok && deck.Name != name {
 		err = updateDeckName(ctx, client, lf, deckID, name)
@@ -54,7 +54,7 @@ func Sync(ctx context.Context, client SyncClient, config Config, lf Lockfile, pa
 	return
 }
 
-func createDeck(ctx context.Context, client SyncClient, lf Lockfile, parentID, path, name string) (string, error) {
+func createDeck(ctx context.Context, client Client, lf Lockfile, parentID, path, name string) (string, error) {
 	deck, err := client.CreateDeck(ctx, mochi.CreateDeckRequest{
 		Name:     name,
 		ParentID: parentID,
@@ -66,7 +66,7 @@ func createDeck(ctx context.Context, client SyncClient, lf Lockfile, parentID, p
 	return deck.ID, nil
 }
 
-func updateDeckName(ctx context.Context, client SyncClient, lf Lockfile, deckID, name string) error {
+func updateDeckName(ctx context.Context, client Client, lf Lockfile, deckID, name string) error {
 	_, err := client.UpdateDeck(ctx, deckID, mochi.UpdateDeckRequest{Name: name})
 	if err != nil {
 		return err

@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -49,18 +48,13 @@ func parseFile(r Reader, p Parser, workspace, parserName, path string) ([]parser
 	return cards, nil
 }
 
-// ReadLockfile is the interface to interact with the lockfile.
-type ReadLockfile interface {
-	GetCard(deckID string, cardID string) (lock.Card, bool)
-}
-
 // SyncRequests parses the note files and returns the requests
 // required to sync them.
-func SyncRequests(lf ReadLockfile, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []SyncRequest {
+func SyncRequests(lf Lockfile, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []Request {
 	groupedMochiCards, notMatched := groupMochiCardsByFilename(lf, deckID, mochiCards)
 	groupedParsedCards := groupParsedCardsByFilename(parsedCards)
 	groupedCards := groupCardsByFilename(groupedMochiCards, groupedParsedCards)
-	reqs := []SyncRequest{}
+	reqs := []Request{}
 	for _, mochiCard := range notMatched {
 		reqs = append(reqs, newArchiveCardRequest(mochiCard.ID))
 	}
@@ -141,7 +135,7 @@ func groupCardsByFilename(mochiCards map[string][]mochi.Card, parsedCards map[st
 	return groups
 }
 
-func groupMochiCardsByFilename(lf ReadLockfile, deckID string, mochiCards []mochi.Card) (map[string][]mochi.Card, []mochi.Card) {
+func groupMochiCardsByFilename(lf Lockfile, deckID string, mochiCards []mochi.Card) (map[string][]mochi.Card, []mochi.Card) {
 	matched := make(map[string][]mochi.Card)
 	var notMatched []mochi.Card
 	for _, mochiCard := range mochiCards {
