@@ -70,7 +70,7 @@ func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *fi
 
 	deckR := worker.SyncDecks(ctx, logger, client, cfg, lf, dirC)
 	deckC := worker.Unwrap(wg, deckR, errC)
-	syncR := worker.CardRequests(ctx, logger, client, fs, parser, lf, workspace, deckC)
+	syncR := worker.SyncRequests(ctx, logger, client, fs, parser, lf, workspace, deckC)
 	syncC := worker.Unwrap(wg, syncR, errC)
 	doneC := worker.ExecuteRequests(ctx, logger, client, lf, syncC)
 	end := worker.Unwrap(wg, doneC, errC)

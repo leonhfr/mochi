@@ -6,6 +6,12 @@ import (
 	"github.com/leonhfr/mochi/internal/deck"
 )
 
+// Logger is the interface to log output.
+type Logger interface {
+	Debugf(format string, args ...any)
+	Infof(format string, args ...any)
+}
+
 // Walker is the interface that should be implemented to recursively walk directories.
 type Walker interface {
 	Walk(string, []string, func(string)) error

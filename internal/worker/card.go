@@ -6,16 +6,24 @@ import (
 	"github.com/sourcegraph/conc/stream"
 
 	"github.com/leonhfr/mochi/internal/card"
-	"github.com/leonhfr/mochi/internal/file"
-	"github.com/leonhfr/mochi/internal/lock"
-	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/mochi"
 )
 
 const inflightSyncRequests = 20
 
-// CardRequests returns a stream of requests to sync the cards.
-func CardRequests(ctx context.Context, logger Logger, client *mochi.Client, fs *file.System, parser *parser.Parser, lf *lock.Lock, workspace string, in <-chan Deck) <-chan Result[card.SyncRequest] {
+// SyncClient is the interface the mochi client should implement to generate the sync requests.
+type SyncClient interface {
+	ListCardsInDeck(ctx context.Context, deckID string, cb func([]mochi.Card) error) error
+}
+
+// SyncLockfile is the interface the lockfile should implement to generate the sync requests.
+type SyncLockfile interface {
+	card.ReadLockfile
+	CleanCards(deckID string, cardIDs []string)
+}
+
+// SyncRequests returns a stream of requests to sync the cards.
+func SyncRequests(ctx context.Context, logger Logger, client SyncClient, cr card.Reader, parser card.Parser, lf SyncLockfile, workspace string, in <-chan Deck) <-chan Result[card.SyncRequest] {
 	out := make(chan Result[card.SyncRequest], inflightSyncRequests)
 	go func() {
 		defer close(out)
@@ -24,7 +32,7 @@ func CardRequests(ctx context.Context, logger Logger, client *mochi.Client, fs *
 		for deck := range in {
 			deck := deck
 			s.Go(func() stream.Callback {
-				reqs, err := syncRequests(ctx, logger, client, fs, parser, lf, workspace, deck)
+				reqs, err := syncRequests(ctx, logger, client, cr, parser, lf, workspace, deck)
 				if err != nil {
 					return func() { out <- Result[card.SyncRequest]{err: err} }
 				}
@@ -42,7 +50,32 @@ func CardRequests(ctx context.Context, logger Logger, client *mochi.Client, fs *
 	return out
 }
 
-func syncRequests(ctx context.Context, logger Logger, client *mochi.Client, fs *file.System, parser *parser.Parser, lf *lock.Lock, workspace string, deck Deck) ([]card.SyncRequest, error) {
+// ExecuteRequests executes the sync requests.
+func ExecuteRequests(ctx context.Context, logger Logger, client card.Client, lf card.WriteLockfile, in <-chan card.SyncRequest) <-chan Result[struct{}] {
+	out := make(chan Result[struct{}])
+	go func() {
+		defer close(out)
+
+		s := stream.New().WithMaxGoroutines(cap(in))
+		for req := range in {
+			req := req
+			s.Go(func() stream.Callback {
+				logger.Infof("syncing: %s", req.String())
+				if err := req.Sync(ctx, client, lf); err != nil {
+					return func() {
+						out <- Result[struct{}]{err: err}
+					}
+				}
+				return func() {}
+			})
+		}
+		s.Wait()
+	}()
+
+	return out
+}
+
+func syncRequests(ctx context.Context, logger Logger, client SyncClient, cr card.Reader, parser card.Parser, lf SyncLockfile, workspace string, deck Deck) ([]card.SyncRequest, error) {
 	logger.Infof("card sync(deckID %s): fetching cards", deck.deckID)
 	mochiCards, err := fetchCardsInDeck(ctx, client, deck.deckID)
 	if err != nil {
@@ -54,7 +87,7 @@ func syncRequests(ctx context.Context, logger Logger, client *mochi.Client, fs *
 	cleanCards(lf, deck.deckID, mochiCards)
 
 	logger.Infof("card sync(deckID %s): parsing cards", deck.deckID)
-	parsedCards, err := card.Parse(fs, parser, workspace, deck.config.Parser, deck.filePaths)
+	parsedCards, err := card.Parse(cr, parser, workspace, deck.config.Parser, deck.filePaths)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +97,7 @@ func syncRequests(ctx context.Context, logger Logger, client *mochi.Client, fs *
 	return reqs, nil
 }
 
-func fetchCardsInDeck(ctx context.Context, client *mochi.Client, deckID string) ([]mochi.Card, error) {
+func fetchCardsInDeck(ctx context.Context, client SyncClient, deckID string) ([]mochi.Card, error) {
 	var cards []mochi.Card
 	err := client.ListCardsInDeck(
 		ctx,
@@ -74,7 +107,7 @@ func fetchCardsInDeck(ctx context.Context, client *mochi.Client, deckID string) 
 	return cards, err
 }
 
-func cleanCards(lf *lock.Lock, deckID string, mochiCards []mochi.Card) {
+func cleanCards(lf SyncLockfile, deckID string, mochiCards []mochi.Card) {
 	cardIDs := make([]string, 0, len(mochiCards))
 	for _, card := range mochiCards {
 		cardIDs = append(cardIDs, card.ID)

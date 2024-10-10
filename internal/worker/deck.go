@@ -5,8 +5,6 @@ import (
 
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/deck"
-	"github.com/leonhfr/mochi/internal/lock"
-	"github.com/leonhfr/mochi/mochi"
 )
 
 // Deck contains a synced deck.
@@ -17,7 +15,7 @@ type Deck struct {
 }
 
 // SyncDecks creates any missing decks and updates any mismatched name.
-func SyncDecks(ctx context.Context, logger Logger, client *mochi.Client, config *config.Config, lf *lock.Lock, in <-chan deck.Directory) <-chan Result[Deck] {
+func SyncDecks(ctx context.Context, logger Logger, client deck.Client, config deck.Config, lf deck.Lockfile, in <-chan deck.Directory) <-chan Result[Deck] {
 	out := make(chan Result[Deck], cap(in))
 	go func() {
 		defer close(out)
