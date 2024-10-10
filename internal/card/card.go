@@ -110,7 +110,11 @@ func upsertSyncRequests(filename, deckID string, mochiCards []mochi.Card, parsed
 
 func indexFunc(mochiCard mochi.Card) func(c parser.Card) bool {
 	return func(parsedCard parser.Card) bool {
-		return mochiCard.Name == parsedCard.Name
+		name, ok := mochiCard.Fields["name"]
+		if !ok {
+			return mochiCard.Name == parsedCard.Name
+		}
+		return name.Value == parsedCard.Name
 	}
 }
 
