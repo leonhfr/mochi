@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	configName      = "mochi"
-	defaultRootName = "Root Deck"
+	configName       = "mochi"
+	defaultRateLimit = 50
+	defaultRootName  = "Root Deck"
 )
 
 var configExtensions = [2]string{"yaml", "yml"}
@@ -29,8 +30,9 @@ var ErrNoConfig = errors.New("no config found in target")
 
 // Config represents a config.
 type Config struct {
-	RootName string `yaml:"rootName"`
-	Decks    []Deck `yaml:"decks" validate:"required,dive"` // sorted by longest Path (more specific first)
+	RateLimit int    `yaml:"rateLimit"` // requests per second
+	RootName  string `yaml:"rootName"`
+	Decks     []Deck `yaml:"decks" validate:"required,dive"` // sorted by longest Path (more specific first)
 }
 
 // Deck represents a sync config.
@@ -71,8 +73,11 @@ func parseConfig(reader Reader, path string) (*Config, error) {
 	}
 	defer r.Close()
 
+	decoder := yaml.NewDecoder(r)
+	decoder.KnownFields(true)
+
 	var config Config
-	if err := yaml.NewDecoder(r).Decode(&config); err != nil {
+	if err := decoder.Decode(&config); err != nil {
 		return nil, err
 	}
 
@@ -80,15 +85,19 @@ func parseConfig(reader Reader, path string) (*Config, error) {
 		return nil, err
 	}
 
-	if config.RootName == "" {
-		config.RootName = defaultRootName
-	}
-
 	config = cleanConfig(config)
 	return &config, nil
 }
 
 func cleanConfig(config Config) Config {
+	if config.RateLimit <= 0 {
+		config.RateLimit = defaultRateLimit
+	}
+
+	if config.RootName == "" {
+		config.RootName = defaultRootName
+	}
+
 	for i, deck := range config.Decks {
 		path := filepath.Clean(filepath.Join("/", deck.Path))
 		config.Decks[i].Path = path

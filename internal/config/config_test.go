@@ -52,7 +52,7 @@ func Test_Parse(t *testing.T) {
 				file: "rootName: ROOT_NAME\ndecks:\n  - path: sed-interdum-libero\n    name: Sed interdum libero\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
 				err:  nil,
 			},
-			want: &Config{RootName: "ROOT_NAME", Decks: []Deck{
+			want: &Config{RateLimit: 50, RootName: "ROOT_NAME", Decks: []Deck{
 				{Path: "/sed-interdum-libero", Name: "Sed interdum libero"},
 				{Path: "/lorem-ipsum", Name: "Lorem ipsum"},
 			}},
@@ -70,7 +70,7 @@ func Test_Parse(t *testing.T) {
 				file: "rootName: ROOT_NAME\ndecks:\n  - path: lorem-ipsum\n",
 				err:  nil,
 			},
-			want: &Config{RootName: "ROOT_NAME", Decks: []Deck{{Path: "/lorem-ipsum"}}},
+			want: &Config{RateLimit: 50, RootName: "ROOT_NAME", Decks: []Deck{{Path: "/lorem-ipsum"}}},
 		},
 		{
 			name:    "should set default root deck name",
@@ -85,7 +85,7 @@ func Test_Parse(t *testing.T) {
 				file: "decks:\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
 				err:  nil,
 			},
-			want: &Config{RootName: "Root Deck", Decks: []Deck{{Path: "/lorem-ipsum", Name: "Lorem ipsum"}}},
+			want: &Config{RateLimit: 50, RootName: "Root Deck", Decks: []Deck{{Path: "/lorem-ipsum", Name: "Lorem ipsum"}}},
 		},
 		{
 			name:    "invalid config",

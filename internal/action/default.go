@@ -3,11 +3,13 @@ package action
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/file"
 	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/parser"
+	"github.com/leonhfr/mochi/internal/throttle"
 	"github.com/leonhfr/mochi/internal/worker"
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -23,7 +25,6 @@ type Logger interface {
 func Run(ctx context.Context, logger Logger, token, workspace string) (updated bool, err error) {
 	logger.Infof("workspace: %s", workspace)
 
-	client := mochi.New(token)
 	fs := file.NewSystem()
 	parser := parser.New()
 
@@ -33,6 +34,12 @@ func Run(ctx context.Context, logger Logger, token, workspace string) (updated b
 	}
 	logger.Infof("loaded config")
 	logger.Debugf("config: %v", cfg)
+
+	rate, burst := getRate(cfg.RateLimit)
+	client := mochi.New(
+		token,
+		mochi.WithTransport(throttle.New(rate, burst)),
+	)
 
 	lf, err := getLockfile(ctx, client, fs, workspace)
 	if err != nil {
@@ -78,6 +85,10 @@ func runWorkers(ctx context.Context, logger Logger, client *mochi.Client, fs *fi
 	<-end
 	wg.Wait()
 	return nil
+}
+
+func getRate(rateLimit int) (time.Duration, int) {
+	return time.Second / time.Duration(rateLimit), rateLimit
 }
 
 func getLockfile(ctx context.Context, client *mochi.Client, fs *file.System, workspace string) (*lock.Lock, error) {
