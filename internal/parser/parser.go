@@ -1,5 +1,11 @@
 package parser
 
+import (
+	"io"
+
+	"github.com/adrg/frontmatter"
+)
+
 var extensions = []string{".md"}
 
 // Card contains the card data parsed from a file.
@@ -15,27 +21,46 @@ type cardParser interface {
 
 // Parser represents a parser.
 type Parser struct {
+	cardParser
 	parsers map[string]cardParser
-	def     cardParser
 }
 
 // New returns a new parser.
 func New() *Parser {
 	return &Parser{
+		cardParser: newNote(),
 		parsers: map[string]cardParser{
 			"note":     newNote(),
 			"headings": newHeadings(),
 		},
-		def: newNote(),
 	}
 }
 
 // Convert converts a source file into a slice of cards.
-func (p *Parser) Convert(parserName, path string, source []byte) ([]Card, error) {
-	if cp, ok := p.parsers[parserName]; ok {
-		return cp.convert(path, source)
+func (p *Parser) Convert(parser, path string, r io.Reader) ([]Card, error) {
+	var matter struct {
+		Parser string `yaml:"mochi-parser"`
+		Skip   bool   `yaml:"mochi-skip"`
 	}
-	return p.def.convert(path, source)
+
+	content, err := frontmatter.Parse(r, &matter)
+	if err != nil {
+		return nil, err
+	}
+
+	if matter.Skip {
+		return nil, nil
+	}
+
+	if matter.Parser != "" {
+		parser = matter.Parser
+	}
+
+	if cp, ok := p.parsers[parser]; ok {
+		return cp.convert(path, content)
+	}
+
+	return p.convert(path, content)
 }
 
 // List returns the list of allowed parser names.

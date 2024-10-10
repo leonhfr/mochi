@@ -2,6 +2,8 @@ package card
 
 import (
 	"errors"
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,13 +16,13 @@ import (
 
 func Test_Parse(t *testing.T) {
 	readCalls := []readCall{{
-		path:  "/testdata/lorem-ipsum.md",
-		bytes: []byte("TEST"),
+		path: "/testdata/lorem-ipsum.md",
+		text: "TEST",
 	}}
 	parserCalls := []test.ParserCall{{
 		Parser: "note",
 		Path:   "/testdata/lorem-ipsum.md",
-		Source: []byte("TEST"),
+		Text:   "TEST",
 		Cards:  []parser.Card{{Name: "TEST"}},
 	}}
 	filePaths := []string{"/lorem-ipsum.md"}
@@ -47,9 +49,9 @@ func Test_parseFile(t *testing.T) {
 		{
 			name: "read error",
 			readCalls: []readCall{{
-				path:  "/testdata/lorem-ipsum.md",
-				bytes: []byte("TEST"),
-				err:   errors.New("ERROR"),
+				path: "/testdata/lorem-ipsum.md",
+				text: "TEST",
+				err:  errors.New("ERROR"),
 			}},
 			path: "/lorem-ipsum.md",
 			err:  true,
@@ -57,13 +59,13 @@ func Test_parseFile(t *testing.T) {
 		{
 			name: "convert error",
 			readCalls: []readCall{{
-				path:  "/testdata/lorem-ipsum.md",
-				bytes: []byte("TEST"),
+				path: "/testdata/lorem-ipsum.md",
+				text: "TEST",
 			}},
 			parserCalls: []test.ParserCall{{
 				Parser: "note",
 				Path:   "/testdata/lorem-ipsum.md",
-				Source: []byte("TEST"),
+				Text:   "TEST",
 				Err:    errors.New("ERROR"),
 			}},
 			path: "/lorem-ipsum.md",
@@ -72,13 +74,13 @@ func Test_parseFile(t *testing.T) {
 		{
 			name: "success",
 			readCalls: []readCall{{
-				path:  "/testdata/lorem-ipsum.md",
-				bytes: []byte("TEST"),
+				path: "/testdata/lorem-ipsum.md",
+				text: "TEST",
 			}},
 			parserCalls: []test.ParserCall{{
 				Parser: "note",
 				Path:   "/testdata/lorem-ipsum.md",
-				Source: []byte("TEST"),
+				Text:   "TEST",
 				Cards:  []parser.Card{{Name: "TEST"}},
 			}},
 			path: "/lorem-ipsum.md",
@@ -173,9 +175,9 @@ func Test_upsertSyncRequests(t *testing.T) {
 }
 
 type readCall struct {
-	path  string
-	bytes []byte
-	err   error
+	path string
+	text string
+	err  error
 }
 
 type mockReader struct {
@@ -186,13 +188,14 @@ func newMockReader(calls []readCall) *mockReader {
 	m := new(mockReader)
 	for _, call := range calls {
 		m.
-			On("ReadBytes", call.path).
-			Return(call.bytes, call.err)
+			On("Read", call.path).
+			Return(call.text, call.err)
 	}
 	return m
 }
 
-func (m *mockReader) ReadBytes(path string) ([]byte, error) {
-	args := m.Called(path)
-	return args.Get(0).([]byte), args.Error(1)
+func (m *mockReader) Read(p string) (io.ReadCloser, error) {
+	args := m.Mock.Called(p)
+	rc := strings.NewReader(args.String(0))
+	return io.NopCloser(rc), args.Error(1)
 }

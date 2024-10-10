@@ -3,6 +3,7 @@ module github.com/leonhfr/mochi
 go 1.23.2
 
 require (
+	github.com/adrg/frontmatter v0.2.0
 	github.com/carlmjohnson/requests v0.24.2
 	github.com/go-playground/validator/v10 v10.22.1
 	github.com/h2non/gock v1.2.0
@@ -16,6 +17,7 @@ require (
 )
 
 require (
+	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
@@ -34,4 +36,5 @@ require (
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
