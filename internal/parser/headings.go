@@ -41,30 +41,28 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 
 	doc := h.parser.Parse(text.NewReader(source))
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
-		if heading, ok := n.(*ast.Heading); ok && entering && heading.Level <= h.level {
+		if !entering {
+			return ast.WalkContinue, nil
+		}
+
+		switch node := n.(type) {
+		case *ast.Heading:
+			if level := node.Level; level > h.level {
+				bytes := n.Text(source)
+				heading := formatHeading(string(bytes), level)
+				paragraphs = append(paragraphs, heading)
+				return ast.WalkContinue, nil
+			}
+
 			if len(title) > 0 {
 				cards = append(cards, newHeadingsCard(path, title, h.level, paragraphs))
 			}
 
-			title = string(heading.Text(source))
+			title = string(node.Text(source))
 			paragraphs = nil
-
-			return ast.WalkContinue, nil
-		} else if ok && entering && len(title) > 0 {
-			text := string(heading.Text(source))
-			paragraphs = append(paragraphs, formatHeading(text, heading.Level))
-		} else if ok && entering {
-			return ast.WalkStop, fmt.Errorf("malformed card: %s", path)
-		}
-
-		if paragraph, ok := n.(*ast.Paragraph); ok && entering {
-			text, err := parseParagraph(paragraph, source)
-			if err != nil {
-				return ast.WalkContinue, err
-			}
-			if len(text) > 0 {
-				paragraphs = append(paragraphs, text)
-			}
+		case *ast.Paragraph:
+			bytes := node.Text(source)
+			paragraphs = append(paragraphs, string(bytes))
 		}
 
 		return ast.WalkContinue, nil
@@ -75,21 +73,6 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 
 	cards = append(cards, newHeadingsCard(path, title, h.level, paragraphs))
 	return cards, nil
-}
-
-func parseParagraph(paragraph *ast.Paragraph, source []byte) (string, error) {
-	var lines []string
-
-	err := ast.Walk(paragraph, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
-		if _, ok := n.(*ast.Text); ok && entering {
-			if text := string(n.Text(source)); len(text) > 0 {
-				lines = append(lines, text)
-			}
-		}
-
-		return ast.WalkContinue, nil
-	})
-	return strings.Join(lines, "\n"), err
 }
 
 func newHeadingsCard(path, name string, level int, paragraphs []string) Card {
