@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -12,12 +11,7 @@ import (
 type Client interface {
 	CreateCard(ctx context.Context, req mochi.CreateCardRequest) (mochi.Card, error)
 	UpdateCard(ctx context.Context, id string, req mochi.UpdateCardRequest) (mochi.Card, error)
-}
-
-// Lockfile is the interface that should be implemented to update the lockfile.
-type Lockfile interface {
-	GetCard(deckID string, cardID string) (lock.Card, bool)
-	SetCard(deckID string, cardID string, filename string) error
+	DeleteCard(ctx context.Context, id string) error
 }
 
 // Request is the interface that should be implemented to execute a request.
@@ -31,7 +25,7 @@ type createCardRequest struct {
 	filename string
 }
 
-func newCreateCardRequest(filename, deckID, name, content string) *createCardRequest {
+func newCreateCardRequest(filename, deckID, name, content string) Request {
 	return &createCardRequest{
 		req: mochi.CreateCardRequest{
 			Content: content,
@@ -63,7 +57,7 @@ type updateCardRequest struct {
 	cardID string
 }
 
-func newUpdateCardRequest(cardID, content string) *updateCardRequest {
+func newUpdateCardRequest(cardID, content string) Request {
 	return &updateCardRequest{
 		cardID: cardID,
 		req:    mochi.UpdateCardRequest{Content: content},
@@ -86,7 +80,7 @@ type archiveCardRequest struct {
 	cardID string
 }
 
-func newArchiveCardRequest(cardID string) *archiveCardRequest {
+func newArchiveCardRequest(cardID string) Request {
 	return &archiveCardRequest{
 		cardID: cardID,
 		req:    mochi.UpdateCardRequest{Archived: true},
@@ -102,4 +96,22 @@ func (r *archiveCardRequest) Sync(ctx context.Context, c Client, _ Lockfile) err
 // String implements the fmt.Stringer interface.
 func (r *archiveCardRequest) String() string {
 	return fmt.Sprintf("archive request for card ID %s", r.cardID)
+}
+
+type deleteCardRequest struct {
+	cardID string
+}
+
+func newDeleteCardRequest(cardID string) Request {
+	return &deleteCardRequest{cardID: cardID}
+}
+
+// Sync implements the SyncRequest interface.
+func (r *deleteCardRequest) Sync(ctx context.Context, c Client, _ Lockfile) error {
+	return c.DeleteCard(ctx, r.cardID)
+}
+
+// String implements the fmt.Stringer interface.
+func (r *deleteCardRequest) String() string {
+	return fmt.Sprintf("delete request for card ID %s", r.cardID)
 }
