@@ -5,6 +5,7 @@ import (
 
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/deck"
+	"github.com/leonhfr/mochi/mochi"
 )
 
 // Deck contains a synced deck.
@@ -42,4 +43,29 @@ func SyncDecks(ctx context.Context, logger Logger, client deck.Client, config de
 		}
 	}()
 	return out
+}
+
+// DeckListClient is the interface to implement to list decks.
+type DeckListClient interface {
+	ListDecks(ctx context.Context) ([]mochi.Deck, error)
+}
+
+// ListDecks lists existing decks.
+func ListDecks(ctx context.Context, client DeckListClient) (<-chan string, error) {
+	decks, err := client.ListDecks(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make(chan string, len(decks))
+	go func() {
+		defer close(out)
+		for _, deck := range decks {
+			select {
+			case out <- deck.ID:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+	return out, nil
 }

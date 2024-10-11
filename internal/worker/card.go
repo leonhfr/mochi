@@ -9,7 +9,7 @@ import (
 	"github.com/leonhfr/mochi/mochi"
 )
 
-const inflightSyncRequests = 20
+const inflightRequests = 50
 
 // Client is the interface the mochi client should implement to generate the sync requests.
 type Client interface {
@@ -24,7 +24,7 @@ type Lockfile interface {
 
 // SyncRequests returns a stream of requests to sync the cards.
 func SyncRequests(ctx context.Context, logger Logger, client Client, cr card.Reader, parser card.Parser, lf Lockfile, workspace string, in <-chan Deck) <-chan Result[card.Request] {
-	out := make(chan Result[card.Request], inflightSyncRequests)
+	out := make(chan Result[card.Request], inflightRequests)
 	go func() {
 		defer close(out)
 
@@ -33,6 +33,35 @@ func SyncRequests(ctx context.Context, logger Logger, client Client, cr card.Rea
 			deck := deck
 			s.Go(func() stream.Callback {
 				reqs, err := syncRequests(ctx, logger, client, cr, parser, lf, workspace, deck)
+				if err != nil {
+					return func() { out <- Result[card.Request]{err: err} }
+				}
+
+				return func() {
+					for _, req := range reqs {
+						out <- Result[card.Request]{data: req}
+					}
+				}
+			})
+		}
+		s.Wait()
+	}()
+
+	return out
+}
+
+// DumpRequests returns a stream of requests to delete the cards.
+func DumpRequests(ctx context.Context, logger Logger, client card.DumpClient, in <-chan string) <-chan Result[card.Request] {
+	out := make(chan Result[card.Request], inflightRequests)
+	go func() {
+		defer close(out)
+
+		s := stream.New().WithMaxGoroutines(cap(in))
+		for deckID := range in {
+			deckID := deckID
+			s.Go(func() stream.Callback {
+				logger.Infof("dump(deckID %s): generating delete requests", deckID)
+				reqs, err := card.DumpRequests(ctx, client, deckID)
 				if err != nil {
 					return func() { out <- Result[card.Request]{err: err} }
 				}
