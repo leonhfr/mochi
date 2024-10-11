@@ -43,11 +43,11 @@ func Test_GetTemplate(t *testing.T) {
 func Test_ListTemplates(t *testing.T) {
 	tests := []struct {
 		name string
-		test listItemTestCase
+		test listItemTestCase[Template]
 	}{
 		{
-			name: "should call the callback once",
-			test: listItemTestCase{
+			name: "should call the endpoint once",
+			test: listItemTestCase[Template]{
 				responses: []listItemTestCaseResponse{
 					{
 						status: http.StatusOK,
@@ -55,17 +55,16 @@ func Test_ListTemplates(t *testing.T) {
 						res: listResponse[Template]{
 							Docs: []Template{{ID: "TEMPLATE_ID", Name: "TemplateName", Content: "Template content"}},
 						},
-						want: []Template{
-							{ID: "TEMPLATE_ID", Name: "TemplateName", Content: "Template content"},
-						},
 					},
 				},
-				total: 1,
+				want: []Template{
+					{ID: "TEMPLATE_ID", Name: "TemplateName", Content: "Template content"},
+				},
 			},
 		},
 		{
-			name: "should call the callback several times",
-			test: listItemTestCase{
+			name: "should call the endpoint several times",
+			test: listItemTestCase[Template]{
 				responses: []listItemTestCaseResponse{
 					{
 						status: http.StatusOK,
@@ -74,9 +73,6 @@ func Test_ListTemplates(t *testing.T) {
 							Docs:     []Template{{ID: "TEMPLATE_ID_1", Name: "TemplateName1", Content: "Template content"}},
 							Bookmark: "BOOKMARK_1",
 						},
-						want: []Template{
-							{ID: "TEMPLATE_ID_1", Name: "TemplateName1", Content: "Template content"},
-						},
 					},
 					{
 						status: http.StatusOK,
@@ -84,17 +80,17 @@ func Test_ListTemplates(t *testing.T) {
 						res: listResponse[Template]{
 							Docs: []Template{{ID: "TEMPLATE_ID_2", Name: "TemplateName2", Content: "Template content"}},
 						},
-						want: []Template{
-							{ID: "TEMPLATE_ID_2", Name: "TemplateName2", Content: "Template content"},
-						},
 					},
 				},
-				total: 2,
+				want: []Template{
+					{ID: "TEMPLATE_ID_1", Name: "TemplateName1", Content: "Template content"},
+					{ID: "TEMPLATE_ID_2", Name: "TemplateName2", Content: "Template content"},
+				},
 			},
 		},
 		{
 			name: "should return an error",
-			test: listItemTestCase{
+			test: listItemTestCase[Template]{
 				responses: []listItemTestCaseResponse{
 					{
 						status: http.StatusBadRequest,
@@ -108,8 +104,8 @@ func Test_ListTemplates(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, testListItem("/api/templates", tt.test, func(client *Client, _ string, cb func([]Template) error) error {
-			return client.ListTemplates(context.Background(), cb)
+		t.Run(tt.name, testListItem("/api/templates", tt.test, func(client *Client, _ string) ([]Template, error) {
+			return client.ListTemplates(context.Background())
 		}))
 	}
 }

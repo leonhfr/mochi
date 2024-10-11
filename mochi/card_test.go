@@ -77,11 +77,11 @@ func Test_GetCard(t *testing.T) {
 func Test_ListCards(t *testing.T) {
 	tests := []struct {
 		name string
-		test listItemTestCase
+		test listItemTestCase[Card]
 	}{
 		{
-			name: "should call the callback once",
-			test: listItemTestCase{
+			name: "should call the endpoint once",
+			test: listItemTestCase[Card]{
 				responses: []listItemTestCaseResponse{
 					{
 						status: http.StatusOK,
@@ -89,17 +89,16 @@ func Test_ListCards(t *testing.T) {
 						res: listResponse[Card]{
 							Docs: []Card{{ID: "CARD_ID", Name: "CardName", Content: "Card content"}},
 						},
-						want: []Card{
-							{ID: "CARD_ID", Name: "CardName", Content: "Card content"},
-						},
 					},
 				},
-				total: 1,
+				want: []Card{
+					{ID: "CARD_ID", Name: "CardName", Content: "Card content"},
+				},
 			},
 		},
 		{
-			name: "should call the callback several times",
-			test: listItemTestCase{
+			name: "should call the endpoint several times",
+			test: listItemTestCase[Card]{
 				responses: []listItemTestCaseResponse{
 					{
 						status: http.StatusOK,
@@ -108,9 +107,6 @@ func Test_ListCards(t *testing.T) {
 							Docs:     []Card{{ID: "CARD_ID_1", Name: "CardName1", Content: "Card content"}},
 							Bookmark: "BOOKMARK_1",
 						},
-						want: []Card{
-							{ID: "CARD_ID_1", Name: "CardName1", Content: "Card content"},
-						},
 					},
 					{
 						status: http.StatusOK,
@@ -118,17 +114,17 @@ func Test_ListCards(t *testing.T) {
 						res: listResponse[Card]{
 							Docs: []Card{{ID: "CARD_ID_2", Name: "CardName2", Content: "Card content"}},
 						},
-						want: []Card{
-							{ID: "CARD_ID_2", Name: "CardName2", Content: "Card content"},
-						},
 					},
 				},
-				total: 2,
+				want: []Card{
+					{ID: "CARD_ID_1", Name: "CardName1", Content: "Card content"},
+					{ID: "CARD_ID_2", Name: "CardName2", Content: "Card content"},
+				},
 			},
 		},
 		{
 			name: "should return an error",
-			test: listItemTestCase{
+			test: listItemTestCase[Card]{
 				responses: []listItemTestCaseResponse{
 					{
 						status: http.StatusBadRequest,
@@ -142,8 +138,8 @@ func Test_ListCards(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, testListItem("/api/cards", tt.test, func(client *Client, _ string, cb func([]Card) error) error {
-			return client.ListCards(context.Background(), cb)
+		t.Run(tt.name, testListItem("/api/cards", tt.test, func(client *Client, _ string) ([]Card, error) {
+			return client.ListCards(context.Background())
 		}))
 	}
 }
@@ -151,11 +147,11 @@ func Test_ListCards(t *testing.T) {
 func Test_ListCardsInDeck(t *testing.T) {
 	tests := []struct {
 		name string
-		test listItemTestCase
+		test listItemTestCase[Card]
 	}{
 		{
-			name: "should call the callback once",
-			test: listItemTestCase{
+			name: "should call the endpoint once",
+			test: listItemTestCase[Card]{
 				id:     "DECK_ID",
 				params: map[string]string{"deck-id": "DECK_ID"},
 				responses: []listItemTestCaseResponse{
@@ -165,17 +161,16 @@ func Test_ListCardsInDeck(t *testing.T) {
 						res: listResponse[Card]{
 							Docs: []Card{{ID: "CARD_ID", Name: "CardName", Content: "Card content"}},
 						},
-						want: []Card{
-							{ID: "CARD_ID", Name: "CardName", Content: "Card content"},
-						},
 					},
 				},
-				total: 1,
+				want: []Card{
+					{ID: "CARD_ID", Name: "CardName", Content: "Card content"},
+				},
 			},
 		},
 		{
-			name: "should call the callback several times",
-			test: listItemTestCase{
+			name: "should call the endpoint several times",
+			test: listItemTestCase[Card]{
 				id:     "DECK_ID",
 				params: map[string]string{"deck-id": "DECK_ID"},
 				responses: []listItemTestCaseResponse{
@@ -186,9 +181,6 @@ func Test_ListCardsInDeck(t *testing.T) {
 							Docs:     []Card{{ID: "CARD_ID_1", Name: "CardName1", Content: "Card content"}},
 							Bookmark: "BOOKMARK_1",
 						},
-						want: []Card{
-							{ID: "CARD_ID_1", Name: "CardName1", Content: "Card content"},
-						},
 					},
 					{
 						status: http.StatusOK,
@@ -196,17 +188,17 @@ func Test_ListCardsInDeck(t *testing.T) {
 						res: listResponse[Card]{
 							Docs: []Card{{ID: "CARD_ID_2", Name: "CardName2", Content: "Card content"}},
 						},
-						want: []Card{
-							{ID: "CARD_ID_2", Name: "CardName2", Content: "Card content"},
-						},
 					},
 				},
-				total: 2,
+				want: []Card{
+					{ID: "CARD_ID_1", Name: "CardName1", Content: "Card content"},
+					{ID: "CARD_ID_2", Name: "CardName2", Content: "Card content"},
+				},
 			},
 		},
 		{
 			name: "should return an error",
-			test: listItemTestCase{
+			test: listItemTestCase[Card]{
 				id:     "DECK_ID",
 				params: map[string]string{"deck-id": "DECK_ID"},
 				responses: []listItemTestCaseResponse{
@@ -222,8 +214,8 @@ func Test_ListCardsInDeck(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, testListItem("/api/cards", tt.test, func(client *Client, id string, cb func([]Card) error) error {
-			return client.ListCardsInDeck(context.Background(), id, cb)
+		t.Run(tt.name, testListItem("/api/cards", tt.test, func(client *Client, id string) ([]Card, error) {
+			return client.ListCardsInDeck(context.Background(), id)
 		}))
 	}
 }

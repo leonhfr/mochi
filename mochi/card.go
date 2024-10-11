@@ -76,19 +76,13 @@ func (c *Client) GetCard(ctx context.Context, id string) (Card, error) {
 }
 
 // ListCards lists the cards.
-//
-// The callback is called with a slice of cards until all cards have been listed
-// or until the callback returns an error. Each callback call makes a HTTP request.
-func (c *Client) ListCards(ctx context.Context, cb func([]Card) error) error {
-	return listItems(ctx, c, cardPath, nil, cb)
+func (c *Client) ListCards(ctx context.Context) ([]Card, error) {
+	return listItems[Card](ctx, c, cardPath, nil)
 }
 
 // ListCardsInDeck lists the cards in a deck.
-//
-// The callback is called with a slice of cards until all cards have been listed
-// or until the callback returns an error. Each callback call makes a HTTP request.
-func (c *Client) ListCardsInDeck(ctx context.Context, id string, cb func([]Card) error) error {
-	return listItems(ctx, c, cardPath, map[string][]string{"deck-id": {id}}, cb)
+func (c *Client) ListCardsInDeck(ctx context.Context, id string) ([]Card, error) {
+	return listItems[Card](ctx, c, cardPath, map[string][]string{"deck-id": {id}})
 }
 
 // UpdateCard updates an existing card.

@@ -48,7 +48,8 @@ type listResponse[Item any] struct {
 	Docs     []Item `json:"docs"`
 }
 
-func listItems[Item any](ctx context.Context, c *Client, path string, params url.Values, cb func([]Item) error) error {
+func listItems[Item any](ctx context.Context, c *Client, path string, params url.Values) ([]Item, error) {
+	var items []Item
 	var bookmark string
 	for {
 		var res listResponse[Item]
@@ -60,17 +61,15 @@ func listItems[Item any](ctx context.Context, c *Client, path string, params url
 			ParamOptional("bookmark", bookmark).
 			ToJSON(&res)
 		if err := executeRequest(ctx, rb); err != nil {
-			return err
+			return nil, err
 		}
-		if err := cb(res.Docs); err != nil {
-			return err
-		}
+		items = append(items, res.Docs...)
 		bookmark = res.Bookmark
 		if bookmark == "" || bookmark == "nil" || len(res.Docs) == 0 {
 			break
 		}
 	}
-	return nil
+	return items, nil
 }
 
 func updateItem[Item any](ctx context.Context, c *Client, path, id string, req any) (Item, error) {

@@ -24,9 +24,6 @@ func (c *Client) GetTemplate(ctx context.Context, id string) (Template, error) {
 }
 
 // ListTemplates lists the templates.
-//
-// The callback is called with a slice of templates until all templates have been listed
-// or until the callback returns an error. Each callback call makes a HTTP request.
-func (c *Client) ListTemplates(ctx context.Context, cb func([]Template) error) error {
-	return listItems(ctx, c, templatePath, nil, cb)
+func (c *Client) ListTemplates(ctx context.Context) ([]Template, error) {
+	return listItems[Template](ctx, c, templatePath, nil)
 }

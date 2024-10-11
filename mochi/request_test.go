@@ -161,19 +161,17 @@ type listItemTestCaseResponse struct {
 	status int
 	params map[string]string
 	res    any
-	want   any
-	err    error
 }
 
-type listItemTestCase struct {
+type listItemTestCase[Item any] struct {
 	id        string
 	params    map[string]string
 	responses []listItemTestCaseResponse
-	total     int
+	want      []Item
 	err       string
 }
 
-func testListItem[Item any](path string, test listItemTestCase, method func(*Client, string, func([]Item) error) error) func(t *testing.T) {
+func testListItem[Item any](path string, test listItemTestCase[Item], method func(*Client, string) ([]Item, error)) func(t *testing.T) {
 	return func(t *testing.T) {
 		defer gock.Off()
 
@@ -191,16 +189,9 @@ func testListItem[Item any](path string, test listItemTestCase, method func(*Cli
 				JSON(res.res)
 		}
 
-		var index int
-		err := method(New(token), test.id, func(items []Item) error {
-			want := test.responses[index].want
-			err := test.responses[index].err
-			assert.Equal(t, want, items)
-			index++
-			return err
-		})
+		items, err := method(New(token), test.id)
 
-		assert.Equal(t, test.total, index)
+		assert.Equal(t, test.want, items)
 		if test.err != "" {
 			assert.EqualError(t, err, test.err)
 		} else {

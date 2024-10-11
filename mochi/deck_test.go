@@ -77,11 +77,11 @@ func Test_GetDeck(t *testing.T) {
 func Test_ListDecks(t *testing.T) {
 	tests := []struct {
 		name string
-		test listItemTestCase
+		test listItemTestCase[Deck]
 	}{
 		{
-			name: "should call the callback once",
-			test: listItemTestCase{
+			name: "should call the endpoint once",
+			test: listItemTestCase[Deck]{
 				responses: []listItemTestCaseResponse{
 					{
 						status: http.StatusOK,
@@ -89,17 +89,16 @@ func Test_ListDecks(t *testing.T) {
 						res: listResponse[Deck]{
 							Docs: []Deck{{ID: "DECK_ID", Name: "DeckName", ParentID: "PARENT_ID"}},
 						},
-						want: []Deck{
-							{ID: "DECK_ID", Name: "DeckName", ParentID: "PARENT_ID"},
-						},
 					},
 				},
-				total: 1,
+				want: []Deck{
+					{ID: "DECK_ID", Name: "DeckName", ParentID: "PARENT_ID"},
+				},
 			},
 		},
 		{
-			name: "should call the callback several times",
-			test: listItemTestCase{
+			name: "should call the endpoint several times",
+			test: listItemTestCase[Deck]{
 				responses: []listItemTestCaseResponse{
 					{
 						status: http.StatusOK,
@@ -108,9 +107,6 @@ func Test_ListDecks(t *testing.T) {
 							Docs:     []Deck{{ID: "DECK_ID_1", Name: "DeckName1", ParentID: "PARENT_ID"}},
 							Bookmark: "BOOKMARK_1",
 						},
-						want: []Deck{
-							{ID: "DECK_ID_1", Name: "DeckName1", ParentID: "PARENT_ID"},
-						},
 					},
 					{
 						status: http.StatusOK,
@@ -118,17 +114,17 @@ func Test_ListDecks(t *testing.T) {
 						res: listResponse[Deck]{
 							Docs: []Deck{{ID: "DECK_ID_2", Name: "DeckName2", ParentID: "PARENT_ID"}},
 						},
-						want: []Deck{
-							{ID: "DECK_ID_2", Name: "DeckName2", ParentID: "PARENT_ID"},
-						},
 					},
 				},
-				total: 2,
+				want: []Deck{
+					{ID: "DECK_ID_1", Name: "DeckName1", ParentID: "PARENT_ID"},
+					{ID: "DECK_ID_2", Name: "DeckName2", ParentID: "PARENT_ID"},
+				},
 			},
 		},
 		{
 			name: "should return an error",
-			test: listItemTestCase{
+			test: listItemTestCase[Deck]{
 				responses: []listItemTestCaseResponse{
 					{
 						status: http.StatusBadRequest,
@@ -142,8 +138,8 @@ func Test_ListDecks(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, testListItem("/api/decks", tt.test, func(client *Client, _ string, cb func([]Deck) error) error {
-			return client.ListDecks(context.Background(), cb)
+		t.Run(tt.name, testListItem("/api/decks", tt.test, func(client *Client, _ string) ([]Deck, error) {
+			return client.ListDecks(context.Background())
 		}))
 	}
 }

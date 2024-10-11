@@ -13,7 +13,7 @@ const inflightSyncRequests = 20
 
 // Client is the interface the mochi client should implement to generate the sync requests.
 type Client interface {
-	ListCardsInDeck(ctx context.Context, deckID string, cb func([]mochi.Card) error) error
+	ListCardsInDeck(ctx context.Context, deckID string) ([]mochi.Card, error)
 }
 
 // Lockfile is the interface the lockfile should implement to generate the sync requests.
@@ -77,7 +77,7 @@ func ExecuteRequests(ctx context.Context, logger Logger, client card.Client, lf 
 
 func syncRequests(ctx context.Context, logger Logger, client Client, cr card.Reader, parser card.Parser, lf Lockfile, workspace string, deck Deck) ([]card.Request, error) {
 	logger.Infof("card sync(deckID %s): fetching cards", deck.deckID)
-	mochiCards, err := fetchCardsInDeck(ctx, client, deck.deckID)
+	mochiCards, err := client.ListCardsInDeck(ctx, deck.deckID)
 	if err != nil {
 		return nil, err
 	}
@@ -95,16 +95,6 @@ func syncRequests(ctx context.Context, logger Logger, client Client, cr card.Rea
 	logger.Infof("card sync(deckID %s): generating sync requests", deck.deckID)
 	reqs := card.SyncRequests(lf, deck.deckID, mochiCards, parsedCards)
 	return reqs, nil
-}
-
-func fetchCardsInDeck(ctx context.Context, client Client, deckID string) ([]mochi.Card, error) {
-	var cards []mochi.Card
-	err := client.ListCardsInDeck(
-		ctx,
-		deckID,
-		func(cc []mochi.Card) error { cards = append(cards, cc...); return nil },
-	)
-	return cards, err
 }
 
 func cleanCards(lf Lockfile, deckID string, mochiCards []mochi.Card) {

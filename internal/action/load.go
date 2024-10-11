@@ -96,11 +96,8 @@ func getLockfile(ctx context.Context, client *mochi.Client, fs *file.System, wor
 		return nil, err
 	}
 
-	var decks []mochi.Deck
-	if err := client.ListDecks(ctx, func(dd []mochi.Deck) error {
-		decks = append(decks, dd...)
-		return nil
-	}); err != nil {
+	decks, err := client.ListDecks(ctx)
+	if err != nil {
 		return nil, err
 	}
 

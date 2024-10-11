@@ -34,11 +34,8 @@ func (c *Client) GetDeck(ctx context.Context, id string) (Deck, error) {
 }
 
 // ListDecks lists the decks.
-//
-// The callback is called with a slice of decks until all decks have been listed
-// or until the callback returns an error. Each callback call makes a HTTP request.
-func (c *Client) ListDecks(ctx context.Context, cb func([]Deck) error) error {
-	return listItems(ctx, c, deckPath, nil, cb)
+func (c *Client) ListDecks(ctx context.Context) ([]Deck, error) {
+	return listItems[Deck](ctx, c, deckPath, nil)
 }
 
 // UpdateDeck updates an existing deck.
