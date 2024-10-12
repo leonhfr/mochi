@@ -17,8 +17,7 @@ type Logger interface {
 	Infof(format string, args ...any)
 }
 
-// LoadConfig loads the config.
-func LoadConfig(r config.Reader, logger Logger, parsers []string, workspace string) (*config.Config, error) {
+func loadConfig(r config.Reader, logger Logger, parsers []string, workspace string) (*config.Config, error) {
 	config, err := config.Parse(r, workspace, parsers)
 	if err != nil {
 		return nil, err
@@ -30,8 +29,7 @@ func LoadConfig(r config.Reader, logger Logger, parsers []string, workspace stri
 	return config, err
 }
 
-// LoadClient loads the client.
-func LoadClient(logger Logger, rateLimit int, token string) *mochi.Client {
+func loadClient(logger Logger, rateLimit int, token string) *mochi.Client {
 	rate, burst := getRate(rateLimit)
 	client := mochi.New(
 		token,
@@ -41,13 +39,7 @@ func LoadClient(logger Logger, rateLimit int, token string) *mochi.Client {
 	return client
 }
 
-// LoadLockfileClient is the client interface to load the lockfile.
-type LoadLockfileClient interface {
-	ListDecks(ctx context.Context) ([]mochi.Deck, error)
-}
-
-// LoadLockfile loads the lockfile.
-func LoadLockfile(ctx context.Context, logger Logger, client LoadLockfileClient, rw lock.ReaderWriter, workspace string) (*lock.Lock, error) {
+func loadLockfile(ctx context.Context, logger Logger, client *mochi.Client, rw lock.ReaderWriter, workspace string) (*lock.Lock, error) {
 	lf, err := lock.Parse(rw, workspace)
 	if err != nil {
 		return nil, err

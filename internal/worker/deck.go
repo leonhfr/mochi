@@ -2,6 +2,9 @@ package worker
 
 import (
 	"context"
+	"slices"
+
+	"github.com/sourcegraph/conc/iter"
 
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/deck"
@@ -68,4 +71,29 @@ func ListDecks(ctx context.Context, client DeckListClient) (<-chan string, error
 		}
 	}()
 	return out, nil
+}
+
+// CleanDecksClient is the client interface to clean decks.
+type CleanDecksClient interface {
+	DeckListClient
+	deck.CleanClient
+}
+
+// CleanDecks cleans the decks and returns true if at least one deck has been cleaned.
+func CleanDecks(ctx context.Context, client CleanDecksClient) (bool, error) {
+	decks, err := client.ListDecks(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	leaves := deck.LeafDecks(decks)
+	if len(leaves) == 0 {
+		return false, nil
+	}
+
+	done, err := iter.MapErr(leaves, func(deckID *string) (bool, error) {
+		return deck.Clean(ctx, client, *deckID)
+	})
+
+	return slices.Contains(done, true), err
 }

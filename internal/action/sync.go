@@ -4,40 +4,29 @@ import (
 	"context"
 	"sync"
 
-	"github.com/leonhfr/mochi/internal/card"
-	"github.com/leonhfr/mochi/internal/deck"
+	"github.com/leonhfr/mochi/internal/file"
+	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/worker"
 )
 
-// SyncClient interface.
-type SyncClient interface {
-	worker.Client
-	deck.Client
-	card.Client
-}
-
-// Filesystem interface.
-type Filesystem interface {
-	worker.Walker
-	card.Reader
-}
-
-// Parser interface.
-type Parser interface {
-	card.Parser
-	Extensions() []string
-}
-
-// Lockfile interface.
-type Lockfile interface {
-	worker.Lockfile
-	deck.Lockfile
-	Updated() bool
-	Write() error
-}
-
 // Sync syncs the cards.
-func Sync(ctx context.Context, logger Logger, client SyncClient, fs Filesystem, parser Parser, config deck.Config, lf Lockfile, workspace string) (updated bool, err error) {
+func Sync(ctx context.Context, logger Logger, token, workspace string) (updated bool, err error) {
+	logger.Infof("workspace: %s", workspace)
+
+	fs := file.NewSystem()
+	parser := parser.New()
+	config, err := loadConfig(fs, logger, parser.List(), workspace)
+	if err != nil {
+		return false, err
+	}
+
+	client := loadClient(logger, config.RateLimit, token)
+
+	lf, err := loadLockfile(ctx, logger, client, fs, workspace)
+	if err != nil {
+		return false, err
+	}
+
 	defer func() {
 		if writeErr := lf.Write(); err == nil {
 			err = writeErr
