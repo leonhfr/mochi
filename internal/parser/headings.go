@@ -32,6 +32,9 @@ func newHeadings(fc FileCheck, level int) *headings {
 				util.Prioritized(parser.NewHTMLBlockParser(), 200),
 				util.Prioritized(parser.NewParagraphParser(), 300),
 			),
+			parser.WithInlineParsers(
+				util.Prioritized(parser.NewLinkParser(), 100),
+			),
 		),
 		level: level,
 	}
@@ -50,12 +53,9 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 		switch node := n.(type) {
 		case *ast.Heading:
 			bytes := node.Text(source)
-			if err := res.addHeading(string(bytes), node.Level); err != nil {
-				return ast.WalkStop, err
-			}
+			res.addHeading(string(bytes), node.Level)
 		case *ast.Paragraph:
-			bytes := node.Text(source)
-			if err := res.addParagraph(string(bytes)); err != nil {
+			if err := walkParagraph(res, node, source); err != nil {
 				return ast.WalkStop, err
 			}
 		}
@@ -64,6 +64,41 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 	})
 
 	return res.getCards(), err
+}
+
+func walkParagraph(res *headingResult, paragraph *ast.Paragraph, source []byte) error {
+	var lines []string
+
+	err := ast.Walk(paragraph, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if !entering {
+			return ast.WalkContinue, nil
+		}
+
+		switch node := n.(type) {
+		case *ast.Image:
+			destination := string(node.Destination)
+			altText := string(node.Text(source))
+			res.addImage(destination, altText)
+			text := fmt.Sprintf("![%s](%s)", altText, destination)
+			lines = append(lines, text)
+			return ast.WalkSkipChildren, nil
+		case *ast.Link:
+			destination := string(node.Destination)
+			text := string(node.Text(source))
+			lines = append(lines, fmt.Sprintf("[%s](%s)", text, destination))
+			return ast.WalkSkipChildren, nil
+		case *ast.Text:
+			if text := string(node.Text(source)); len(text) > 0 {
+				lines = append(lines, text)
+			}
+		}
+
+		return ast.WalkContinue, nil
+	})
+
+	res.addParagraph(strings.Join(lines, "\n"))
+
+	return err
 }
 
 type headingResult struct {
@@ -87,7 +122,7 @@ func newHeadingResult(fc FileCheck, path string, level int) *headingResult {
 	}
 }
 
-func (r *headingResult) addHeading(text string, level int) (err error) {
+func (r *headingResult) addHeading(text string, level int) {
 	if level > r.level {
 		heading := formatHeading(text, level)
 		r.paragraphs = append(r.paragraphs, heading)
@@ -105,13 +140,14 @@ func (r *headingResult) addHeading(text string, level int) (err error) {
 	heading := formatHeading(text, level)
 	r.paragraphs = append(r.paragraphs, heading)
 	r.headings = append(r.headings, text)
-
-	return
 }
 
-func (r *headingResult) addParagraph(text string) (err error) {
+func (r *headingResult) addParagraph(text string) {
 	r.paragraphs = append(r.paragraphs, text)
-	return
+}
+
+func (r *headingResult) addImage(destination, altText string) {
+	r.images.Add(destination, altText)
 }
 
 func (r *headingResult) flushCard() {

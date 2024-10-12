@@ -36,8 +36,8 @@ type Image struct {
 	Filename    string // md5 of path relative to root
 	Extension   string
 	MimeType    string
-	destination string // original destination
-	altText     string
+	Destination string // original destination
+	AltText     string
 }
 
 // New returns a new Images map.
@@ -76,16 +76,16 @@ func (i *Map) Add(destination, altText string) {
 		Filename:    hash[:fileNameLength],
 		Extension:   ext,
 		MimeType:    mime,
-		destination: destination,
-		altText:     altText,
+		Destination: destination,
+		AltText:     altText,
 	}
 }
 
 // Replace replaces images link in the Markdown source to mochi Markdown.
 func (i *Map) Replace(source string) string {
 	for _, image := range i.images {
-		from := fmt.Sprintf("![%s](%s)", image.altText, image.destination)
-		to := fmt.Sprintf("![%s](@media/%s.%s)", image.altText, image.Filename, image.Extension)
+		from := fmt.Sprintf("![%s](%s)", image.AltText, image.Destination)
+		to := fmt.Sprintf("![%s](@media/%s.%s)", image.AltText, image.Filename, image.Extension)
 		source = strings.ReplaceAll(source, from, to)
 	}
 	return source

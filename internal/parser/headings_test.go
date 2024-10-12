@@ -37,12 +37,12 @@ More card content.
 
 func Test_Headings_Convert(t *testing.T) {
 	tests := []struct {
-		name   string
-		level  int
-		path   string
-		source string
-		want   []Card
-		err    error
+		name       string
+		level      int
+		path       string
+		source     string
+		fileChecks map[string]bool
+		want       []Card
 	}{
 		{
 			name:   "simple level 1",
@@ -90,14 +90,39 @@ func Test_Headings_Convert(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:   "images",
+			level:  1,
+			path:   "/subdirectory/Images.md",
+			source: "# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
+			fileChecks: map[string]bool{
+				"images/example-1.png":              true,
+				"subdirectory/images/example-2.png": true,
+			},
+			want: []Card{
+				{
+					Name:     "Images | Heading 1",
+					Content:  "# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n",
+					Filename: "Images.md",
+					Images:   map[string]image.Image{"images/example-1.png": {Filename: "a36c3bd88549d06a", Extension: "png", MimeType: "image/png", Destination: "../images/example-1.png", AltText: "Example 1"}},
+				},
+				{
+					Name:     "Images | Heading 2",
+					Content:  "# Heading 2\n\n![Example 2](images/example-2.png)\n",
+					Filename: "Images.md",
+					Images:   map[string]image.Image{"subdirectory/images/example-2.png": {Filename: "df43905890ddb084", Extension: "png", MimeType: "image/png", Destination: "images/example-2.png", AltText: "Example 2"}},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fc := newMockFileChecker(nil)
+			fc := newMockFileChecker(tt.fileChecks)
 			got, err := newHeadings(fc, tt.level).convert(tt.path, []byte(tt.source))
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
+			fc.AssertExpectations(t)
 		})
 	}
 }

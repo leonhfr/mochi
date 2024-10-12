@@ -26,12 +26,12 @@ func Test_Map_Add(t *testing.T) {
 		{
 			name: "should not add when already in map",
 			images: map[string]Image{
-				"testdata/scream.png": {Filename: "a42069093fdb614a", destination: "./scream.png", Extension: "png", MimeType: "image/png"},
+				"testdata/scream.png": {Filename: "a42069093fdb614a", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
 			},
 			calls:       map[string]bool{"testdata/scream.png": true},
 			destination: "./scream.png",
 			want: map[string]Image{
-				"testdata/scream.png": {Filename: "a42069093fdb614a", destination: "./scream.png", Extension: "png", MimeType: "image/png"},
+				"testdata/scream.png": {Filename: "a42069093fdb614a", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func Test_Map_Add(t *testing.T) {
 			calls:       map[string]bool{"testdata/scream.png": true},
 			destination: "./scream.png",
 			want: map[string]Image{
-				"testdata/scream.png": {Filename: "a42069093fdb614a", destination: "./scream.png", Extension: "png", MimeType: "image/png"},
+				"testdata/scream.png": {Filename: "a42069093fdb614a", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
 			},
 		},
 	}
@@ -65,8 +65,8 @@ func Test_Map_Replace(t *testing.T) {
 	images := Map{
 		dirPath: "./testdata",
 		images: map[string]Image{
-			"testdata/scream.png":         {Filename: "scream_hash", destination: "./scream.png", Extension: "png", MimeType: "image/png", altText: "Scream"},
-			"testdata/constellations.png": {Filename: "constellations_hash", destination: "./constellations.jpg", Extension: "jpg", MimeType: "image/jpg"},
+			"testdata/scream.png":         {Filename: "scream_hash", Destination: "./scream.png", Extension: "png", MimeType: "image/png", AltText: "Scream"},
+			"testdata/constellations.png": {Filename: "constellations_hash", Destination: "./constellations.jpg", Extension: "jpg", MimeType: "image/jpg"},
 		},
 	}
 	source := "![Scream](./scream.png)\n![](./constellations.jpg)"
