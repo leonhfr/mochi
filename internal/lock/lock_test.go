@@ -344,6 +344,7 @@ func Test_Lock_SetCard(t *testing.T) {
 		deckID   string
 		cardID   string
 		filename string
+		images   map[string]string
 		want     lockData
 		err      bool
 	}{
@@ -357,15 +358,15 @@ func Test_Lock_SetCard(t *testing.T) {
 			err:      true,
 		},
 		{
-			name: "card already exists",
+			name: "rewrite when card already exists",
 			data: lockData{"DECK_ID": Deck{
-				Cards: map[string]Card{"CARD_ID": {}},
+				Cards: map[string]Card{"CARD_ID": {Filename: "/old.md"}},
 			}},
 			deckID:   "DECK_ID",
 			cardID:   "CARD_ID",
 			filename: "/lorem-ipsum.md",
 			want: lockData{"DECK_ID": Deck{
-				Cards: map[string]Card{"CARD_ID": {}},
+				Cards: map[string]Card{"CARD_ID": {Filename: "/lorem-ipsum.md"}},
 			}},
 		},
 		{
@@ -376,8 +377,12 @@ func Test_Lock_SetCard(t *testing.T) {
 			deckID:   "DECK_ID",
 			cardID:   "CARD_ID",
 			filename: "/lorem-ipsum.md",
+			images:   map[string]string{"./scream.png": "md5"},
 			want: lockData{"DECK_ID": Deck{
-				Cards: map[string]Card{"CARD_ID": {Filename: "/lorem-ipsum.md"}},
+				Cards: map[string]Card{"CARD_ID": {
+					Filename: "/lorem-ipsum.md",
+					Images:   map[string]string{"./scream.png": "md5"},
+				}},
 			}},
 		},
 	}
@@ -385,7 +390,7 @@ func Test_Lock_SetCard(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			lock := &Lock{data: tt.data}
-			err := lock.SetCard(tt.deckID, tt.cardID, tt.filename)
+			err := lock.SetCard(tt.deckID, tt.cardID, tt.filename, tt.images)
 			assert.Equal(t, tt.want, lock.data)
 			if tt.err {
 				assert.Error(t, err)

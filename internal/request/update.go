@@ -50,10 +50,9 @@ func (r *update) Sync(ctx context.Context, client Client, reader Reader, lf Lock
 		return err
 	}
 
-	for _, attachment := range attachments {
-		if err := lf.SetImageHash(r.deckID, r.cardID, attachment.Path, attachment.Hash); err != nil {
-			return err
-		}
+	hashMap := getHashMap(attachments)
+	if err := lf.SetCard(r.deckID, r.cardID, r.card.Filename, hashMap); err != nil {
+		return err
 	}
 
 	return nil

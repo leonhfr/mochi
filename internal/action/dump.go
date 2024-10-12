@@ -67,14 +67,10 @@ type noOpLockfile struct{}
 
 func (lf *noOpLockfile) CleanImages(_, _ string, _ []string) {}
 
-func (lf *noOpLockfile) SetCard(_, _, _ string) error {
+func (lf *noOpLockfile) SetCard(_, _, _ string, _ map[string]string) error {
 	return nil
 }
 
 func (lf *noOpLockfile) GetImageHash(_, _, _ string) (string, bool) {
 	return "", false
-}
-
-func (lf *noOpLockfile) SetImageHash(_, _, _, _ string) error {
-	return nil
 }

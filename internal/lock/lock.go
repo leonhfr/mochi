@@ -206,7 +206,7 @@ func (l *Lock) GetCard(deckID, cardID string) (Card, bool) {
 }
 
 // SetCard sets a card in the given deck.
-func (l *Lock) SetCard(deckID, cardID, filename string) error {
+func (l *Lock) SetCard(deckID, cardID, filename string, images map[string]string) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -222,14 +222,12 @@ func (l *Lock) SetCard(deckID, cardID, filename string) error {
 		}
 	}
 
-	if _, ok := l.data[deckID].Cards[cardID]; ok {
-		return nil
-	}
-
 	l.data[deckID].Cards[cardID] = Card{
 		Filename: filename,
+		Images:   images,
 	}
 	l.updated = true
+
 	return nil
 }
 
@@ -255,24 +253,6 @@ func (l *Lock) GetImageHash(deckID, cardID, path string) (string, bool) {
 
 	hash, ok := l.data[deckID].Cards[cardID].Images[path]
 	return hash, ok
-}
-
-// SetImageHash sets the hash to an image path.
-func (l *Lock) SetImageHash(deckID, cardID, path, hash string) error {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	if _, ok := l.data[deckID]; !ok {
-		return fmt.Errorf("deck %s not found", deckID)
-	}
-
-	if _, ok := l.data[deckID].Cards[cardID]; !ok {
-		return fmt.Errorf("card %s not found in deck %s", cardID, deckID)
-	}
-
-	l.data[deckID].Cards[cardID].Images[path] = hash
-	l.updated = true
-	return nil
 }
 
 // Updated returns whether the lockfile has been updated.

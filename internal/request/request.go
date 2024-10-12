@@ -24,9 +24,8 @@ type Reader interface {
 // Lockfile is the interface the lockfile implement to sync cards.
 type Lockfile interface {
 	CleanImages(deckID, cardID string, paths []string)
-	SetCard(deckID, cardID, filename string) error
+	SetCard(deckID, cardID, filename string, images map[string]string) error
 	GetImageHash(deckID, cardID, path string) (string, bool)
-	SetImageHash(deckID, cardID, path, hash string) error
 }
 
 // Request is the interface that should be implemented to execute a request.
@@ -49,4 +48,12 @@ func getPaths(images []image.Attachment) []string {
 		paths = append(paths, image.Path)
 	}
 	return paths
+}
+
+func getHashMap(images []image.Attachment) map[string]string {
+	hashMap := make(map[string]string)
+	for _, image := range images {
+		hashMap[image.Path] = image.Hash
+	}
+	return hashMap
 }

@@ -42,14 +42,9 @@ func (r *create) Sync(ctx context.Context, client Client, reader Reader, lf Lock
 		return err
 	}
 
-	if err := lf.SetCard(r.deckID, card.ID, r.card.Filename); err != nil {
+	hashMap := getHashMap(attachments)
+	if err := lf.SetCard(r.deckID, card.ID, r.card.Filename, hashMap); err != nil {
 		return err
-	}
-
-	for _, attachment := range attachments {
-		if err := lf.SetImageHash(r.deckID, card.ID, attachment.Path, attachment.Hash); err != nil {
-			return err
-		}
 	}
 
 	return nil
