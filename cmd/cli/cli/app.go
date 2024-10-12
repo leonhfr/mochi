@@ -10,6 +10,8 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/leonhfr/mochi/internal/action"
+	"github.com/leonhfr/mochi/internal/file"
+	"github.com/leonhfr/mochi/internal/parser"
 )
 
 // GetApp returns the cli app.
@@ -44,7 +46,18 @@ func GetApp(out io.Writer, version, compiled string) (*cli.App, error) {
 			workspace := ctx.Args().First()
 			workspace = filepath.Join(pwd, workspace)
 
-			client, fs, parser, config, lf, err := action.Load(ctx.Context, logger, token, workspace)
+			logger.Infof("workspace: %s", workspace)
+
+			fs := file.NewSystem()
+			parser := parser.New()
+			config, err := action.LoadConfig(fs, logger, parser.List(), workspace)
+			if err != nil {
+				return err
+			}
+
+			client := action.LoadClient(logger, config.RateLimit, token)
+
+			lf, err := action.LoadLockfile(ctx.Context, logger, client, fs, workspace)
 			if err != nil {
 				return err
 			}

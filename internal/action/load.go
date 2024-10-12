@@ -4,14 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/leonhfr/mochi/internal/card"
 	"github.com/leonhfr/mochi/internal/config"
-	"github.com/leonhfr/mochi/internal/deck"
-	"github.com/leonhfr/mochi/internal/file"
 	"github.com/leonhfr/mochi/internal/lock"
-	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/throttle"
-	"github.com/leonhfr/mochi/internal/worker"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -22,76 +17,38 @@ type Logger interface {
 	Infof(format string, args ...any)
 }
 
-// Client interface.
-type Client interface {
-	worker.Client
-	deck.Client
-	card.Client
-}
-
-// Filesystem interface.
-type Filesystem interface {
-	worker.Walker
-	card.Reader
-}
-
-// Parser interface.
-type Parser interface {
-	card.Parser
-	Extensions() []string
-}
-
-// Config interface.
-type Config interface {
-	deck.Config
-}
-
-// Lockfile interface.
-type Lockfile interface {
-	worker.Lockfile
-	deck.Lockfile
-	Updated() bool
-	Write() error
-}
-
-// Load loads client, parser, and lockfile.
-func Load(ctx context.Context, logger Logger, token, workspace string) (Client, Filesystem, Parser, Config, Lockfile, error) {
-	logger.Infof("workspace: %s", workspace)
-
-	fs := file.NewSystem()
-	parser := parser.New()
-
-	config, err := config.Parse(fs, workspace, parser.List())
+// LoadConfig loads the config.
+func LoadConfig(r config.Reader, logger Logger, parsers []string, workspace string) (*config.Config, error) {
+	config, err := config.Parse(r, workspace, parsers)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, err
 	}
 
 	logger.Infof("loaded config")
 	logger.Debugf("config: %v", config)
 
-	rate, burst := getRate(config.RateLimit)
+	return config, err
+}
+
+// LoadClient loads the client.
+func LoadClient(logger Logger, rateLimit int, token string) *mochi.Client {
+	rate, burst := getRate(rateLimit)
 	client := mochi.New(
 		token,
 		mochi.WithTransport(throttle.New(rate, burst)),
 	)
-
-	lf, err := getLockfile(ctx, client, fs, workspace)
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
-
-	logger.Infof("loaded lockfile")
-	logger.Debugf("lockfile: %v", lf.String())
-
-	return client, fs, parser, config, lf, nil
+	logger.Infof("loaded client")
+	return client
 }
 
-func getRate(rateLimit int) (time.Duration, int) {
-	return time.Second / time.Duration(rateLimit), rateLimit
+// LoadLockfileClient is the client interface to load the lockfile.
+type LoadLockfileClient interface {
+	ListDecks(ctx context.Context) ([]mochi.Deck, error)
 }
 
-func getLockfile(ctx context.Context, client *mochi.Client, fs *file.System, workspace string) (*lock.Lock, error) {
-	lf, err := lock.Parse(fs, workspace)
+// LoadLockfile loads the lockfile.
+func LoadLockfile(ctx context.Context, logger Logger, client LoadLockfileClient, rw lock.ReaderWriter, workspace string) (*lock.Lock, error) {
+	lf, err := lock.Parse(rw, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -102,5 +59,13 @@ func getLockfile(ctx context.Context, client *mochi.Client, fs *file.System, wor
 	}
 
 	lf.CleanDecks(decks)
+
+	logger.Infof("loaded lockfile")
+	logger.Debugf("lockfile: %v", lf.String())
+
 	return lf, nil
+}
+
+func getRate(rateLimit int) (time.Duration, int) {
+	return time.Second / time.Duration(rateLimit), rateLimit
 }
