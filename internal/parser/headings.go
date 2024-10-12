@@ -120,7 +120,7 @@ func (r *headingResult) flushCard() {
 		Name:     name,
 		Content:  strings.Join(r.paragraphs, "\n\n") + "\n",
 		Filename: getFilename(r.path),
-		Images:   r.images,
+		Images:   r.images.Images(),
 	})
 	r.headings = nil
 	r.paragraphs = nil

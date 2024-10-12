@@ -22,7 +22,7 @@ func (n *note) convert(path string, source []byte) ([]Card, error) {
 			Name:     getNameFromPath(path),
 			Content:  string(source),
 			Filename: getFilename(path),
-			Images:   image.New(n.fc, path),
+			Images:   map[string]image.Image{},
 		},
 	}, nil
 }

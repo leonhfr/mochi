@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/leonhfr/mochi/internal/parser/image"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -34,7 +33,7 @@ type Request interface {
 	Sync(ctx context.Context, client Client, reader Reader, lf Lockfile) error
 }
 
-func getAttachments(images []image.Attachment) []mochi.Attachment {
+func getAttachments(images []mochiAttachment) []mochi.Attachment {
 	attachments := make([]mochi.Attachment, 0, len(images))
 	for _, image := range images {
 		attachments = append(attachments, image.Mochi)
@@ -42,7 +41,7 @@ func getAttachments(images []image.Attachment) []mochi.Attachment {
 	return attachments
 }
 
-func getPaths(images []image.Attachment) []string {
+func getPaths(images []mochiAttachment) []string {
 	paths := make([]string, 0, len(images))
 	for _, image := range images {
 		paths = append(paths, image.Path)
@@ -50,7 +49,7 @@ func getPaths(images []image.Attachment) []string {
 	return paths
 }
 
-func getHashMap(images []image.Attachment) map[string]string {
+func getHashMap(images []mochiAttachment) map[string]string {
 	hashMap := make(map[string]string)
 	for _, image := range images {
 		hashMap[image.Path] = image.Hash

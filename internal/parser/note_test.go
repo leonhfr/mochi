@@ -4,7 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+
+	"github.com/leonhfr/mochi/internal/parser/image"
 )
 
 var _ cardParser = &note{}
@@ -24,6 +25,7 @@ func Test_Note_Convert(t *testing.T) {
 				Name:     "Lorem ipsum",
 				Content:  "# Title 1\nParagraph.\n",
 				Filename: "Lorem ipsum.md",
+				Images:   map[string]image.Image{},
 			}},
 		},
 	}
@@ -33,12 +35,7 @@ func Test_Note_Convert(t *testing.T) {
 			fc := newMockFileChecker(nil)
 			got, err := newNote(fc).convert(tt.path, []byte(tt.source))
 			assert.NoError(t, err)
-			require.Equal(t, len(tt.want), len(got))
-			for index, w := range tt.want {
-				assert.Equal(t, w.Name, got[index].Name)
-				assert.Equal(t, w.Content, got[index].Content)
-				assert.Equal(t, w.Filename, got[index].Filename)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

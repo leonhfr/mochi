@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/leonhfr/mochi/internal/parser"
-	"github.com/leonhfr/mochi/internal/parser/image"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -26,7 +25,7 @@ func NewUpdate(deckID, cardID string, card parser.Card) Request {
 
 // Sync implements the SyncRequest interface.
 func (r *update) Sync(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
-	attachments, err := r.card.Images.Attachments(reader)
+	attachments, err := mochiAttachments(reader, r.card.Images)
 	if err != nil {
 		return err
 	}
@@ -35,7 +34,7 @@ func (r *update) Sync(ctx context.Context, client Client, reader Reader, lf Lock
 	lf.CleanImages(r.deckID, r.cardID, paths)
 
 	hashes := lf.GetImageHashes(r.deckID, r.cardID, paths)
-	filtered := []image.Attachment{}
+	filtered := []mochiAttachment{}
 	for index, attachment := range attachments {
 		if hash := hashes[index]; hash != "" || hash != attachment.Hash {
 			filtered = append(filtered, attachment)

@@ -22,7 +22,7 @@ type Card struct {
 	Name     string
 	Content  string
 	Filename string
-	Images   image.Map
+	Images   map[string]image.Image
 }
 
 type cardParser interface {
