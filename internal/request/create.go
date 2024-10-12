@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -23,7 +24,7 @@ func NewCreate(deckID string, card parser.Card) Request {
 
 // Sync implements the SyncRequest interface.
 func (r *create) Sync(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
-	attachments, err := mochiAttachments(reader, r.card.Images)
+	attachments, err := image.Attachments(reader, r.card.Images)
 	if err != nil {
 		return err
 	}

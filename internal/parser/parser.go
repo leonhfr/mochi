@@ -7,7 +7,7 @@ import (
 
 	"github.com/adrg/frontmatter"
 
-	"github.com/leonhfr/mochi/internal/parser/image"
+	"github.com/leonhfr/mochi/internal/image"
 )
 
 var extensions = []string{".md"}

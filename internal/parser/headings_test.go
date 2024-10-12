@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/leonhfr/mochi/internal/parser/image"
+	"github.com/leonhfr/mochi/internal/image"
 )
 
 var headingSource = `# Heading 1

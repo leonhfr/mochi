@@ -9,7 +9,7 @@ import (
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
 
-	"github.com/leonhfr/mochi/internal/parser/image"
+	"github.com/leonhfr/mochi/internal/image"
 )
 
 // headings represents a headings parser.

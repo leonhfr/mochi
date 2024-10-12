@@ -1,6 +1,6 @@
 package parser
 
-import "github.com/leonhfr/mochi/internal/parser/image"
+import "github.com/leonhfr/mochi/internal/image"
 
 // note represents a note parser.
 //

@@ -1,4 +1,4 @@
-package request
+package image
 
 import (
 	"bytes"
@@ -8,25 +8,31 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/leonhfr/mochi/internal/parser/image"
 	"github.com/leonhfr/mochi/mochi"
 )
 
-type mochiAttachment struct {
+// Reader represents the interface to read files.
+type Reader interface {
+	Read(path string) (io.ReadCloser, error)
+}
+
+// Attachment contains the data of an image attachment.
+type Attachment struct {
 	Mochi mochi.Attachment
 	Hash  string
 	Path  string
 }
 
-func mochiAttachments(r Reader, images map[string]image.Image) ([]mochiAttachment, error) {
-	attachments := make([]mochiAttachment, 0, len(images))
+// Attachments returns the images attachments.
+func Attachments(r Reader, images map[string]Image) ([]Attachment, error) {
+	attachments := make([]Attachment, 0, len(images))
 	for path, image := range images {
 		hash, attachment, err := newMochiAttachment(r, path, image)
 		if err != nil {
 			return nil, err
 		}
 
-		attachments = append(attachments, mochiAttachment{
+		attachments = append(attachments, Attachment{
 			Mochi: attachment,
 			Hash:  hash,
 			Path:  path,
@@ -35,7 +41,7 @@ func mochiAttachments(r Reader, images map[string]image.Image) ([]mochiAttachmen
 	return attachments, nil
 }
 
-func newMochiAttachment(r Reader, path string, image image.Image) (string, mochi.Attachment, error) {
+func newMochiAttachment(r Reader, path string, image Image) (string, mochi.Attachment, error) {
 	file, err := r.Read(path)
 	if err != nil {
 		return "", mochi.Attachment{}, err

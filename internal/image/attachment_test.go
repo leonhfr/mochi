@@ -1,4 +1,4 @@
-package request
+package image
 
 import (
 	"io"
@@ -8,15 +8,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/leonhfr/mochi/internal/parser/image"
 	"github.com/leonhfr/mochi/mochi"
 )
 
-func Test_mochiAttachments(t *testing.T) {
-	images := map[string]image.Image{
+func Test_Attachments(t *testing.T) {
+	images := map[string]Image{
 		"testdata/scream.png": {Filename: "a42069093fdb614a", Extension: "png", MimeType: "image/png"},
 	}
-	want := []mochiAttachment{
+	want := []Attachment{
 		{
 			Mochi: mochi.Attachment{
 				FileName:    "a42069093fdb614a.png",
@@ -31,7 +30,7 @@ func Test_mochiAttachments(t *testing.T) {
 	r := new(mockReader)
 	r.On("Read", "testdata/scream.png").Return("CONTENT", nil)
 
-	got, err := mochiAttachments(r, images)
+	got, err := Attachments(r, images)
 
 	assert.Equal(t, want, got)
 	assert.NoError(t, err)
