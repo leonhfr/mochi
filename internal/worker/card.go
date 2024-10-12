@@ -81,7 +81,7 @@ func DumpRequests(ctx context.Context, logger Logger, client card.DumpClient, in
 }
 
 // ExecuteRequests executes the sync requests.
-func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, lf request.Lockfile, in <-chan request.Request) <-chan Result[struct{}] {
+func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, reader request.Reader, lf request.Lockfile, in <-chan request.Request) <-chan Result[struct{}] {
 	out := make(chan Result[struct{}])
 	go func() {
 		defer close(out)
@@ -91,7 +91,7 @@ func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, 
 			req := req
 			s.Go(func() stream.Callback {
 				logger.Infof("syncing: %s", req.String())
-				if err := req.Sync(ctx, client, lf); err != nil {
+				if err := req.Sync(ctx, client, reader, lf); err != nil {
 					return func() {
 						out <- Result[struct{}]{err: err}
 					}

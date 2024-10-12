@@ -22,7 +22,7 @@ func NewUpdate(cardID string, card parser.Card) Request {
 }
 
 // Sync implements the SyncRequest interface.
-func (r *update) Sync(ctx context.Context, c Client, _ Lockfile) error {
+func (r *update) Sync(ctx context.Context, c Client, _ Reader, _ Lockfile) error {
 	req := mochi.UpdateCardRequest{Content: r.card.Content}
 	_, err := c.UpdateCard(ctx, r.cardID, req)
 	return err

@@ -15,7 +15,7 @@ func NewDelete(cardID string) Request {
 }
 
 // Sync implements the SyncRequest interface.
-func (r *deleteCardRequest) Sync(ctx context.Context, c Client, _ Lockfile) error {
+func (r *deleteCardRequest) Sync(ctx context.Context, c Client, _ Reader, _ Lockfile) error {
 	return c.DeleteCard(ctx, r.cardID)
 }
 

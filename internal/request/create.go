@@ -24,7 +24,7 @@ func NewCreate(filename, deckID string, card parser.Card) Request {
 }
 
 // Sync implements the SyncRequest interface.
-func (r *create) Sync(ctx context.Context, c Client, lf Lockfile) error {
+func (r *create) Sync(ctx context.Context, c Client, _ Reader, lf Lockfile) error {
 	req := mochi.CreateCardRequest{
 		Content: r.card.Content,
 		DeckID:  r.deckID,

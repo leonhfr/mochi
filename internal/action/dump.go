@@ -42,7 +42,7 @@ func Dump(ctx context.Context, logger Logger, token, workspace string) (err erro
 
 	dumpR := worker.DumpRequests(ctx, logger, client, deckC)
 	dumpC := worker.Unwrap(wg, dumpR, errC)
-	doneR := worker.ExecuteRequests(ctx, logger, client, lf, dumpC)
+	doneR := worker.ExecuteRequests(ctx, logger, client, fs, lf, dumpC)
 	_ = worker.Unwrap(wg, doneR, errC)
 
 	wg.Wait()
@@ -65,6 +65,16 @@ var _ request.Lockfile = &noOpLockfile{}
 
 type noOpLockfile struct{}
 
+func (lf *noOpLockfile) CleanImages(_, _ string, _ []string) {}
+
 func (lf *noOpLockfile) SetCard(_, _, _ string) error {
+	return nil
+}
+
+func (lf *noOpLockfile) GetImageHash(_, _, _ string) (string, bool) {
+	return "", false
+}
+
+func (lf *noOpLockfile) SetImageHash(_, _, _, _ string) error {
 	return nil
 }
