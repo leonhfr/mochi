@@ -31,12 +31,13 @@ func (r *update) Sync(ctx context.Context, client Client, reader Reader, lf Lock
 		return err
 	}
 
-	lf.CleanImages(r.deckID, r.cardID, getPaths(attachments))
+	paths := getPaths(attachments)
+	lf.CleanImages(r.deckID, r.cardID, paths)
 
+	hashes := lf.GetImageHashes(r.deckID, r.cardID, paths)
 	filtered := []image.Attachment{}
-	for _, attachment := range attachments {
-		hash, ok := lf.GetImageHash(r.deckID, r.cardID, attachment.Path)
-		if !ok || hash != attachment.Hash {
+	for index, attachment := range attachments {
+		if hash := hashes[index]; hash != "" || hash != attachment.Hash {
 			filtered = append(filtered, attachment)
 		}
 	}

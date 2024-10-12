@@ -25,7 +25,7 @@ type Reader interface {
 type Lockfile interface {
 	CleanImages(deckID, cardID string, paths []string)
 	SetCard(deckID, cardID, filename string, images map[string]string) error
-	GetImageHash(deckID, cardID, path string) (string, bool)
+	GetImageHashes(deckID, cardID string, paths []string) []string
 }
 
 // Request is the interface that should be implemented to execute a request.

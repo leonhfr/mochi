@@ -71,6 +71,6 @@ func (lf *noOpLockfile) SetCard(_, _, _ string, _ map[string]string) error {
 	return nil
 }
 
-func (lf *noOpLockfile) GetImageHash(_, _, _ string) (string, bool) {
-	return "", false
+func (lf *noOpLockfile) GetImageHashes(_, _ string, _ []string) []string {
+	return nil
 }

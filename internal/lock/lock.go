@@ -231,28 +231,31 @@ func (l *Lock) SetCard(deckID, cardID, filename string, images map[string]string
 	return nil
 }
 
-// GetImageHash returns the image hash and ok if it exists.
-func (l *Lock) GetImageHash(deckID, cardID, path string) (string, bool) {
+// GetImageHashes returns the image hashes.
+// If the image does not exist an empty string is returned.
+func (l *Lock) GetImageHashes(deckID, cardID string, paths []string) []string {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
+	hashes := make([]string, 0, len(paths))
+	for _, path := range paths {
+		hashes = append(hashes, l.getImageHash(deckID, cardID, path))
+	}
+
+	return hashes
+}
+
+// requires read lock to be already acquired.
+func (l *Lock) getImageHash(deckID, cardID, path string) string {
 	if _, ok := l.data[deckID]; !ok {
-		return "", false
+		return ""
 	}
 
 	if _, ok := l.data[deckID].Cards[cardID]; !ok {
-		return "", false
+		return ""
 	}
 
-	if l.data[deckID].Cards[cardID].Images == nil {
-		l.data[deckID].Cards[cardID] = Card{
-			Filename: l.data[deckID].Cards[cardID].Filename,
-			Images:   make(map[string]string),
-		}
-	}
-
-	hash, ok := l.data[deckID].Cards[cardID].Images[path]
-	return hash, ok
+	return l.data[deckID].Cards[cardID].Images[path]
 }
 
 // Updated returns whether the lockfile has been updated.
