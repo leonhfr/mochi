@@ -12,6 +12,11 @@ import (
 
 var extensions = []string{".md"}
 
+// FileCheck is the interface implemented to check file existence.
+type FileCheck interface {
+	Exists(path string) bool
+}
+
 // Card contains the card data parsed from a file.
 type Card struct {
 	Name     string
@@ -31,12 +36,12 @@ type Parser struct {
 }
 
 // New returns a new parser.
-func New() *Parser {
+func New(fc FileCheck) *Parser {
 	return &Parser{
-		cardParser: newNote(),
+		cardParser: newNote(fc),
 		parsers: map[string]cardParser{
-			"note":     newNote(),
-			"headings": newHeadings(1),
+			"note":     newNote(fc),
+			"headings": newHeadings(fc, 1),
 		},
 	}
 }

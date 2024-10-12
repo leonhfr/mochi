@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -25,11 +24,16 @@ var mimeTypes = map[string]string{
 	"webp": "image/webp",
 }
 
+// FileCheck is the interface implemented to check file existence.
+type FileCheck interface {
+	Exists(path string) bool
+}
+
 // Map contains the data of all images in the file.
 type Map struct {
-	dirPath string
-	// absolutePath string // path to image from deck root
-	images map[string]Image
+	fileCheck FileCheck
+	dirPath   string
+	images    map[string]Image
 }
 
 // Image contains the data of one image.
@@ -42,17 +46,18 @@ type Image struct {
 }
 
 // New returns a new Images map.
-func New(path string) Map {
+func New(fileCheck FileCheck, path string) Map {
 	return Map{
-		dirPath: fmt.Sprintf(".%s", filepath.Dir(path)),
-		images:  make(map[string]Image),
+		fileCheck: fileCheck,
+		dirPath:   fmt.Sprintf(".%s", filepath.Dir(path)),
+		images:    make(map[string]Image),
 	}
 }
 
 // Add adds an image.
 func (i *Map) Add(destination, altText string) {
 	absPath := filepath.Join(i.dirPath, destination)
-	if _, err := os.Stat(absPath); err != nil {
+	if !i.fileCheck.Exists(absPath) {
 		return
 	}
 

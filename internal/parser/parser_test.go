@@ -104,3 +104,20 @@ func (m *mockCardParser) convert(path string, source []byte) ([]Card, error) {
 	args := m.Called(path, source)
 	return args.Get(0).([]Card), args.Error(1)
 }
+
+type mockFileChecker struct {
+	mock.Mock
+}
+
+func newMockFileChecker(calls map[string]bool) *mockFileChecker {
+	m := new(mockFileChecker)
+	for path, ok := range calls {
+		m.On("Exists", path).Return(ok)
+	}
+	return m
+}
+
+func (m *mockFileChecker) Exists(p string) bool {
+	args := m.Mock.Called(p)
+	return args.Bool(0)
+}

@@ -17,13 +17,15 @@ import (
 // Each headings until a determined depth returns a separate card.
 // The card names are formatted from the card name and the heading.
 type headings struct {
+	fc     FileCheck
 	parser parser.Parser
 	level  int
 }
 
 // newHeadings returns a new note parser.
-func newHeadings(level int) *headings {
+func newHeadings(fc FileCheck, level int) *headings {
 	return &headings{
+		fc: fc,
 		parser: parser.NewParser(
 			parser.WithBlockParsers(
 				util.Prioritized(parser.NewATXHeadingParser(), 100),
@@ -37,7 +39,7 @@ func newHeadings(level int) *headings {
 
 // Convert implements the cardParser interface.
 func (h *headings) convert(path string, source []byte) ([]Card, error) {
-	res := newHeadingResult(path, h.level)
+	res := newHeadingResult(h.fc, path, h.level)
 	doc := h.parser.Parse(text.NewReader(source))
 
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
@@ -65,6 +67,7 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 }
 
 type headingResult struct {
+	fc         FileCheck
 	level      int
 	path       string
 	name       string
@@ -74,12 +77,13 @@ type headingResult struct {
 	images     image.Map
 }
 
-func newHeadingResult(path string, level int) *headingResult {
+func newHeadingResult(fc FileCheck, path string, level int) *headingResult {
 	return &headingResult{
+		fc:     fc,
 		level:  level,
 		path:   path,
 		name:   getNameFromPath(path),
-		images: image.New(path),
+		images: image.New(fc, path),
 	}
 }
 
@@ -120,7 +124,7 @@ func (r *headingResult) flushCard() {
 	})
 	r.headings = nil
 	r.paragraphs = nil
-	r.images = image.New(r.path)
+	r.images = image.New(r.fc, r.path)
 }
 
 func (r *headingResult) getCards() []Card {

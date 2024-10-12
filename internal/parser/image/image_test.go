@@ -11,60 +11,58 @@ import (
 	"github.com/leonhfr/mochi/mochi"
 )
 
+// TODO: New
+
 func Test_Map_Add(t *testing.T) {
 	path := "/testdata/Markdown.md"
 	tests := []struct {
 		name        string
-		images      Map
+		images      map[string]Image
+		calls       map[string]bool
 		destination string
 		altText     string
-		want        Map
+		want        map[string]Image
 	}{
 		{
 			name:        "should not add when destination is an URL",
-			images:      New(path),
+			calls:       map[string]bool{"testdata/example.com/image.png": false},
 			destination: "example.com/image.png",
-			want:        New(path),
+			want:        map[string]Image{},
 		},
 		{
 			name: "should not add when already in map",
-			images: Map{
-				dirPath: "./testdata",
-				images: map[string]Image{
-					"testdata/scream.png": {filename: "a42069093fdb614a", destination: "./scream.png", extension: "png", mimeType: "image/png"},
-				},
+			images: map[string]Image{
+				"testdata/scream.png": {filename: "a42069093fdb614a", destination: "./scream.png", extension: "png", mimeType: "image/png"},
 			},
+			calls:       map[string]bool{"testdata/scream.png": true},
 			destination: "./scream.png",
-			want: Map{
-				dirPath: "./testdata",
-				images: map[string]Image{
-					"testdata/scream.png": {filename: "a42069093fdb614a", destination: "./scream.png", extension: "png", mimeType: "image/png"},
-				},
+			want: map[string]Image{
+				"testdata/scream.png": {filename: "a42069093fdb614a", destination: "./scream.png", extension: "png", mimeType: "image/png"},
 			},
 		},
 		{
 			name:        "should not add when mime type does not match",
-			images:      New(path),
+			calls:       map[string]bool{"testdata/markdown.md": true},
 			destination: "./markdown.md",
-			want:        New(path),
+			want:        map[string]Image{},
 		},
 		{
 			name:        "should add",
-			images:      New(path),
+			calls:       map[string]bool{"testdata/scream.png": true},
 			destination: "./scream.png",
-			want: Map{
-				dirPath: "./testdata",
-				images: map[string]Image{
-					"testdata/scream.png": {filename: "a42069093fdb614a", destination: "./scream.png", extension: "png", mimeType: "image/png"},
-				},
+			want: map[string]Image{
+				"testdata/scream.png": {filename: "a42069093fdb614a", destination: "./scream.png", extension: "png", mimeType: "image/png"},
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.images.Add(tt.destination, tt.altText)
-			assert.Equal(t, tt.want, tt.images)
+			fc := newMockFileChecker(tt.calls)
+			imageMap := New(fc, path)
+			imageMap.Add(tt.destination, tt.altText)
+			assert.Equal(t, tt.want, imageMap.images)
+			fc.AssertExpectations(t)
 		})
 	}
 }
@@ -110,6 +108,23 @@ func Test_Map_Attachments(t *testing.T) {
 	assert.Equal(t, want, got)
 	assert.NoError(t, err)
 	r.AssertExpectations(t)
+}
+
+type mockFileChecker struct {
+	mock.Mock
+}
+
+func newMockFileChecker(calls map[string]bool) *mockFileChecker {
+	m := new(mockFileChecker)
+	for path, ok := range calls {
+		m.On("Exists", path).Return(ok)
+	}
+	return m
+}
+
+func (m *mockFileChecker) Exists(p string) bool {
+	args := m.Mock.Called(p)
+	return args.Bool(0)
 }
 
 type mockReader struct {
