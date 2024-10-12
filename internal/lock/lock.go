@@ -33,7 +33,8 @@ type Deck struct {
 
 // Card contains the information about existing cards.
 type Card struct {
-	Filename string `json:"filename" validate:"required"` // filename inside directory: note.md
+	Filename string            `json:"filename" validate:"required"` // filename inside directory: note.md
+	Images   map[string]string `json:"images,omitempty"`             // map[path]md5 hash
 }
 
 // Lock represents a lockfile.
@@ -131,6 +132,27 @@ func (l *Lock) CleanCards(deckID string, cardIDs []string) {
 	}
 }
 
+// CleanImages removes from the lockfile the inexistent paths in a card.
+func (l *Lock) CleanImages(deckID, cardID string, paths []string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if _, ok := l.data[deckID]; !ok {
+		return
+	}
+
+	if _, ok := l.data[deckID].Cards[cardID]; !ok {
+		return
+	}
+
+	for path := range l.data[deckID].Cards[cardID].Images {
+		if !slices.Contains[[]string](paths, path) {
+			delete(l.data[deckID].Cards[cardID].Images, path)
+			l.updated = true
+		}
+	}
+}
+
 // GetDeck returns an existing decks information from a directory string.
 func (l *Lock) GetDeck(path string) (string, Deck, bool) {
 	l.mu.RLock()
@@ -207,6 +229,48 @@ func (l *Lock) SetCard(deckID string, cardID string, filename string) error {
 	l.data[deckID].Cards[cardID] = Card{
 		Filename: filename,
 	}
+	l.updated = true
+	return nil
+}
+
+// GetImageHash returns the image hash and ok if it exists.
+func (l *Lock) GetImageHash(deckID, cardID, path string) (string, bool) {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
+	if _, ok := l.data[deckID]; !ok {
+		return "", false
+	}
+
+	if _, ok := l.data[deckID].Cards[cardID]; !ok {
+		return "", false
+	}
+
+	if l.data[deckID].Cards[cardID].Images == nil {
+		l.data[deckID].Cards[cardID] = Card{
+			Filename: l.data[deckID].Cards[cardID].Filename,
+			Images:   make(map[string]string),
+		}
+	}
+
+	hash, ok := l.data[deckID].Cards[cardID].Images[path]
+	return hash, ok
+}
+
+// SetImageHash sets the hash to an image path.
+func (l *Lock) SetImageHash(deckID, cardID, path, hash string) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if _, ok := l.data[deckID]; !ok {
+		return fmt.Errorf("deck %s not found", deckID)
+	}
+
+	if _, ok := l.data[deckID].Cards[cardID]; !ok {
+		return fmt.Errorf("card %s not found in deck %s", cardID, deckID)
+	}
+
+	l.data[deckID].Cards[cardID].Images[path] = hash
 	l.updated = true
 	return nil
 }
