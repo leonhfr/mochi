@@ -19,9 +19,9 @@ func NewArchive(cardID string) Request {
 }
 
 // Sync implements the SyncRequest interface.
-func (r *archive) Sync(ctx context.Context, c Client, _ Reader, _ Lockfile) error {
+func (r *archive) Sync(ctx context.Context, client Client, _ Reader, _ Lockfile) error {
 	req := mochi.UpdateCardRequest{Archived: true}
-	_, err := c.UpdateCard(ctx, r.cardID, req)
+	_, err := client.UpdateCard(ctx, r.cardID, req)
 	return err
 }
 

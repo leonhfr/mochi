@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/leonhfr/mochi/internal/parser/image"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -23,7 +24,7 @@ type Reader interface {
 // Lockfile is the interface the lockfile implement to sync cards.
 type Lockfile interface {
 	CleanImages(deckID, cardID string, paths []string)
-	SetCard(deckID string, cardID string, filename string) error
+	SetCard(deckID, cardID, filename string) error
 	GetImageHash(deckID, cardID, path string) (string, bool)
 	SetImageHash(deckID, cardID, path, hash string) error
 }
@@ -32,4 +33,20 @@ type Lockfile interface {
 type Request interface {
 	fmt.Stringer
 	Sync(ctx context.Context, client Client, reader Reader, lf Lockfile) error
+}
+
+func getAttachments(images []image.Attachment) []mochi.Attachment {
+	attachments := make([]mochi.Attachment, 0, len(images))
+	for _, image := range images {
+		attachments = append(attachments, image.Mochi)
+	}
+	return attachments
+}
+
+func getPaths(images []image.Attachment) []string {
+	paths := make([]string, 0, len(images))
+	for _, image := range images {
+		paths = append(paths, image.Path)
+	}
+	return paths
 }

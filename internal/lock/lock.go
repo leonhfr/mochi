@@ -193,7 +193,7 @@ func (l *Lock) UpdateDeckName(id, name string) {
 }
 
 // GetCard returns an existing cards data.
-func (l *Lock) GetCard(deckID string, cardID string) (Card, bool) {
+func (l *Lock) GetCard(deckID, cardID string) (Card, bool) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
@@ -206,7 +206,7 @@ func (l *Lock) GetCard(deckID string, cardID string) (Card, bool) {
 }
 
 // SetCard sets a card in the given deck.
-func (l *Lock) SetCard(deckID string, cardID string, filename string) error {
+func (l *Lock) SetCard(deckID, cardID, filename string) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 

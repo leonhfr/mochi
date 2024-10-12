@@ -49,19 +49,19 @@ func Test_upsertSyncRequests(t *testing.T) {
 	}
 
 	want := []request.Request{
-		request.NewUpdate("CARD_ID_1", parser.Card{
+		request.NewUpdate(deckID, "CARD_ID_1", parser.Card{
 			Name:     "CARD_TO_UPDATE",
 			Content:  "NEW_CONTENT",
 			Filename: filename,
 		}),
 		request.NewArchive("CARD_ID_2"),
-		request.NewCreate(filename, "DECK_ID", parser.Card{
+		request.NewCreate("DECK_ID", parser.Card{
 			Name:     "CARD_TO_CREATE",
 			Content:  "CONTENT",
 			Filename: filename,
 		}),
 	}
 
-	got := upsertSyncRequests(filename, deckID, mochiCards, parserCards)
+	got := upsertSyncRequests(deckID, mochiCards, parserCards)
 	assert.Equal(t, want, got)
 }

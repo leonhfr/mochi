@@ -24,8 +24,8 @@ func SyncRequests(lf Lockfile, deckID string, mochiCards []mochi.Card, parsedCar
 	for _, mochiCard := range notMatched {
 		reqs = append(reqs, request.NewArchive(mochiCard.ID))
 	}
-	for filename, group := range groupedCards {
-		groupReqs := upsertSyncRequests(filename, deckID, group.mochi, group.parsed)
+	for _, group := range groupedCards {
+		groupReqs := upsertSyncRequests(deckID, group.mochi, group.parsed)
 		reqs = append(reqs, groupReqs...)
 	}
 	return reqs
@@ -36,7 +36,7 @@ type fileGroup struct {
 	parsed []parser.Card
 }
 
-func upsertSyncRequests(filename, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []request.Request {
+func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []request.Request {
 	tmp := make([]parser.Card, len(parsedCards))
 	copy(tmp, parsedCards)
 
@@ -49,13 +49,13 @@ func upsertSyncRequests(filename, deckID string, mochiCards []mochi.Card, parsed
 		}
 
 		if mochiCard.Content != tmp[index].Content {
-			reqs = append(reqs, request.NewUpdate(mochiCard.ID, tmp[index]))
+			reqs = append(reqs, request.NewUpdate(deckID, mochiCard.ID, tmp[index]))
 		}
 		tmp = sliceRemove(tmp, index)
 	}
 
 	for _, parsedCard := range tmp {
-		reqs = append(reqs, request.NewCreate(filename, deckID, parsedCard))
+		reqs = append(reqs, request.NewCreate(deckID, parsedCard))
 	}
 
 	return reqs
