@@ -50,20 +50,22 @@ func Test_upsertSyncRequests(t *testing.T) {
 	want := []Request{
 		&updateCardRequest{
 			cardID: "CARD_ID_1",
-			req:    mochi.UpdateCardRequest{Content: "NEW_CONTENT"},
+			card: parser.Card{
+				Name:     "CARD_TO_UPDATE",
+				Content:  "NEW_CONTENT",
+				Filename: filename,
+			},
 		},
 		&archiveCardRequest{
 			cardID: "CARD_ID_2",
-			req:    mochi.UpdateCardRequest{Archived: true},
 		},
 		&createCardRequest{
 			filename: filename,
-			req: mochi.CreateCardRequest{
-				Content: "CONTENT",
-				DeckID:  "DECK_ID",
-				Fields: map[string]mochi.Field{
-					"name": {ID: "name", Value: "CARD_TO_CREATE"},
-				},
+			deckID:   "DECK_ID",
+			card: parser.Card{
+				Name:     "CARD_TO_CREATE",
+				Content:  "CONTENT",
+				Filename: filename,
 			},
 		},
 	}

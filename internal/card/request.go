@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -14,37 +15,46 @@ type Client interface {
 	DeleteCard(ctx context.Context, id string) error
 }
 
+// RequestLockfile is the interface the lockfile implement to sync cards.
+type RequestLockfile interface {
+	SetCard(deckID string, cardID string, filename string) error
+}
+
 // Request is the interface that should be implemented to execute a request.
 type Request interface {
 	fmt.Stringer
-	Sync(ctx context.Context, client Client, lf Lockfile) error
+	Sync(ctx context.Context, client Client, lf RequestLockfile) error
 }
 
 type createCardRequest struct {
-	req      mochi.CreateCardRequest
 	filename string
+	deckID   string
+	card     parser.Card
 }
 
-func newCreateCardRequest(filename, deckID, name, content string) Request {
+func newCreateCardRequest(filename, deckID string, card parser.Card) Request {
 	return &createCardRequest{
-		req: mochi.CreateCardRequest{
-			Content: content,
-			DeckID:  deckID,
-			Fields: map[string]mochi.Field{
-				"name": {ID: "name", Value: name},
-			},
-		},
 		filename: filename,
+		deckID:   deckID,
+		card:     card,
 	}
 }
 
 // Sync implements the SyncRequest interface.
-func (r *createCardRequest) Sync(ctx context.Context, c Client, lf Lockfile) error {
-	card, err := c.CreateCard(ctx, r.req)
+func (r *createCardRequest) Sync(ctx context.Context, c Client, lf RequestLockfile) error {
+	req := mochi.CreateCardRequest{
+		Content: r.card.Content,
+		DeckID:  r.deckID,
+		Fields: map[string]mochi.Field{
+			"name": {ID: "name", Value: r.card.Name},
+		},
+	}
+
+	card, err := c.CreateCard(ctx, req)
 	if err != nil {
 		return err
 	}
-	return lf.SetCard(r.req.DeckID, card.ID, r.filename)
+	return lf.SetCard(r.deckID, card.ID, r.filename)
 }
 
 // String implements the fmt.Stringer interface.
@@ -53,20 +63,21 @@ func (r *createCardRequest) String() string {
 }
 
 type updateCardRequest struct {
-	req    mochi.UpdateCardRequest
 	cardID string
+	card   parser.Card
 }
 
-func newUpdateCardRequest(cardID, content string) Request {
+func newUpdateCardRequest(cardID string, card parser.Card) Request {
 	return &updateCardRequest{
 		cardID: cardID,
-		req:    mochi.UpdateCardRequest{Content: content},
+		card:   card,
 	}
 }
 
 // Sync implements the SyncRequest interface.
-func (r *updateCardRequest) Sync(ctx context.Context, c Client, _ Lockfile) error {
-	_, err := c.UpdateCard(ctx, r.cardID, r.req)
+func (r *updateCardRequest) Sync(ctx context.Context, c Client, _ RequestLockfile) error {
+	req := mochi.UpdateCardRequest{Content: r.card.Content}
+	_, err := c.UpdateCard(ctx, r.cardID, req)
 	return err
 }
 
@@ -76,20 +87,19 @@ func (r *updateCardRequest) String() string {
 }
 
 type archiveCardRequest struct {
-	req    mochi.UpdateCardRequest
 	cardID string
 }
 
 func newArchiveCardRequest(cardID string) Request {
 	return &archiveCardRequest{
 		cardID: cardID,
-		req:    mochi.UpdateCardRequest{Archived: true},
 	}
 }
 
 // Sync implements the SyncRequest interface.
-func (r *archiveCardRequest) Sync(ctx context.Context, c Client, _ Lockfile) error {
-	_, err := c.UpdateCard(ctx, r.cardID, r.req)
+func (r *archiveCardRequest) Sync(ctx context.Context, c Client, _ RequestLockfile) error {
+	req := mochi.UpdateCardRequest{Archived: true}
+	_, err := c.UpdateCard(ctx, r.cardID, req)
 	return err
 }
 
@@ -107,7 +117,7 @@ func newDeleteCardRequest(cardID string) Request {
 }
 
 // Sync implements the SyncRequest interface.
-func (r *deleteCardRequest) Sync(ctx context.Context, c Client, _ Lockfile) error {
+func (r *deleteCardRequest) Sync(ctx context.Context, c Client, _ RequestLockfile) error {
 	return c.DeleteCard(ctx, r.cardID)
 }
 

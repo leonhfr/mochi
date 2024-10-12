@@ -11,7 +11,6 @@ import (
 // Lockfile is the interface that should be implemented to update the lockfile.
 type Lockfile interface {
 	GetCard(deckID string, cardID string) (lock.Card, bool)
-	SetCard(deckID string, cardID string, filename string) error
 }
 
 // SyncRequests parses the note files and returns the requests
@@ -49,13 +48,13 @@ func upsertSyncRequests(filename, deckID string, mochiCards []mochi.Card, parsed
 		}
 
 		if mochiCard.Content != tmp[index].Content {
-			reqs = append(reqs, newUpdateCardRequest(mochiCard.ID, tmp[index].Content))
+			reqs = append(reqs, newUpdateCardRequest(mochiCard.ID, tmp[index]))
 		}
 		tmp = sliceRemove(tmp, index)
 	}
 
 	for _, parsedCard := range tmp {
-		reqs = append(reqs, newCreateCardRequest(filename, deckID, parsedCard.Name, parsedCard.Content))
+		reqs = append(reqs, newCreateCardRequest(filename, deckID, parsedCard))
 	}
 
 	return reqs

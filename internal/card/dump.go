@@ -8,7 +8,6 @@ import (
 
 // DumpClient is the interface that should be implemented to dump cards.
 type DumpClient interface {
-	Client
 	ListCardsInDeck(ctx context.Context, id string) ([]mochi.Card, error)
 }
 

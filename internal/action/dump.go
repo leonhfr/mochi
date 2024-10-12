@@ -6,7 +6,6 @@ import (
 
 	"github.com/leonhfr/mochi/internal/card"
 	"github.com/leonhfr/mochi/internal/file"
-	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/worker"
 )
@@ -62,13 +61,9 @@ func Dump(ctx context.Context, logger Logger, token, workspace string) (err erro
 	return err
 }
 
-var _ card.Lockfile = &noOpLockfile{}
+var _ card.RequestLockfile = &noOpLockfile{}
 
 type noOpLockfile struct{}
-
-func (lf *noOpLockfile) GetCard(_, _ string) (lock.Card, bool) {
-	return lock.Card{}, true
-}
 
 func (lf *noOpLockfile) SetCard(_, _, _ string) error {
 	return nil
