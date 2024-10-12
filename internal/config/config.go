@@ -32,6 +32,7 @@ var ErrNoConfig = errors.New("no config found in target")
 type Config struct {
 	RateLimit int    `yaml:"rateLimit"` // requests per second
 	RootName  string `yaml:"rootName"`
+	SkipRoot  bool   `yaml:"skipRoot"`
 	Decks     []Deck `yaml:"decks" validate:"required,dive"` // sorted by longest Path (more specific first)
 }
 
@@ -112,7 +113,9 @@ func cleanConfig(config Config) Config {
 
 // GetDeck returns the deck config that matches the path.
 func (c *Config) GetDeck(path string) (Deck, bool) {
-	if path == "/" {
+	if path == "/" && c.SkipRoot {
+		return Deck{}, false
+	} else if path == "/" {
 		return Deck{Path: "/", Name: c.RootName}, true
 	}
 

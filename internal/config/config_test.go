@@ -155,13 +155,19 @@ func Test_Config_GetDeck(t *testing.T) {
 			ok:   true,
 		},
 		{
+			name: "should return false (skip root deck)",
+			config: &Config{RootName: "ROOT_NAME", SkipRoot: true, Decks: []Deck{
+				{Path: "/sed-interdum-libero"},
+				{Path: "/lorem-ipsum"},
+			}},
+			path: "/",
+		},
+		{
 			name: "should return false",
 			config: &Config{Decks: []Deck{
 				{Path: "/sed-interdum-libero"},
 			}},
 			path: "/lorem-ipsum",
-			want: Deck{},
-			ok:   false,
 		},
 	}
 
