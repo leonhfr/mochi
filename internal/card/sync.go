@@ -5,6 +5,7 @@ import (
 
 	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/parser"
+	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -15,13 +16,13 @@ type Lockfile interface {
 
 // SyncRequests parses the note files and returns the requests
 // required to sync them.
-func SyncRequests(lf Lockfile, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []Request {
+func SyncRequests(lf Lockfile, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []request.Request {
 	groupedMochiCards, notMatched := groupMochiCardsByFilename(lf, deckID, mochiCards)
 	groupedParsedCards := groupParsedCardsByFilename(parsedCards)
 	groupedCards := groupCardsByFilename(groupedMochiCards, groupedParsedCards)
-	reqs := []Request{}
+	reqs := []request.Request{}
 	for _, mochiCard := range notMatched {
-		reqs = append(reqs, newArchiveCardRequest(mochiCard.ID))
+		reqs = append(reqs, request.NewArchive(mochiCard.ID))
 	}
 	for filename, group := range groupedCards {
 		groupReqs := upsertSyncRequests(filename, deckID, group.mochi, group.parsed)
@@ -35,26 +36,26 @@ type fileGroup struct {
 	parsed []parser.Card
 }
 
-func upsertSyncRequests(filename, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []Request {
+func upsertSyncRequests(filename, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []request.Request {
 	tmp := make([]parser.Card, len(parsedCards))
 	copy(tmp, parsedCards)
 
-	reqs := []Request{}
+	reqs := []request.Request{}
 	for _, mochiCard := range mochiCards {
 		index := slices.IndexFunc(tmp, indexFunc(mochiCard))
 		if index < 0 {
-			reqs = append(reqs, newArchiveCardRequest(mochiCard.ID))
+			reqs = append(reqs, request.NewArchive(mochiCard.ID))
 			continue
 		}
 
 		if mochiCard.Content != tmp[index].Content {
-			reqs = append(reqs, newUpdateCardRequest(mochiCard.ID, tmp[index]))
+			reqs = append(reqs, request.NewUpdate(mochiCard.ID, tmp[index]))
 		}
 		tmp = sliceRemove(tmp, index)
 	}
 
 	for _, parsedCard := range tmp {
-		reqs = append(reqs, newCreateCardRequest(filename, deckID, parsedCard))
+		reqs = append(reqs, request.NewCreate(filename, deckID, parsedCard))
 	}
 
 	return reqs

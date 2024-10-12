@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/leonhfr/mochi/internal/card"
 	"github.com/leonhfr/mochi/internal/file"
 	"github.com/leonhfr/mochi/internal/parser"
+	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/internal/worker"
 )
 
@@ -61,7 +61,7 @@ func Dump(ctx context.Context, logger Logger, token, workspace string) (err erro
 	return err
 }
 
-var _ card.RequestLockfile = &noOpLockfile{}
+var _ request.Lockfile = &noOpLockfile{}
 
 type noOpLockfile struct{}
 

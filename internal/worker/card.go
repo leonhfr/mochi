@@ -6,6 +6,7 @@ import (
 	"github.com/sourcegraph/conc/stream"
 
 	"github.com/leonhfr/mochi/internal/card"
+	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -23,8 +24,8 @@ type Lockfile interface {
 }
 
 // SyncRequests returns a stream of requests to sync the cards.
-func SyncRequests(ctx context.Context, logger Logger, client Client, cr card.Reader, parser card.Parser, lf Lockfile, workspace string, in <-chan Deck) <-chan Result[card.Request] {
-	out := make(chan Result[card.Request], inflightRequests)
+func SyncRequests(ctx context.Context, logger Logger, client Client, cr card.Reader, parser card.Parser, lf Lockfile, workspace string, in <-chan Deck) <-chan Result[request.Request] {
+	out := make(chan Result[request.Request], inflightRequests)
 	go func() {
 		defer close(out)
 
@@ -34,12 +35,12 @@ func SyncRequests(ctx context.Context, logger Logger, client Client, cr card.Rea
 			s.Go(func() stream.Callback {
 				reqs, err := syncRequests(ctx, logger, client, cr, parser, lf, workspace, deck)
 				if err != nil {
-					return func() { out <- Result[card.Request]{err: err} }
+					return func() { out <- Result[request.Request]{err: err} }
 				}
 
 				return func() {
 					for _, req := range reqs {
-						out <- Result[card.Request]{data: req}
+						out <- Result[request.Request]{data: req}
 					}
 				}
 			})
@@ -51,8 +52,8 @@ func SyncRequests(ctx context.Context, logger Logger, client Client, cr card.Rea
 }
 
 // DumpRequests returns a stream of requests to delete the cards.
-func DumpRequests(ctx context.Context, logger Logger, client card.DumpClient, in <-chan string) <-chan Result[card.Request] {
-	out := make(chan Result[card.Request], inflightRequests)
+func DumpRequests(ctx context.Context, logger Logger, client card.DumpClient, in <-chan string) <-chan Result[request.Request] {
+	out := make(chan Result[request.Request], inflightRequests)
 	go func() {
 		defer close(out)
 
@@ -63,12 +64,12 @@ func DumpRequests(ctx context.Context, logger Logger, client card.DumpClient, in
 				logger.Infof("dump(deckID %s): generating delete requests", deckID)
 				reqs, err := card.DumpRequests(ctx, client, deckID)
 				if err != nil {
-					return func() { out <- Result[card.Request]{err: err} }
+					return func() { out <- Result[request.Request]{err: err} }
 				}
 
 				return func() {
 					for _, req := range reqs {
-						out <- Result[card.Request]{data: req}
+						out <- Result[request.Request]{data: req}
 					}
 				}
 			})
@@ -80,7 +81,7 @@ func DumpRequests(ctx context.Context, logger Logger, client card.DumpClient, in
 }
 
 // ExecuteRequests executes the sync requests.
-func ExecuteRequests(ctx context.Context, logger Logger, client card.Client, lf card.RequestLockfile, in <-chan card.Request) <-chan Result[struct{}] {
+func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, lf request.Lockfile, in <-chan request.Request) <-chan Result[struct{}] {
 	out := make(chan Result[struct{}])
 	go func() {
 		defer close(out)
@@ -104,7 +105,7 @@ func ExecuteRequests(ctx context.Context, logger Logger, client card.Client, lf 
 	return out
 }
 
-func syncRequests(ctx context.Context, logger Logger, client Client, cr card.Reader, parser card.Parser, lf Lockfile, workspace string, deck Deck) ([]card.Request, error) {
+func syncRequests(ctx context.Context, logger Logger, client Client, cr card.Reader, parser card.Parser, lf Lockfile, workspace string, deck Deck) ([]request.Request, error) {
 	logger.Infof("card sync(deckID %s): fetching cards", deck.deckID)
 	mochiCards, err := client.ListCardsInDeck(ctx, deck.deckID)
 	if err != nil {

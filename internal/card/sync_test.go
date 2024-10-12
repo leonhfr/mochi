@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/leonhfr/mochi/internal/parser"
+	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -47,27 +48,18 @@ func Test_upsertSyncRequests(t *testing.T) {
 		},
 	}
 
-	want := []Request{
-		&updateCardRequest{
-			cardID: "CARD_ID_1",
-			card: parser.Card{
-				Name:     "CARD_TO_UPDATE",
-				Content:  "NEW_CONTENT",
-				Filename: filename,
-			},
-		},
-		&archiveCardRequest{
-			cardID: "CARD_ID_2",
-		},
-		&createCardRequest{
-			filename: filename,
-			deckID:   "DECK_ID",
-			card: parser.Card{
-				Name:     "CARD_TO_CREATE",
-				Content:  "CONTENT",
-				Filename: filename,
-			},
-		},
+	want := []request.Request{
+		request.NewUpdate("CARD_ID_1", parser.Card{
+			Name:     "CARD_TO_UPDATE",
+			Content:  "NEW_CONTENT",
+			Filename: filename,
+		}),
+		request.NewArchive("CARD_ID_2"),
+		request.NewCreate(filename, "DECK_ID", parser.Card{
+			Name:     "CARD_TO_CREATE",
+			Content:  "CONTENT",
+			Filename: filename,
+		}),
 	}
 
 	got := upsertSyncRequests(filename, deckID, mochiCards, parserCards)
