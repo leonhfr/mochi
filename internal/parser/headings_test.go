@@ -45,41 +45,41 @@ func Test_Headings_Convert(t *testing.T) {
 		{
 			name:   "simple level 1",
 			level:  1,
-			path:   "/headings.md",
+			path:   "/Headings.md",
 			source: "# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n\n# Heading 2\n\nContent 3.\n",
 			cards: []Card{
 				{
-					Name:     "Heading 1", // TODO
+					Name:     "Headings | Heading 1",
 					Content:  "# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n",
-					Filename: "headings.md",
+					Filename: "Headings.md",
 				},
 				{
-					Name:     "Heading 2",
+					Name:     "Headings | Heading 2",
 					Content:  "# Heading 2\n\nContent 3.\n",
-					Filename: "headings.md",
+					Filename: "Headings.md",
 				},
 			},
 		},
 		{
 			name:   "level 1",
 			level:  1,
-			path:   "/headings.md",
+			path:   "/Headings.md",
 			source: headingSource,
 			cards: []Card{
 				{
-					Name:     "Heading 1", // todo
+					Name:     "Headings | Heading 1",
 					Content:  "# Heading 1\n\nSome text here.\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n\n## Heading 1.2\n\nAnother content.\n",
-					Filename: "headings.md",
+					Filename: "Headings.md",
 				},
 				{
-					Name:     "Heading 2",
+					Name:     "Headings | Heading 2",
 					Content:  "# Heading 2\n\nCard card card.\n",
-					Filename: "headings.md",
+					Filename: "Headings.md",
 				},
 				{
-					Name:     "Heading 3",
+					Name:     "Headings | Heading 3",
 					Content:  "# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
-					Filename: "headings.md",
+					Filename: "Headings.md",
 				},
 			},
 		},

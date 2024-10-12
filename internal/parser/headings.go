@@ -35,11 +35,9 @@ func newHeadings(level int) *headings {
 
 // Convert implements the cardParser interface.
 func (h *headings) convert(path string, source []byte) ([]Card, error) {
-	var cards []Card
-	var title string
-	var paragraphs []string
-
+	res := newHeadingResult(path, h.level)
 	doc := h.parser.Parse(text.NewReader(source))
+
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if !entering {
 			return ast.WalkContinue, nil
@@ -47,49 +45,84 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 
 		switch node := n.(type) {
 		case *ast.Heading:
-			if level := node.Level; level > h.level {
-				bytes := n.Text(source)
-				heading := formatHeading(string(bytes), level)
-				paragraphs = append(paragraphs, heading)
-				return ast.WalkContinue, nil
+			bytes := node.Text(source)
+			if err := res.addHeading(string(bytes), node.Level); err != nil {
+				return ast.WalkStop, err
 			}
-
-			if len(title) > 0 {
-				cards = append(cards, newHeadingsCard(path, title, h.level, paragraphs))
-			}
-
-			title = string(node.Text(source))
-			paragraphs = nil
 		case *ast.Paragraph:
 			bytes := node.Text(source)
-			paragraphs = append(paragraphs, string(bytes))
+			if err := res.addParagraph(string(bytes)); err != nil {
+				return ast.WalkStop, err
+			}
 		}
 
 		return ast.WalkContinue, nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	cards = append(cards, newHeadingsCard(path, title, h.level, paragraphs))
-	return cards, nil
+	return res.getCards(), err
 }
 
-func newHeadingsCard(path, name string, level int, paragraphs []string) Card {
-	title := formatHeading(name, level)
-	content := concatenateBlocks(append([]string{title}, paragraphs...)) + "\n"
-	return Card{
-		Name:     name,
-		Content:  content,
-		Filename: getFilename(path),
+type headingResult struct {
+	level      int
+	path       string
+	name       string
+	headings   []string
+	paragraphs []string
+	cards      []Card
+}
+
+func newHeadingResult(path string, level int) *headingResult {
+	return &headingResult{
+		level: level,
+		path:  path,
+		name:  getNameFromPath(path),
 	}
+}
+
+func (r *headingResult) addHeading(text string, level int) (err error) {
+	if level > r.level {
+		heading := formatHeading(text, level)
+		r.paragraphs = append(r.paragraphs, heading)
+		return
+	}
+
+	if len(r.headings) == 0 {
+		heading := formatHeading(text, level)
+		r.paragraphs = append(r.paragraphs, heading)
+		r.headings = append(r.headings, text)
+		return
+	}
+
+	r.flushCard()
+	heading := formatHeading(text, level)
+	r.paragraphs = append(r.paragraphs, heading)
+	r.headings = append(r.headings, text)
+
+	return
+}
+
+func (r *headingResult) addParagraph(text string) (err error) {
+	r.paragraphs = append(r.paragraphs, text)
+	return
+}
+
+func (r *headingResult) flushCard() {
+	name := strings.Join(append([]string{r.name}, r.headings...), " | ")
+	r.cards = append(r.cards, Card{
+		Name:     name,
+		Content:  strings.Join(r.paragraphs, "\n\n") + "\n",
+		Filename: getFilename(r.path),
+	})
+	r.headings = nil
+	r.paragraphs = nil
+}
+
+func (r *headingResult) getCards() []Card {
+	r.flushCard()
+	return r.cards
 }
 
 func formatHeading(text string, level int) string {
 	format := strings.Repeat("#", level)
 	return fmt.Sprintf("%s %s", format, text)
-}
-
-func concatenateBlocks(blocks []string) string {
-	return strings.Join(blocks, "\n\n")
 }
