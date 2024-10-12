@@ -8,6 +8,8 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
+
+	"github.com/leonhfr/mochi/internal/parser/image"
 )
 
 // headings represents a headings parser.
@@ -69,13 +71,15 @@ type headingResult struct {
 	headings   []string
 	paragraphs []string
 	cards      []Card
+	images     image.Map
 }
 
 func newHeadingResult(path string, level int) *headingResult {
 	return &headingResult{
-		level: level,
-		path:  path,
-		name:  getNameFromPath(path),
+		level:  level,
+		path:   path,
+		name:   getNameFromPath(path),
+		images: image.New(path),
 	}
 }
 
@@ -112,9 +116,11 @@ func (r *headingResult) flushCard() {
 		Name:     name,
 		Content:  strings.Join(r.paragraphs, "\n\n") + "\n",
 		Filename: getFilename(r.path),
+		Images:   r.images,
 	})
 	r.headings = nil
 	r.paragraphs = nil
+	r.images = image.New(r.path)
 }
 
 func (r *headingResult) getCards() []Card {

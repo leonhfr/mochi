@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/adrg/frontmatter"
+
+	"github.com/leonhfr/mochi/internal/parser/image"
 )
 
 var extensions = []string{".md"}
@@ -15,6 +17,7 @@ type Card struct {
 	Name     string
 	Content  string
 	Filename string
+	Images   image.Map
 }
 
 type cardParser interface {

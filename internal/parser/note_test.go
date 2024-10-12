@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/leonhfr/mochi/internal/parser/image"
 )
 
 var _ cardParser = &note{}
@@ -23,6 +25,7 @@ func Test_Note_Convert(t *testing.T) {
 				Name:     "Lorem ipsum",
 				Content:  "# Title 1\nParagraph.\n",
 				Filename: "Lorem ipsum.md",
+				Images:   image.New("/testdata/lorem-ipsum/Lorem ipsum.md"),
 			}},
 		},
 	}
