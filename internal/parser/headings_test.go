@@ -102,13 +102,13 @@ func Test_Headings_Convert(t *testing.T) {
 			want: []Card{
 				{
 					Name:     "Images | Heading 1",
-					Content:  "# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n",
+					Content:  "# Heading 1\n\nContent 1.\n\n![Example 1](@media/a36c3bd88549d06a.png)\n",
 					Filename: "Images.md",
 					Images:   map[string]image.Image{"images/example-1.png": {Filename: "a36c3bd88549d06a", Extension: "png", MimeType: "image/png", Destination: "../images/example-1.png", AltText: "Example 1"}},
 				},
 				{
 					Name:     "Images | Heading 2",
-					Content:  "# Heading 2\n\n![Example 2](images/example-2.png)\n",
+					Content:  "# Heading 2\n\n![Example 2](@media/df43905890ddb084.png)\n",
 					Filename: "Images.md",
 					Images:   map[string]image.Image{"subdirectory/images/example-2.png": {Filename: "df43905890ddb084", Extension: "png", MimeType: "image/png", Destination: "images/example-2.png", AltText: "Example 2"}},
 				},

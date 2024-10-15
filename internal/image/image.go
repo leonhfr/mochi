@@ -24,13 +24,6 @@ type FileCheck interface {
 	Exists(path string) bool
 }
 
-// Map contains the data of all images in the file.
-type Map struct {
-	fileCheck FileCheck
-	dirPath   string
-	images    map[string]Image
-}
-
 // Image contains the data of one image.
 type Image struct {
 	Filename    string // md5 of path relative to root
@@ -40,58 +33,58 @@ type Image struct {
 	AltText     string
 }
 
-// New returns a new Images map.
-func New(fileCheck FileCheck, path string) Map {
-	return Map{
-		fileCheck: fileCheck,
-		dirPath:   fmt.Sprintf(".%s", filepath.Dir(path)),
-		images:    make(map[string]Image),
-	}
+// Parsed contains the data of a parsed image.
+type Parsed struct {
+	Destination string
+	AltText     string
 }
 
-// Add adds an image.
-func (i *Map) Add(destination, altText string) {
-	absPath := filepath.Join(i.dirPath, destination)
-	if !i.fileCheck.Exists(absPath) {
-		return
+// New creates a new Image.
+func New(fc FileCheck, path string, parsed Parsed) (string, Image, bool) {
+	dirPath := fmt.Sprintf(".%s", filepath.Dir(path))
+	absPath := filepath.Join(dirPath, parsed.Destination)
+	if !fc.Exists(absPath) {
+		return "", Image{}, false
 	}
 
-	if filepath.IsAbs(destination) {
-		absPath = destination
+	if filepath.IsAbs(parsed.Destination) {
+		absPath = parsed.Destination
 	}
 
-	if _, ok := i.images[absPath]; ok {
-		return
-	}
-
-	ext := strings.TrimLeft(filepath.Ext(destination), ".")
+	ext := strings.TrimLeft(filepath.Ext(parsed.Destination), ".")
 	mime, ok := mimeTypes[ext]
 	if !ok {
-		return
+		return "", Image{}, false
 	}
 
 	//nolint:gosec
 	hash := fmt.Sprintf("%x", md5.Sum([]byte(absPath)))
-	i.images[absPath] = Image{
+	return absPath, Image{
 		Filename:    hash[:fileNameLength],
 		Extension:   ext,
 		MimeType:    mime,
-		Destination: destination,
-		AltText:     altText,
+		Destination: parsed.Destination,
+		AltText:     parsed.AltText,
+	}, true
+}
+
+// NewMap create a new map from parsed images.
+func NewMap(fc FileCheck, path string, parsed []Parsed) map[string]Image {
+	images := make(map[string]Image)
+	for _, p := range parsed {
+		if absPath, image, ok := New(fc, path, p); ok {
+			images[absPath] = image
+		}
 	}
+	return images
 }
 
 // Replace replaces images link in the Markdown source to mochi Markdown.
-func (i *Map) Replace(source string) string {
-	for _, image := range i.images {
+func Replace(images map[string]Image, source string) string {
+	for _, image := range images {
 		from := fmt.Sprintf("![%s](%s)", image.AltText, image.Destination)
 		to := fmt.Sprintf("![%s](@media/%s.%s)", image.AltText, image.Filename, image.Extension)
 		source = strings.ReplaceAll(source, from, to)
 	}
 	return source
-}
-
-// Images returns the images map.
-func (i *Map) Images() map[string]Image {
-	return i.images
 }

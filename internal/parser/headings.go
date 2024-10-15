@@ -109,16 +109,15 @@ type headingResult struct {
 	headings   []string
 	paragraphs []string
 	cards      []Card
-	images     image.Map
+	images     []image.Parsed
 }
 
 func newHeadingResult(fc FileCheck, path string, level int) *headingResult {
 	return &headingResult{
-		fc:     fc,
-		level:  level,
-		path:   path,
-		name:   getNameFromPath(path),
-		images: image.New(fc, path),
+		fc:    fc,
+		level: level,
+		path:  path,
+		name:  getNameFromPath(path),
 	}
 }
 
@@ -147,20 +146,27 @@ func (r *headingResult) addParagraph(text string) {
 }
 
 func (r *headingResult) addImage(destination, altText string) {
-	r.images.Add(destination, altText)
+	r.images = append(r.images, image.Parsed{
+		Destination: destination,
+		AltText:     altText,
+	})
 }
 
 func (r *headingResult) flushCard() {
+	images := image.NewMap(r.fc, r.path, r.images)
 	name := strings.Join(append([]string{r.name}, r.headings...), " | ")
+	content := strings.Join(r.paragraphs, "\n\n") + "\n"
+	content = image.Replace(images, content)
+
 	r.cards = append(r.cards, Card{
 		Name:     name,
-		Content:  strings.Join(r.paragraphs, "\n\n") + "\n",
+		Content:  content,
 		Filename: getFilename(r.path),
-		Images:   r.images.Images(),
+		Images:   images,
 	})
 	r.headings = nil
 	r.paragraphs = nil
-	r.images = image.New(r.fc, r.path)
+	r.images = nil
 }
 
 func (r *headingResult) getCards() []Card {

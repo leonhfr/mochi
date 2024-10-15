@@ -35,7 +35,7 @@ func newNote(fc FileCheck) *note {
 
 // Convert implements the cardParser interface.
 func (n *note) convert(path string, source []byte) ([]Card, error) {
-	images := image.New(n.fc, path)
+	parsed := []image.Parsed{}
 	doc := n.parser.Parse(text.NewReader(source))
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if !entering {
@@ -44,9 +44,10 @@ func (n *note) convert(path string, source []byte) ([]Card, error) {
 
 		switch node := n.(type) {
 		case *ast.Image:
-			destination := string(node.Destination)
-			altText := string(node.Text(source))
-			images.Add(destination, altText)
+			parsed = append(parsed, image.Parsed{
+				Destination: string(node.Destination),
+				AltText:     string(node.Text(source)),
+			})
 		}
 
 		return ast.WalkContinue, nil
@@ -55,12 +56,16 @@ func (n *note) convert(path string, source []byte) ([]Card, error) {
 		return nil, err
 	}
 
-	return []Card{
-		{
-			Name:     getNameFromPath(path),
-			Content:  images.Replace(string(source)),
-			Filename: getFilename(path),
-			Images:   images.Images(),
-		},
-	}, nil
+	name := getNameFromPath(path)
+	images := image.NewMap(n.fc, path, parsed)
+	return []Card{createNoteCard(name, path, source, images)}, nil
+}
+
+func createNoteCard(name, path string, source []byte, images map[string]image.Image) Card {
+	return Card{
+		Name:     name,
+		Content:  image.Replace(images, string(source)),
+		Filename: getFilename(path),
+		Images:   images,
+	}
 }

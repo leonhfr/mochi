@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func Test_Map_Add(t *testing.T) {
+func Test_NewMap(t *testing.T) {
 	path := "/testdata/Markdown.md"
 	tests := []struct {
 		name        string
@@ -53,25 +53,21 @@ func Test_Map_Add(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fc := newMockFileChecker(tt.calls)
-			imageMap := New(fc, path)
-			imageMap.Add(tt.destination, tt.altText)
-			assert.Equal(t, tt.want, imageMap.images)
+			images := NewMap(fc, path, []Parsed{{Destination: tt.destination, AltText: tt.altText}})
+			assert.Equal(t, tt.want, images)
 			fc.AssertExpectations(t)
 		})
 	}
 }
 
 func Test_Map_Replace(t *testing.T) {
-	images := Map{
-		dirPath: "./testdata",
-		images: map[string]Image{
-			"testdata/scream.png":         {Filename: "scream_hash", Destination: "./scream.png", Extension: "png", MimeType: "image/png", AltText: "Scream"},
-			"testdata/constellations.png": {Filename: "constellations_hash", Destination: "./constellations.jpg", Extension: "jpg", MimeType: "image/jpg"},
-		},
+	images := map[string]Image{
+		"testdata/scream.png":         {Filename: "scream_hash", Destination: "./scream.png", Extension: "png", MimeType: "image/png", AltText: "Scream"},
+		"testdata/constellations.png": {Filename: "constellations_hash", Destination: "./constellations.jpg", Extension: "jpg", MimeType: "image/jpg"},
 	}
 	source := "![Scream](./scream.png)\n![](./constellations.jpg)"
 	want := "![Scream](@media/scream_hash.png)\n![](@media/constellations_hash.jpg)"
-	got := images.Replace(source)
+	got := Replace(images, source)
 	assert.Equal(t, want, got)
 }
 
