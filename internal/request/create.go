@@ -3,7 +3,6 @@ package request
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/internal/parser"
@@ -59,8 +58,11 @@ func (r *create) String() string {
 }
 
 func getCardPos(card parser.Card) string {
-	sanitized := strings.TrimFunc(card.Filename, func(r rune) bool {
-		return ('0' <= r && r <= '9') || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z')
-	})
-	return fmt.Sprintf("%s%d", sanitized, card.Index)
+	runes := make([]rune, 0, len(card.Filename))
+	for _, r := range card.Filename {
+		if ('0' <= r && r <= '9') || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z') {
+			runes = append(runes, r)
+		}
+	}
+	return fmt.Sprintf("%s%d", string(runes), card.Index)
 }
