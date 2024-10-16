@@ -41,8 +41,11 @@ func New(fc FileCheck) *Parser {
 	return &Parser{
 		cardParser: newNote(fc),
 		parsers: map[string]cardParser{
-			"note":     newNote(fc),
-			"headings": newHeadings(fc, 1),
+			"note":      newNote(fc),
+			"headings":  newHeadings(fc, 1),
+			"headings1": newHeadings(fc, 1),
+			"headings2": newHeadings(fc, 2),
+			"headings3": newHeadings(fc, 3),
 		},
 	}
 }
