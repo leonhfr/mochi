@@ -14,7 +14,7 @@ type Card struct {
 	Content       string           `json:"content"`
 	DeckID        string           `json:"deck-id"`
 	TemplateID    string           `json:"template-id"`
-	POS           string           `json:"pos"`
+	Pos           string           `json:"pos"`
 	Archived      bool             `json:"archived?"`
 	New           bool             `json:"new?"`
 	ReviewReverse bool             `json:"review-reverse?"`
@@ -27,10 +27,10 @@ type Card struct {
 type CreateCardRequest struct {
 	Content       string           `json:"content"`
 	DeckID        string           `json:"deck-id"`
-	TemplateID    *string          `json:"template-id,omitempty"`
-	Archived      *bool            `json:"archived?,omitempty"`
-	ReviewReverse *bool            `json:"review-reverse?,omitempty"`
-	POS           *string          `json:"pos,omitempty"`
+	TemplateID    string           `json:"template-id,omitempty"`
+	Archived      bool             `json:"archived?,omitempty"`
+	ReviewReverse bool             `json:"review-reverse?,omitempty"`
+	Pos           string           `json:"pos,omitempty"`
 	Fields        map[string]Field `json:"fields,omitempty"`
 	Attachments   []Attachment     `json:"attachments,omitempty"`
 }
@@ -42,7 +42,7 @@ type UpdateCardRequest struct {
 	TemplateID    string           `json:"template-id,omitempty"`
 	Archived      bool             `json:"archived?,omitempty"`
 	ReviewReverse bool             `json:"review-reverse?,omitempty"`
-	POS           string           `json:"pos,omitempty"`
+	Pos           string           `json:"pos,omitempty"`
 	Fields        map[string]Field `json:"fields,omitempty"`
 	Attachments   []Attachment     `json:"attachments,omitempty"`
 }

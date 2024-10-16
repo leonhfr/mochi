@@ -113,18 +113,24 @@ func getHeadingCards(fc FileCheck, path string, headings []parsedHeading, source
 			continue
 		}
 
-		cards = append(cards, createHeadingCard(fc, titles, path, content, heading.images))
+		cards = append(cards, createHeadingCard(fc, titles, path, content, heading.images, len(cards)))
 		start = stop
 	}
 
 	return cards
 }
 
-func createHeadingCard(fc FileCheck, headings []string, path string, content []byte, images []image.Parsed) Card {
+func createHeadingCard(fc FileCheck, headings []string, path string, content []byte, images []image.Parsed, index int) Card {
 	content = append(content, '\n')
 	name := strings.Join(headings, " | ")
 	imageMap := image.NewMap(fc, path, images)
-	return createNoteCard(name, path, content, imageMap)
+	return Card{
+		Name:     name,
+		Content:  image.Replace(imageMap, string(content)),
+		Filename: getFilename(path),
+		Images:   imageMap,
+		Index:    index,
+	}
 }
 
 func getHeadingText(heading parsedHeading, source []byte) string {

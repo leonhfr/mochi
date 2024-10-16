@@ -36,6 +36,7 @@ func (r *create) Sync(ctx context.Context, client Client, reader Reader, lf Lock
 			"name": {ID: "name", Value: r.card.Name},
 		},
 		Attachments: getAttachments(attachments),
+		Pos:         getCardPos(r.card),
 	}
 
 	card, err := client.CreateCard(ctx, req)
@@ -54,4 +55,8 @@ func (r *create) Sync(ctx context.Context, client Client, reader Reader, lf Lock
 // String implements the fmt.Stringer interface.
 func (r *create) String() string {
 	return fmt.Sprintf("create request for file %s", r.card.Filename)
+}
+
+func getCardPos(card parser.Card) string {
+	return fmt.Sprintf("%s#%d", card.Filename, card.Index)
 }
