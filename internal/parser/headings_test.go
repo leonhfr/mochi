@@ -38,17 +38,17 @@ More card content.
 func Test_Headings_Convert(t *testing.T) {
 	tests := []struct {
 		name       string
-		level      int
+		maxLevel   int
 		path       string
 		source     string
 		fileChecks map[string]bool
 		want       []Card
 	}{
 		{
-			name:   "simple level 1",
-			level:  1,
-			path:   "/Headings.md",
-			source: "# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n\n# Heading 2\n\nContent 3.\n",
+			name:     "simple level 1",
+			maxLevel: 1,
+			path:     "/Headings.md",
+			source:   "# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n\n# Heading 2\n\nContent 3.\n",
 			want: []Card{
 				{
 					Name:     "Headings | Heading 1",
@@ -65,10 +65,10 @@ func Test_Headings_Convert(t *testing.T) {
 			},
 		},
 		{
-			name:   "level 1",
-			level:  1,
-			path:   "/Headings.md",
-			source: headingSource,
+			name:     "level 1",
+			maxLevel: 1,
+			path:     "/Headings.md",
+			source:   headingSource,
 			want: []Card{
 				{
 					Name:     "Headings | Heading 1",
@@ -91,10 +91,48 @@ func Test_Headings_Convert(t *testing.T) {
 			},
 		},
 		{
-			name:   "images",
-			level:  1,
-			path:   "/subdirectory/Images.md",
-			source: "# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
+			name:     "level 2",
+			maxLevel: 2,
+			path:     "/Headings.md",
+			source:   headingSource,
+			want: []Card{
+				{
+					Name:     "Headings | Heading 1",
+					Content:  "# Heading 1\n\nSome text here.\n",
+					Filename: "Headings.md",
+					Images:   map[string]image.Image{},
+				},
+				{
+					Name:     "Headings | Heading 1 | Heading 1.1",
+					Content:  "## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n",
+					Filename: "Headings.md",
+					Images:   map[string]image.Image{},
+				},
+				{
+					Name:     "Headings | Heading 1 | Heading 1.2",
+					Content:  "## Heading 1.2\n\nAnother content.\n",
+					Filename: "Headings.md",
+					Images:   map[string]image.Image{},
+				},
+				{
+					Name:     "Headings | Heading 2",
+					Content:  "# Heading 2\n\nCard card card.\n",
+					Filename: "Headings.md",
+					Images:   map[string]image.Image{},
+				},
+				{
+					Name:     "Headings | Heading 3 | Heading 3.1",
+					Content:  "# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
+					Filename: "Headings.md",
+					Images:   map[string]image.Image{},
+				},
+			},
+		},
+		{
+			name:     "images",
+			maxLevel: 1,
+			path:     "/subdirectory/Images.md",
+			source:   "# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
 			fileChecks: map[string]bool{
 				"images/example-1.png":              true,
 				"subdirectory/images/example-2.png": true,
@@ -119,7 +157,7 @@ func Test_Headings_Convert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fc := newMockFileChecker(tt.fileChecks)
-			got, err := newHeadings(fc, tt.level).convert(tt.path, []byte(tt.source))
+			got, err := newHeadings(fc, tt.maxLevel).convert(tt.path, []byte(tt.source))
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 			fc.AssertExpectations(t)

@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"fmt"
+	"bytes"
 	"strings"
 
 	"github.com/yuin/goldmark/ast"
@@ -17,13 +17,13 @@ import (
 // Each headings until a determined depth returns a separate card.
 // The card names are formatted from the card name and the heading.
 type headings struct {
-	fc     FileCheck
-	parser parser.Parser
-	level  int
+	fc       FileCheck
+	parser   parser.Parser
+	maxLevel int
 }
 
 // newHeadings returns a new note parser.
-func newHeadings(fc FileCheck, level int) *headings {
+func newHeadings(fc FileCheck, maxLevel int) *headings {
 	return &headings{
 		fc: fc,
 		parser: parser.NewParser(
@@ -36,13 +36,13 @@ func newHeadings(fc FileCheck, level int) *headings {
 				util.Prioritized(parser.NewLinkParser(), 100),
 			),
 		),
-		level: level,
+		maxLevel: maxLevel,
 	}
 }
 
-// Convert implements the cardParser interface.
+// convert implements the cardParser interface.
 func (h *headings) convert(path string, source []byte) ([]Card, error) {
-	res := newHeadingResult(h.fc, path, h.level)
+	parsed := []parsedHeading{{level: 0}}
 	doc := h.parser.Parse(text.NewReader(source))
 
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
@@ -52,129 +52,92 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 
 		switch node := n.(type) {
 		case *ast.Heading:
-			bytes := node.Text(source)
-			res.addHeading(string(bytes), node.Level)
-		case *ast.Paragraph:
-			if err := walkParagraph(res, node, source); err != nil {
-				return ast.WalkStop, err
+			segment := node.Lines().At(0)
+			if level := node.Level; level <= h.maxLevel {
+				parsed = append(parsed, parsedHeading{
+					start: segment.Start,
+					stop:  segment.Stop,
+					level: node.Level,
+				})
 			}
-		}
-
-		return ast.WalkContinue, nil
-	})
-
-	return res.getCards(), err
-}
-
-func walkParagraph(res *headingResult, paragraph *ast.Paragraph, source []byte) error {
-	var lines []string
-
-	err := ast.Walk(paragraph, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
-		if !entering {
-			return ast.WalkContinue, nil
-		}
-
-		switch node := n.(type) {
 		case *ast.Image:
-			destination := string(node.Destination)
-			altText := string(node.Text(source))
-			res.addImage(destination, altText)
-			text := fmt.Sprintf("![%s](%s)", altText, destination)
-			lines = append(lines, text)
-			return ast.WalkSkipChildren, nil
-		case *ast.Link:
-			destination := string(node.Destination)
-			text := string(node.Text(source))
-			lines = append(lines, fmt.Sprintf("[%s](%s)", text, destination))
-			return ast.WalkSkipChildren, nil
-		case *ast.Text:
-			if text := string(node.Text(source)); len(text) > 0 {
-				lines = append(lines, text)
-			}
+			parsed[len(parsed)-1].images = append(parsed[len(parsed)-1].images, image.Parsed{
+				Destination: string(node.Destination),
+				AltText:     string(node.Text(source)),
+			})
 		}
 
 		return ast.WalkContinue, nil
 	})
 
-	res.addParagraph(strings.Join(lines, "\n"))
+	cards := getHeadingCards(h.fc, path, parsed, source)
 
-	return err
+	return cards, err
 }
 
-type headingResult struct {
-	fc         FileCheck
-	level      int
-	path       string
-	name       string
-	headings   []string
-	paragraphs []string
-	cards      []Card
-	images     []image.Parsed
-}
-
-func newHeadingResult(fc FileCheck, path string, level int) *headingResult {
-	return &headingResult{
-		fc:    fc,
-		level: level,
-		path:  path,
-		name:  getNameFromPath(path),
-	}
-}
-
-func (r *headingResult) addHeading(text string, level int) {
-	if level > r.level {
-		heading := formatHeading(text, level)
-		r.paragraphs = append(r.paragraphs, heading)
-		return
+func getHeadingCards(fc FileCheck, path string, headings []parsedHeading, source []byte) []Card {
+	if len(headings) == 0 {
+		return nil
 	}
 
-	if len(r.headings) == 0 {
-		heading := formatHeading(text, level)
-		r.paragraphs = append(r.paragraphs, heading)
-		r.headings = append(r.headings, text)
-		return
+	if len(headings) == 1 {
+		name := getNameFromPath(path)
+		images := image.NewMap(fc, path, headings[0].images)
+		return []Card{createNoteCard(name, path, source, images)}
 	}
 
-	r.flushCard()
-	heading := formatHeading(text, level)
-	r.paragraphs = append(r.paragraphs, heading)
-	r.headings = append(r.headings, text)
+	cards := []Card{}
+	titles := []string{}
+	var start int
+
+	for i, heading := range headings {
+		switch {
+		case heading.level == 0:
+			titles = append(titles, getNameFromPath(path))
+		case heading.level > len(titles):
+			titles = append(titles, getHeadingText(heading, source))
+		default:
+			for heading.level < len(titles) {
+				titles = titles[:len(titles)-1]
+			}
+			titles = append(titles, getHeadingText(heading, source))
+		}
+
+		stop := len(source)
+		if i < len(headings)-1 {
+			stop = getHeadingStart(headings[i+1])
+		}
+
+		content := bytes.TrimSpace(source[start:stop])
+		if !bytes.ContainsRune(content, '\n') {
+			continue
+		}
+
+		cards = append(cards, createHeadingCard(fc, titles, path, content, heading.images))
+		start = stop
+	}
+
+	return cards
 }
 
-func (r *headingResult) addParagraph(text string) {
-	r.paragraphs = append(r.paragraphs, text)
+func createHeadingCard(fc FileCheck, headings []string, path string, content []byte, images []image.Parsed) Card {
+	content = append(content, '\n')
+	name := strings.Join(headings, " | ")
+	imageMap := image.NewMap(fc, path, images)
+	return createNoteCard(name, path, content, imageMap)
 }
 
-func (r *headingResult) addImage(destination, altText string) {
-	r.images = append(r.images, image.Parsed{
-		Destination: destination,
-		AltText:     altText,
-	})
+func getHeadingText(heading parsedHeading, source []byte) string {
+	return string(source[heading.start:heading.stop])
 }
 
-func (r *headingResult) flushCard() {
-	images := image.NewMap(r.fc, r.path, r.images)
-	name := strings.Join(append([]string{r.name}, r.headings...), " | ")
-	content := strings.Join(r.paragraphs, "\n\n") + "\n"
-	content = image.Replace(images, content)
-
-	r.cards = append(r.cards, Card{
-		Name:     name,
-		Content:  content,
-		Filename: getFilename(r.path),
-		Images:   images,
-	})
-	r.headings = nil
-	r.paragraphs = nil
-	r.images = nil
+func getHeadingStart(heading parsedHeading) int {
+	return heading.start - heading.level - 1
 }
 
-func (r *headingResult) getCards() []Card {
-	r.flushCard()
-	return r.cards
-}
-
-func formatHeading(text string, level int) string {
-	format := strings.Repeat("#", level)
-	return fmt.Sprintf("%s %s", format, text)
+type parsedHeading struct {
+	level  int
+	start  int
+	stop   int
+	images []image.Parsed
 }
