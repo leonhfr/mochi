@@ -3,6 +3,8 @@ package request
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/internal/parser"
@@ -58,5 +60,7 @@ func (r *create) String() string {
 }
 
 func getCardPos(card parser.Card) string {
-	return fmt.Sprintf("%s#%d", card.Filename, card.Index)
+	ext := filepath.Ext(card.Filename)
+	name := strings.TrimPrefix(card.Filename, fmt.Sprintf(".%s", ext))
+	return fmt.Sprintf("%s%d", name, card.Index)
 }
