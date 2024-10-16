@@ -3,7 +3,7 @@ package request
 import (
 	"context"
 	"fmt"
-	"regexp"
+	"strings"
 
 	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/internal/parser"
@@ -58,9 +58,9 @@ func (r *create) String() string {
 	return fmt.Sprintf("create request for file %s", r.card.Filename)
 }
 
-var mochiAlphanumericRegex = regexp.MustCompile(`[0-9A-Za-z]+`)
-
 func getCardPos(card parser.Card) string {
-	sanitized := mochiAlphanumericRegex.ReplaceAllString(card.Filename, "")
+	sanitized := strings.TrimFunc(card.Filename, func(r rune) bool {
+		return ('0' <= r && r <= '9') || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z')
+	})
 	return fmt.Sprintf("%s%d", sanitized, card.Index)
 }
