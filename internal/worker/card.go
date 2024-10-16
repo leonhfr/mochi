@@ -111,7 +111,7 @@ func syncRequests(ctx context.Context, logger Logger, client Client, cr card.Rea
 	if err != nil {
 		return nil, err
 	}
-	logger.Infof("card sync(deckID %s): %s cards found", deck.deckID, len(mochiCards))
+	logger.Infof("card sync(deckID %s): %d cards found", deck.deckID, len(mochiCards))
 
 	logger.Infof("card sync(deckID %s): cleaning lockfile", deck.deckID)
 	cleanCards(lf, deck.deckID, mochiCards)

@@ -3,8 +3,7 @@ package request
 import (
 	"context"
 	"fmt"
-	"path/filepath"
-	"strings"
+	"regexp"
 
 	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/internal/parser"
@@ -59,8 +58,9 @@ func (r *create) String() string {
 	return fmt.Sprintf("create request for file %s", r.card.Filename)
 }
 
+var mochiAlphanumericRegex = regexp.MustCompile(`[0-9A-Za-z]+`)
+
 func getCardPos(card parser.Card) string {
-	ext := filepath.Ext(card.Filename)
-	name := strings.TrimPrefix(card.Filename, fmt.Sprintf(".%s", ext))
-	return fmt.Sprintf("%s%d", name, card.Index)
+	sanitized := mochiAlphanumericRegex.ReplaceAllString(card.Filename, "")
+	return fmt.Sprintf("%s%d", sanitized, card.Index)
 }
