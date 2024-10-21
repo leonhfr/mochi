@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/yuin/goldmark/ast"
@@ -120,9 +121,9 @@ func getHeadingCards(fc FileCheck, path string, headings []parsedHeading, source
 	return cards
 }
 
-func createHeadingCard(fc FileCheck, headings []string, path string, content []byte, images []image.Parsed, index int) Card {
-	content = append(content, '\n')
+func createHeadingCard(fc FileCheck, headings []string, path string, source []byte, images []image.Parsed, index int) Card {
 	name := strings.Join(headings, " | ")
+	content := fmt.Sprintf("%s\n\n%s\n", name, string(source))
 	imageMap := image.NewMap(fc, path, images)
 	return Card{
 		Name:     name,

@@ -52,13 +52,13 @@ func Test_Headings_Convert(t *testing.T) {
 			want: []Card{
 				{
 					Name:     "Headings | Heading 1",
-					Content:  "# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n",
+					Content:  "Headings | Heading 1\n\n# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 				},
 				{
 					Name:     "Headings | Heading 2",
-					Content:  "# Heading 2\n\nContent 3.\n",
+					Content:  "Headings | Heading 2\n\n# Heading 2\n\nContent 3.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 					Index:    1,
@@ -73,20 +73,20 @@ func Test_Headings_Convert(t *testing.T) {
 			want: []Card{
 				{
 					Name:     "Headings | Heading 1",
-					Content:  "# Heading 1\n\nSome text here.\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n\n## Heading 1.2\n\nAnother content.\n",
+					Content:  "Headings | Heading 1\n\n# Heading 1\n\nSome text here.\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n\n## Heading 1.2\n\nAnother content.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 				},
 				{
 					Name:     "Headings | Heading 2",
-					Content:  "# Heading 2\n\nCard card card.\n",
+					Content:  "Headings | Heading 2\n\n# Heading 2\n\nCard card card.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 					Index:    1,
 				},
 				{
 					Name:     "Headings | Heading 3",
-					Content:  "# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
+					Content:  "Headings | Heading 3\n\n# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 					Index:    2,
@@ -101,34 +101,34 @@ func Test_Headings_Convert(t *testing.T) {
 			want: []Card{
 				{
 					Name:     "Headings | Heading 1",
-					Content:  "# Heading 1\n\nSome text here.\n",
+					Content:  "Headings | Heading 1\n\n# Heading 1\n\nSome text here.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 				},
 				{
 					Name:     "Headings | Heading 1 | Heading 1.1",
-					Content:  "## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n",
+					Content:  "Headings | Heading 1 | Heading 1.1\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 					Index:    1,
 				},
 				{
 					Name:     "Headings | Heading 1 | Heading 1.2",
-					Content:  "## Heading 1.2\n\nAnother content.\n",
+					Content:  "Headings | Heading 1 | Heading 1.2\n\n## Heading 1.2\n\nAnother content.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 					Index:    2,
 				},
 				{
 					Name:     "Headings | Heading 2",
-					Content:  "# Heading 2\n\nCard card card.\n",
+					Content:  "Headings | Heading 2\n\n# Heading 2\n\nCard card card.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 					Index:    3,
 				},
 				{
 					Name:     "Headings | Heading 3 | Heading 3.1",
-					Content:  "# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
+					Content:  "Headings | Heading 3 | Heading 3.1\n\n# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 					Index:    4,
@@ -147,13 +147,13 @@ func Test_Headings_Convert(t *testing.T) {
 			want: []Card{
 				{
 					Name:     "Images | Heading 1",
-					Content:  "# Heading 1\n\nContent 1.\n\n![Example 1](@media/a36c3bd88549d06a.png)\n",
+					Content:  "Images | Heading 1\n\n# Heading 1\n\nContent 1.\n\n![Example 1](@media/a36c3bd88549d06a.png)\n",
 					Filename: "Images.md",
 					Images:   map[string]image.Image{"images/example-1.png": {Filename: "a36c3bd88549d06a", Extension: "png", MimeType: "image/png", Destination: "../images/example-1.png", AltText: "Example 1"}},
 				},
 				{
 					Name:     "Images | Heading 2",
-					Content:  "# Heading 2\n\n![Example 2](@media/df43905890ddb084.png)\n",
+					Content:  "Images | Heading 2\n\n# Heading 2\n\n![Example 2](@media/df43905890ddb084.png)\n",
 					Filename: "Images.md",
 					Images:   map[string]image.Image{"subdirectory/images/example-2.png": {Filename: "df43905890ddb084", Extension: "png", MimeType: "image/png", Destination: "images/example-2.png", AltText: "Example 2"}},
 					Index:    1,
