@@ -1,0 +1,23 @@
+.memo_markdown_styles_markdown-class h1 {
+  font-size: 1.8em;
+  line-height: 1.5;
+}
+
+.memo_markdown_styles_markdown-class h2 {
+  font-size: 1.5em;
+  line-height: 1.5;
+}
+
+.memo_markdown_styles_markdown-class h3 {
+  font-size: 1.2em;
+  line-height: 1.5;
+}
+
+.memo_markdown_styles_markdown-class h4 {
+  font-size: 1.2em;
+  line-height: 1.5;
+}
+
+.memo_markdown_styles_markdown-class p {
+  margin: 0.5em 0 0 0;
+}
