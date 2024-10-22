@@ -1,4 +1,4 @@
-package deck
+package sync
 
 import (
 	"testing"
@@ -20,7 +20,7 @@ func Test_Heap(t *testing.T) {
 		{level: 2, Path: "/lorem-ipsum/Notes", FilePaths: []string{"/lorem-ipsum/Notes/Note 1.md", "/lorem-ipsum/Notes/Note 2.md"}},
 	}
 
-	h := NewDirHeap()
+	h := NewHeap()
 	for _, path := range input {
 		h.Push(path)
 	}

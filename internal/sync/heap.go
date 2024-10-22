@@ -1,4 +1,4 @@
-package deck
+package sync
 
 import (
 	"container/heap"
@@ -13,31 +13,31 @@ type Directory struct {
 	level     int
 }
 
-// DirHeap represents a heap of directories.
+// Heap represents a heap of directories.
 // Priority is given to lower levels (closer to root).
-type DirHeap struct {
+type Heap struct {
 	dirs *dirHeap
 }
 
-// NewDirHeap initializes and returns a new DirHeap.
-func NewDirHeap() *DirHeap {
+// NewHeap initializes and returns a new DirHeap.
+func NewHeap() *Heap {
 	h := &dirHeap{}
 	heap.Init(h)
-	return &DirHeap{h}
+	return &Heap{h}
 }
 
 // Len returns the heap length.
-func (h *DirHeap) Len() int {
+func (h *Heap) Len() int {
 	return h.dirs.Len()
 }
 
 // Push pushes a new path to the heap.
-func (h *DirHeap) Push(path string) {
+func (h *Heap) Push(path string) {
 	heap.Push(h.dirs, path)
 }
 
 // Pop returns the heap directory closest to the root.
-func (h *DirHeap) Pop() Directory {
+func (h *Heap) Pop() Directory {
 	return heap.Pop(h.dirs).(Directory)
 }
 
