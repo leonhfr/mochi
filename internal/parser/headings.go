@@ -93,6 +93,9 @@ func getHeadingCards(fc FileCheck, path string, headings []parsedHeading, source
 		case heading.level == 0:
 			titles = append(titles, getNameFromPath(path))
 		case heading.level > len(titles):
+			for heading.level > len(titles) {
+				titles = append(titles, "")
+			}
 			titles = append(titles, getHeadingText(heading, source))
 		default:
 			for heading.level < len(titles) {
@@ -119,7 +122,7 @@ func getHeadingCards(fc FileCheck, path string, headings []parsedHeading, source
 }
 
 func createHeadingCard(fc FileCheck, headings []string, path string, source []byte, images []image.Parsed, index int) Card {
-	name := strings.Join(headings, " | ")
+	name := strings.ReplaceAll(strings.Join(headings, " | "), " |  | ", " | ")
 	content := fmt.Sprintf("%s\n\n%s\n", name, string(source))
 	imageMap := image.NewMap(fc, path, images)
 	return Card{

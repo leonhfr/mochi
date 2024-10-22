@@ -136,6 +136,27 @@ func Test_Headings_Convert(t *testing.T) {
 			},
 		},
 		{
+			name:     "level 2 with skip level",
+			maxLevel: 2,
+			path:     "/Headings.md",
+			source:   "## Title 1\n\nContent 1.\n\n## Title 2\n\n### Title 2.1\n\nContent 1.\n",
+			want: []Card{
+				{
+					Name:     "Headings | Title 1",
+					Content:  "Headings | Title 1\n\n## Title 1\n\nContent 1.\n",
+					Filename: "Headings.md",
+					Images:   map[string]image.Image{},
+				},
+				{
+					Name:     "Headings | Title 2",
+					Content:  "Headings | Title 2\n\n## Title 2\n\n### Title 2.1\n\nContent 1.\n",
+					Filename: "Headings.md",
+					Images:   map[string]image.Image{},
+					Index:    1,
+				},
+			},
+		},
+		{
 			name:     "images",
 			maxLevel: 1,
 			path:     "/subdirectory/Images.md",
