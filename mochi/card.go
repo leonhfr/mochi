@@ -32,7 +32,7 @@ type CreateCardRequest struct {
 	ReviewReverse bool             `json:"review-reverse?,omitempty"`
 	Pos           string           `json:"pos,omitempty"`
 	Fields        map[string]Field `json:"fields,omitempty"`
-	Attachments   []Attachment     `json:"attachments,omitempty"`
+	Attachments   []Attachment     `json:"deprecated/attachments,omitempty"`
 }
 
 // UpdateCardRequest holds the info to update a card.
@@ -44,7 +44,7 @@ type UpdateCardRequest struct {
 	ReviewReverse bool             `json:"review-reverse?,omitempty"`
 	Pos           string           `json:"pos,omitempty"`
 	Fields        map[string]Field `json:"fields,omitempty"`
-	Attachments   []Attachment     `json:"attachments,omitempty"`
+	Attachments   []Attachment     `json:"deprecated/attachments,omitempty"`
 }
 
 // Field represents a field.
