@@ -48,6 +48,14 @@ func Test_NewMap(t *testing.T) {
 				"testdata/scream.png": {Filename: "a42069093fdb614a", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
 			},
 		},
+		{
+			name:        "should add",
+			calls:       map[string]bool{"testdata/img/scream.png": true},
+			destination: "img/scream.png",
+			want: map[string]Image{
+				"testdata/img/scream.png": {Filename: "8f88acfcbf1e64f0", Destination: "img/scream.png", Extension: "png", MimeType: "image/png"},
+			},
+		},
 	}
 
 	for _, tt := range tests {
