@@ -22,7 +22,7 @@ func Test_Parse(t *testing.T) {
 		Parser: "note",
 		Path:   "/testdata/lorem-ipsum.md",
 		Text:   "TEST",
-		Cards:  []parser.Card{{Name: "TEST"}},
+		Result: parser.Result{Cards: []parser.Card{{Name: "TEST"}}},
 	}}
 	filePaths := []string{"/lorem-ipsum.md"}
 	want := []parser.Card{{Name: "TEST"}}
@@ -80,7 +80,7 @@ func Test_parseFile(t *testing.T) {
 				Parser: "note",
 				Path:   "/testdata/lorem-ipsum.md",
 				Text:   "TEST",
-				Cards:  []parser.Card{{Name: "TEST"}},
+				Result: parser.Result{Cards: []parser.Card{{Name: "TEST"}}},
 			}},
 			path: "/lorem-ipsum.md",
 			want: []parser.Card{{Name: "TEST"}},

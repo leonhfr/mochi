@@ -39,14 +39,14 @@ func Test_Headings_Convert(t *testing.T) {
 		maxLevel int
 		path     string
 		source   string
-		want     []Card
+		want     Result
 	}{
 		{
 			name:     "simple level 1",
 			maxLevel: 1,
 			path:     "/Headings.md",
 			source:   "# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n\n# Heading 2\n\nContent 3.\n",
-			want: []Card{
+			want: Result{Cards: []Card{
 				{
 					Name:     "Headings | Heading 1",
 					Content:  "Headings | Heading 1\n\n# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n",
@@ -60,21 +60,21 @@ func Test_Headings_Convert(t *testing.T) {
 					Path:     "/Headings.md",
 					Index:    1,
 				},
-			},
+			}},
 		},
 		{
 			name:     "level 1 only headers",
 			maxLevel: 1,
 			path:     "/Headings.md",
 			source:   "# Title 1\n\n# Title 2\n\n# Title 3\n\n# Title 4\n\n# Title 5\n",
-			want:     []Card{},
+			want:     Result{Cards: []Card{}},
 		},
 		{
 			name:     "level 1",
 			maxLevel: 1,
 			path:     "/Headings.md",
 			source:   headingSource,
-			want: []Card{
+			want: Result{Cards: []Card{
 				{
 					Name:     "Headings | Heading 1",
 					Content:  "Headings | Heading 1\n\n# Heading 1\n\nSome text here.\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n\n## Heading 1.2\n\nAnother content.\n",
@@ -95,14 +95,14 @@ func Test_Headings_Convert(t *testing.T) {
 					Path:     "/Headings.md",
 					Index:    2,
 				},
-			},
+			}},
 		},
 		{
 			name:     "level 2",
 			maxLevel: 2,
 			path:     "/Headings.md",
 			source:   headingSource,
-			want: []Card{
+			want: Result{Cards: []Card{
 				{
 					Name:     "Headings | Heading 1",
 					Content:  "Headings | Heading 1\n\n# Heading 1\n\nSome text here.\n",
@@ -137,14 +137,14 @@ func Test_Headings_Convert(t *testing.T) {
 					Path:     "/Headings.md",
 					Index:    4,
 				},
-			},
+			}},
 		},
 		{
 			name:     "level 2 with skip level",
 			maxLevel: 2,
 			path:     "/Headings.md",
 			source:   "## Title 1\n\nContent 1.\n\n## Title 2\n\n### Title 2.1\n\nContent 1.\n",
-			want: []Card{
+			want: Result{Cards: []Card{
 				{
 					Name:     "Headings | Title 1",
 					Content:  "Headings | Title 1\n\n## Title 1\n\nContent 1.\n",
@@ -158,14 +158,14 @@ func Test_Headings_Convert(t *testing.T) {
 					Path:     "/Headings.md",
 					Index:    1,
 				},
-			},
+			}},
 		},
 		{
 			name:     "images",
 			maxLevel: 1,
 			path:     "/subdirectory/Images.md",
 			source:   "# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
-			want: []Card{
+			want: Result{Cards: []Card{
 				{
 					Name:     "Images | Heading 1",
 					Content:  "Images | Heading 1\n\n# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n",
@@ -181,7 +181,7 @@ func Test_Headings_Convert(t *testing.T) {
 					Images:   []Image{{Destination: "images/example-2.png", AltText: "Example 2"}},
 					Index:    1,
 				},
-			},
+			}},
 		},
 	}
 

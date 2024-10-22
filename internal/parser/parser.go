@@ -10,6 +10,11 @@ import (
 
 var extensions = []string{".md"}
 
+// Result contains the result.
+type Result struct {
+	Cards []Card
+}
+
 // Card contains the card data parsed from a file.
 type Card struct {
 	Name     string
@@ -27,7 +32,7 @@ type Image struct {
 }
 
 type cardParser interface {
-	convert(path string, source []byte) ([]Card, error)
+	convert(path string, source []byte) (Result, error)
 }
 
 // Parser represents a parser.
@@ -50,8 +55,8 @@ func New() *Parser {
 	}
 }
 
-// Convert converts a source file into a slice of cards.
-func (p *Parser) Convert(parser, path string, r io.Reader) ([]Card, error) {
+// Convert converts a source file into cards.
+func (p *Parser) Convert(parser, path string, r io.Reader) (Result, error) {
 	var matter struct {
 		Parser string `yaml:"mochi-parser"`
 		Skip   bool   `yaml:"mochi-skip"`
@@ -59,11 +64,11 @@ func (p *Parser) Convert(parser, path string, r io.Reader) ([]Card, error) {
 
 	content, err := frontmatter.Parse(r, &matter)
 	if err != nil {
-		return nil, err
+		return Result{}, err
 	}
 
 	if matter.Skip {
-		return nil, nil
+		return Result{}, nil
 	}
 
 	if matter.Parser != "" {

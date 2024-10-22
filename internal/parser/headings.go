@@ -35,7 +35,7 @@ func newHeadings(maxLevel int) *headings {
 }
 
 // convert implements the cardParser interface.
-func (h *headings) convert(path string, source []byte) ([]Card, error) {
+func (h *headings) convert(path string, source []byte) (Result, error) {
 	parsed := []parsedHeading{{level: 0}}
 	doc := h.parser.Parse(text.NewReader(source))
 
@@ -66,7 +66,7 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 
 	cards := getHeadingCards(path, parsed, source)
 
-	return cards, err
+	return Result{Cards: cards}, err
 }
 
 func getHeadingCards(path string, headings []parsedHeading, source []byte) []Card {

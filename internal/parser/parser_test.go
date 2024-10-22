@@ -25,7 +25,7 @@ func Test_Parser_Convert(t *testing.T) {
 		parser1 []cardParserCall
 		parser2 []cardParserCall
 		source  string
-		want    []Card
+		want    Result
 	}{
 		{
 			name:   "frontmatter skip",
@@ -34,26 +34,26 @@ func Test_Parser_Convert(t *testing.T) {
 		},
 		{
 			name:    "frontmatter overwrites parser",
-			parser2: []cardParserCall{{path: mockPath, source: mockSource, cards: mockCards}},
+			parser2: []cardParserCall{{path: mockPath, source: mockSource, result: Result{Cards: mockCards}}},
 			parser:  "parser1",
 			path:    mockPath,
 			source:  "---\nmochi-parser: parser2\n---\n" + mockSource,
-			want:    mockCards,
+			want:    Result{Cards: mockCards},
 		},
 		{
 			name:    "specific parser",
-			parser1: []cardParserCall{{path: mockPath, source: mockSource, cards: mockCards}},
+			parser1: []cardParserCall{{path: mockPath, source: mockSource, result: Result{Cards: mockCards}}},
 			parser:  "parser1",
 			path:    mockPath,
 			source:  mockSource,
-			want:    mockCards,
+			want:    Result{Cards: mockCards},
 		},
 		{
 			name:    "default parser",
-			parser0: []cardParserCall{{path: mockPath, source: mockSource, cards: mockCards}},
+			parser0: []cardParserCall{{path: mockPath, source: mockSource, result: Result{Cards: mockCards}}},
 			path:    mockPath,
 			source:  mockSource,
-			want:    mockCards,
+			want:    Result{Cards: mockCards},
 		},
 	}
 
@@ -82,7 +82,7 @@ func Test_Parser_Convert(t *testing.T) {
 type cardParserCall struct {
 	path   string
 	source string
-	cards  []Card
+	result Result
 	err    error
 }
 
@@ -95,12 +95,12 @@ func newMockCardParser(calls []cardParserCall) *mockCardParser {
 	for _, call := range calls {
 		m.
 			On("convert", call.path, []byte(call.source)).
-			Return(call.cards, call.err)
+			Return(call.result, call.err)
 	}
 	return m
 }
 
-func (m *mockCardParser) convert(path string, source []byte) ([]Card, error) {
+func (m *mockCardParser) convert(path string, source []byte) (Result, error) {
 	args := m.Called(path, source)
-	return args.Get(0).([]Card), args.Error(1)
+	return args.Get(0).(Result), args.Error(1)
 }
