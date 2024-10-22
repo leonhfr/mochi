@@ -94,14 +94,14 @@ func newMockCardParser(calls []cardParserCall) *mockCardParser {
 	m := new(mockCardParser)
 	for _, call := range calls {
 		m.
-			On("convert", call.path, []byte(call.source)).
+			On("convert", mock.Anything, call.path, []byte(call.source)).
 			Return(call.cards, call.err)
 	}
 	return m
 }
 
-func (m *mockCardParser) convert(path string, source []byte) ([]Card, error) {
-	args := m.Called(path, source)
+func (m *mockCardParser) convert(fc FileCheck, path string, source []byte) ([]Card, error) {
+	args := m.Called(fc, path, source)
 	return args.Get(0).([]Card), args.Error(1)
 }
 

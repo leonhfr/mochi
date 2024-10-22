@@ -13,14 +13,12 @@ import (
 // The whole content of the file is returned as a card.
 // The is the file name without the extension.
 type note struct {
-	fc     FileCheck
 	parser parser.Parser
 }
 
 // newNote returns a new note parser.
-func newNote(fc FileCheck) *note {
+func newNote() *note {
 	return &note{
-		fc: fc,
 		parser: parser.NewParser(
 			parser.WithBlockParsers(
 				parser.DefaultBlockParsers()...,
@@ -33,7 +31,7 @@ func newNote(fc FileCheck) *note {
 }
 
 // Convert implements the cardParser interface.
-func (n *note) convert(path string, source []byte) ([]Card, error) {
+func (n *note) convert(fc FileCheck, path string, source []byte) ([]Card, error) {
 	parsed := []image.Parsed{}
 	doc := n.parser.Parse(text.NewReader(source))
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
@@ -56,7 +54,7 @@ func (n *note) convert(path string, source []byte) ([]Card, error) {
 	}
 
 	name := getNameFromPath(path)
-	images := image.NewMap(n.fc, path, parsed)
+	images := image.NewMap(fc, path, parsed)
 	return []Card{createNoteCard(name, path, source, images)}, nil
 }
 

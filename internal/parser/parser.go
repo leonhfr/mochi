@@ -27,25 +27,27 @@ type Card struct {
 }
 
 type cardParser interface {
-	convert(path string, source []byte) ([]Card, error)
+	convert(fc FileCheck, path string, source []byte) ([]Card, error)
 }
 
 // Parser represents a parser.
 type Parser struct {
 	cardParser
+	fc      FileCheck
 	parsers map[string]cardParser
 }
 
 // New returns a new parser.
 func New(fc FileCheck) *Parser {
 	return &Parser{
-		cardParser: newNote(fc),
+		fc:         fc,
+		cardParser: newNote(),
 		parsers: map[string]cardParser{
-			"note":      newNote(fc),
-			"headings":  newHeadings(fc, 1),
-			"headings1": newHeadings(fc, 1),
-			"headings2": newHeadings(fc, 2),
-			"headings3": newHeadings(fc, 3),
+			"note":      newNote(),
+			"headings":  newHeadings(1),
+			"headings1": newHeadings(1),
+			"headings2": newHeadings(2),
+			"headings3": newHeadings(3),
 		},
 	}
 }
@@ -71,10 +73,10 @@ func (p *Parser) Convert(parser, path string, r io.Reader) ([]Card, error) {
 	}
 
 	if cp, ok := p.parsers[parser]; ok {
-		return cp.convert(path, content)
+		return cp.convert(p.fc, path, content)
 	}
 
-	return p.convert(path, content)
+	return p.convert(p.fc, path, content)
 }
 
 // List returns the list of allowed parser names.

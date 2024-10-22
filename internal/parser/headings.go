@@ -17,15 +17,13 @@ import (
 // Each headings until a determined depth returns a separate card.
 // The card names are formatted from the card name and the heading.
 type headings struct {
-	fc       FileCheck
 	parser   parser.Parser
 	maxLevel int
 }
 
 // newHeadings returns a new note parser.
-func newHeadings(fc FileCheck, maxLevel int) *headings {
+func newHeadings(maxLevel int) *headings {
 	return &headings{
-		fc: fc,
 		parser: parser.NewParser(
 			parser.WithBlockParsers(
 				parser.DefaultBlockParsers()...,
@@ -39,7 +37,7 @@ func newHeadings(fc FileCheck, maxLevel int) *headings {
 }
 
 // convert implements the cardParser interface.
-func (h *headings) convert(path string, source []byte) ([]Card, error) {
+func (h *headings) convert(fc FileCheck, path string, source []byte) ([]Card, error) {
 	parsed := []parsedHeading{{level: 0}}
 	doc := h.parser.Parse(text.NewReader(source))
 
@@ -68,7 +66,7 @@ func (h *headings) convert(path string, source []byte) ([]Card, error) {
 		return ast.WalkContinue, nil
 	})
 
-	cards := getHeadingCards(h.fc, path, parsed, source)
+	cards := getHeadingCards(fc, path, parsed, source)
 
 	return cards, err
 }

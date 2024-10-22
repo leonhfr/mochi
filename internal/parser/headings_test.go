@@ -193,7 +193,7 @@ func Test_Headings_Convert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fc := newMockFileChecker(tt.fileChecks)
-			got, err := newHeadings(fc, tt.maxLevel).convert(tt.path, []byte(tt.source))
+			got, err := newHeadings(tt.maxLevel).convert(fc, tt.path, []byte(tt.source))
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 			fc.AssertExpectations(t)

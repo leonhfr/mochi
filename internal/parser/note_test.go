@@ -52,7 +52,7 @@ func Test_Note_Convert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fc := newMockFileChecker(tt.fileChecks)
-			got, err := newNote(fc).convert(tt.path, []byte(tt.source))
+			got, err := newNote().convert(fc, tt.path, []byte(tt.source))
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 			fc.AssertExpectations(t)
