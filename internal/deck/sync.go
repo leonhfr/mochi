@@ -22,6 +22,8 @@ type Config interface {
 
 // Lockfile is the interface to interact with the lockfile.
 type Lockfile interface {
+	Lock()
+	Unlock()
 	GetDeck(string) (string, lock.Deck, bool)
 	SetDeck(string, string, string, string)
 	UpdateDeckName(string, string)
@@ -32,6 +34,9 @@ type Lockfile interface {
 // It will create any intermediate decks as required until a root deck is reached.
 // If the names do not match, the remote deck will be updated.
 func Sync(ctx context.Context, client Client, config Config, lf Lockfile, path string) (deckID string, err error) {
+	lf.Lock()
+	defer lf.Unlock()
+
 	id, deck, ok := lf.GetDeck(path)
 	if name := getDeckName(config, path); ok && deck.Name != name {
 		err = updateDeckName(ctx, client, lf, deckID, name)

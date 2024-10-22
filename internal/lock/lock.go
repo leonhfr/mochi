@@ -84,6 +84,16 @@ func Parse(rw ReaderWriter, target string) (*Lock, error) {
 	return lock, nil
 }
 
+// Lock locks the lockfile.
+func (l *Lock) Lock() {
+	l.mu.Lock()
+}
+
+// Unlock unlocks the lockfile.
+func (l *Lock) Unlock() {
+	l.mu.Unlock()
+}
+
 // CleanDecks removes from the lockfile the inexistent decks
 // and updates the deck names if they differ.
 func (l *Lock) CleanDecks(decks []mochi.Deck) {
@@ -154,10 +164,9 @@ func (l *Lock) CleanImages(deckID, cardID string, paths []string) {
 }
 
 // GetDeck returns an existing decks information from a directory string.
+//
+// Assumes mutex is already acquired.
 func (l *Lock) GetDeck(path string) (string, Deck, bool) {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-
 	for deckID, deck := range l.data {
 		if deck.Path == path {
 			return deckID, deck, true
@@ -168,10 +177,9 @@ func (l *Lock) GetDeck(path string) (string, Deck, bool) {
 }
 
 // SetDeck sets a deck in the lockfile.
+//
+// Assumes mutex is already acquired.
 func (l *Lock) SetDeck(id, parentID, path, name string) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	l.data[id] = Deck{
 		ParentID: parentID,
 		Path:     path,
@@ -182,10 +190,9 @@ func (l *Lock) SetDeck(id, parentID, path, name string) {
 }
 
 // UpdateDeckName updates a deck name in the lockfile.
+//
+// Assumes mutex is already acquired.
 func (l *Lock) UpdateDeckName(id, name string) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	tmp := l.data[id]
 	tmp.Name = name
 	l.data[id] = tmp

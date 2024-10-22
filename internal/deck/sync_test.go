@@ -37,6 +37,7 @@ func Test_Sync(t *testing.T) {
 				},
 			},
 			lockfile: test.Lockfile{
+				Lock: 1,
 				GetDeck: []test.LockfileGetDeck{
 					{Path: "/test/data"},
 					{Path: "/test", DeckID: "DECK_TEST_ID", OK: true},

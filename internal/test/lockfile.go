@@ -7,6 +7,7 @@ import (
 )
 
 type Lockfile struct {
+	Lock           int
 	GetDeck        []LockfileGetDeck
 	SetDeck        []LockfileSetDeck
 	UpdateDeckName []LockfileUpdateDeckName
@@ -33,6 +34,10 @@ type LockfileUpdateDeckName struct {
 
 func NewMockLockfile(calls Lockfile) *MockLockfile {
 	lf := new(MockLockfile)
+	for i := 0; i < calls.Lock; i++ {
+		lf.On("Lock").Return()
+		lf.On("Unlock").Return()
+	}
 	for _, call := range calls.GetDeck {
 		lf.
 			On("GetDeck", call.Path).
@@ -53,6 +58,14 @@ func NewMockLockfile(calls Lockfile) *MockLockfile {
 
 type MockLockfile struct {
 	mock.Mock
+}
+
+func (m *MockLockfile) Lock() {
+	m.Called()
+}
+
+func (m *MockLockfile) Unlock() {
+	m.Called()
 }
 
 func (m *MockLockfile) GetDeck(path string) (string, lock.Deck, bool) {
