@@ -91,7 +91,7 @@ func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, 
 			req := req
 			s.Go(func() stream.Callback {
 				logger.Infof("syncing: %s", req.String())
-				if err := req.Sync(ctx, client, reader, lf); err != nil {
+				if err := req.Execute(ctx, client, reader, lf); err != nil {
 					return func() {
 						out <- Result[struct{}]{err: err}
 					}

@@ -31,7 +31,7 @@ type Lockfile interface {
 // Request is the interface that should be implemented to execute a request.
 type Request interface {
 	fmt.Stringer
-	Sync(ctx context.Context, client Client, reader Reader, lf Lockfile) error
+	Execute(ctx context.Context, client Client, reader Reader, lf Lockfile) error
 }
 
 func getAttachments(images []image.Attachment) []mochi.Attachment {

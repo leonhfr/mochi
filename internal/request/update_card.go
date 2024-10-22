@@ -24,8 +24,8 @@ func UpdateCard(deckID, cardID string, card parser.Card) Request {
 	}
 }
 
-// Sync implements the SyncRequest interface.
-func (r *updateCard) Sync(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
+// Execute implements the Request interface.
+func (r *updateCard) Execute(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
 	attachments, err := image.Attachments(reader, r.card.Images)
 	if err != nil {
 		return err
