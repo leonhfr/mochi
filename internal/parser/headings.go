@@ -8,7 +8,6 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
-	"github.com/yuin/goldmark/util"
 
 	"github.com/leonhfr/mochi/internal/image"
 )
@@ -29,12 +28,10 @@ func newHeadings(fc FileCheck, maxLevel int) *headings {
 		fc: fc,
 		parser: parser.NewParser(
 			parser.WithBlockParsers(
-				util.Prioritized(parser.NewATXHeadingParser(), 100),
-				util.Prioritized(parser.NewHTMLBlockParser(), 200),
-				util.Prioritized(parser.NewParagraphParser(), 300),
+				parser.DefaultBlockParsers()...,
 			),
 			parser.WithInlineParsers(
-				util.Prioritized(parser.NewLinkParser(), 100),
+				parser.DefaultInlineParsers()...,
 			),
 		),
 		maxLevel: maxLevel,

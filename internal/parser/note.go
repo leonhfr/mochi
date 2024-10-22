@@ -4,7 +4,6 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
-	"github.com/yuin/goldmark/util"
 
 	"github.com/leonhfr/mochi/internal/image"
 )
@@ -24,10 +23,10 @@ func newNote(fc FileCheck) *note {
 		fc: fc,
 		parser: parser.NewParser(
 			parser.WithBlockParsers(
-				util.Prioritized(parser.NewParagraphParser(), 100),
+				parser.DefaultBlockParsers()...,
 			),
 			parser.WithInlineParsers(
-				util.Prioritized(parser.NewLinkParser(), 100),
+				parser.DefaultInlineParsers()...,
 			),
 		),
 	}
