@@ -8,8 +8,6 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
-
-	"github.com/leonhfr/mochi/internal/image"
 )
 
 // headings represents a headings parser.
@@ -37,7 +35,7 @@ func newHeadings(maxLevel int) *headings {
 }
 
 // convert implements the cardParser interface.
-func (h *headings) convert(fc FileCheck, path string, source []byte) ([]Card, error) {
+func (h *headings) convert(path string, source []byte) ([]Card, error) {
 	parsed := []parsedHeading{{level: 0}}
 	doc := h.parser.Parse(text.NewReader(source))
 
@@ -57,7 +55,7 @@ func (h *headings) convert(fc FileCheck, path string, source []byte) ([]Card, er
 				})
 			}
 		case *ast.Image:
-			parsed[len(parsed)-1].images = append(parsed[len(parsed)-1].images, image.Parsed{
+			parsed[len(parsed)-1].images = append(parsed[len(parsed)-1].images, Image{
 				Destination: string(node.Destination),
 				AltText:     string(node.Text(source)),
 			})
@@ -66,20 +64,19 @@ func (h *headings) convert(fc FileCheck, path string, source []byte) ([]Card, er
 		return ast.WalkContinue, nil
 	})
 
-	cards := getHeadingCards(fc, path, parsed, source)
+	cards := getHeadingCards(path, parsed, source)
 
 	return cards, err
 }
 
-func getHeadingCards(fc FileCheck, path string, headings []parsedHeading, source []byte) []Card {
+func getHeadingCards(path string, headings []parsedHeading, source []byte) []Card {
 	if len(headings) == 0 {
 		return nil
 	}
 
 	if len(headings) == 1 {
 		name := getNameFromPath(path)
-		images := image.NewMap(fc, path, headings[0].images)
-		return []Card{createNoteCard(name, path, source, images)}
+		return []Card{createNoteCard(name, path, source, headings[0].images)}
 	}
 
 	cards := []Card{}
@@ -113,22 +110,22 @@ func getHeadingCards(fc FileCheck, path string, headings []parsedHeading, source
 			continue
 		}
 
-		cards = append(cards, createHeadingCard(fc, titles, path, content, heading.images, len(cards)))
+		cards = append(cards, createHeadingCard(titles, path, content, heading.images, len(cards)))
 		start = stop
 	}
 
 	return cards
 }
 
-func createHeadingCard(fc FileCheck, headings []string, path string, source []byte, images []image.Parsed, index int) Card {
+func createHeadingCard(headings []string, path string, source []byte, images []Image, index int) Card {
 	name := strings.ReplaceAll(strings.Join(headings, " | "), " |  | ", " | ")
 	content := fmt.Sprintf("%s\n\n%s\n", name, string(source))
-	imageMap := image.NewMap(fc, path, images)
 	return Card{
 		Name:     name,
-		Content:  image.Replace(imageMap, string(content)),
+		Content:  string(content),
 		Filename: getFilename(path),
-		Images:   imageMap,
+		Path:     path,
+		Images:   images,
 		Index:    index,
 	}
 }
@@ -145,5 +142,5 @@ type parsedHeading struct {
 	level  int
 	start  int
 	stop   int
-	images []image.Parsed
+	images []Image
 }

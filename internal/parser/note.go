@@ -4,8 +4,6 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
-
-	"github.com/leonhfr/mochi/internal/image"
 )
 
 // note represents a note parser.
@@ -31,8 +29,8 @@ func newNote() *note {
 }
 
 // Convert implements the cardParser interface.
-func (n *note) convert(fc FileCheck, path string, source []byte) ([]Card, error) {
-	parsed := []image.Parsed{}
+func (n *note) convert(path string, source []byte) ([]Card, error) {
+	images := []Image{}
 	doc := n.parser.Parse(text.NewReader(source))
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if !entering {
@@ -41,7 +39,7 @@ func (n *note) convert(fc FileCheck, path string, source []byte) ([]Card, error)
 
 		switch node := n.(type) {
 		case *ast.Image:
-			parsed = append(parsed, image.Parsed{
+			images = append(images, Image{
 				Destination: string(node.Destination),
 				AltText:     string(node.Text(source)),
 			})
@@ -54,15 +52,15 @@ func (n *note) convert(fc FileCheck, path string, source []byte) ([]Card, error)
 	}
 
 	name := getNameFromPath(path)
-	images := image.NewMap(fc, path, parsed)
 	return []Card{createNoteCard(name, path, source, images)}, nil
 }
 
-func createNoteCard(name, path string, source []byte, images map[string]image.Image) Card {
+func createNoteCard(name, path string, source []byte, images []Image) Card {
 	return Card{
 		Name:     name,
-		Content:  image.Replace(images, string(source)),
+		Content:  string(source),
 		Filename: getFilename(path),
+		Path:     path,
 		Images:   images,
 	}
 }

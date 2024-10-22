@@ -26,7 +26,15 @@ func UpdateCard(deckID, cardID string, card parser.Card) Request {
 
 // Execute implements the Request interface.
 func (r *updateCard) Execute(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
-	attachments, err := image.Attachments(reader, r.card.Images)
+	parsed := []image.Parsed{}
+	for _, img := range r.card.Images {
+		parsed = append(parsed, image.Parsed{
+			Destination: img.Destination,
+			AltText:     img.AltText,
+		})
+	}
+	images := image.NewMap(reader, r.card.Path, parsed)
+	attachments, err := image.Attachments(reader, images)
 	if err != nil {
 		return err
 	}
@@ -43,7 +51,7 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader Reader, 
 	}
 
 	req := mochi.UpdateCardRequest{
-		Content:     r.card.Content,
+		Content:     image.Replace(images, r.card.Content),
 		Attachments: getAttachments(filtered),
 	}
 

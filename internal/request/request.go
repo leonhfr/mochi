@@ -18,6 +18,7 @@ type Client interface {
 
 // Reader represents the interface to read files.
 type Reader interface {
+	Exists(path string) bool
 	Read(path string) (io.ReadCloser, error)
 }
 

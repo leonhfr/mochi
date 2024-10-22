@@ -6,41 +6,39 @@ import (
 	"strings"
 
 	"github.com/adrg/frontmatter"
-
-	"github.com/leonhfr/mochi/internal/image"
 )
 
 var extensions = []string{".md"}
-
-// FileCheck is the interface implemented to check file existence.
-type FileCheck interface {
-	Exists(path string) bool
-}
 
 // Card contains the card data parsed from a file.
 type Card struct {
 	Name     string
 	Content  string
 	Filename string
-	Images   map[string]image.Image
+	Path     string
+	Images   []Image
 	Index    int
 }
 
+// Image contains the parsed image data.
+type Image struct {
+	Destination string
+	AltText     string
+}
+
 type cardParser interface {
-	convert(fc FileCheck, path string, source []byte) ([]Card, error)
+	convert(path string, source []byte) ([]Card, error)
 }
 
 // Parser represents a parser.
 type Parser struct {
 	cardParser
-	fc      FileCheck
 	parsers map[string]cardParser
 }
 
 // New returns a new parser.
-func New(fc FileCheck) *Parser {
+func New() *Parser {
 	return &Parser{
-		fc:         fc,
 		cardParser: newNote(),
 		parsers: map[string]cardParser{
 			"note":      newNote(),
@@ -73,10 +71,10 @@ func (p *Parser) Convert(parser, path string, r io.Reader) ([]Card, error) {
 	}
 
 	if cp, ok := p.parsers[parser]; ok {
-		return cp.convert(p.fc, path, content)
+		return cp.convert(path, content)
 	}
 
-	return p.convert(p.fc, path, content)
+	return p.convert(path, content)
 }
 
 // List returns the list of allowed parser names.
