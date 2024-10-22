@@ -94,3 +94,14 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sync-notes:
+    needs: action-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync notes
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.NOTES_PAT }}
+          repository: leonhfr/notes
+          event-type: mochi-release
