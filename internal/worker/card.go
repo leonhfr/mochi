@@ -122,6 +122,10 @@ func syncRequests(ctx context.Context, logger Logger, client Client, cr card.Rea
 		return nil, err
 	}
 
+	for _, parsedCard := range parsedCards {
+		logger.Debugf("card sync(deckID %s): parsed %v", deck.deckID, parsedCard)
+	}
+
 	logger.Infof("card sync(deckID %s): generating sync requests", deck.deckID)
 	reqs := card.SyncRequests(lf, deck.deckID, mochiCards, parsedCards)
 	return reqs, nil
