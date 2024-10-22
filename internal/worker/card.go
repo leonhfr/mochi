@@ -6,6 +6,7 @@ import (
 	"github.com/sourcegraph/conc/stream"
 
 	"github.com/leonhfr/mochi/internal/card"
+	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -81,7 +82,7 @@ func DumpRequests(ctx context.Context, logger Logger, client card.DumpClient, in
 }
 
 // ExecuteRequests executes the sync requests.
-func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, reader request.Reader, lf request.Lockfile, in <-chan request.Request) <-chan Result[struct{}] {
+func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, reader image.Reader, lf request.Lockfile, in <-chan request.Request) <-chan Result[struct{}] {
 	out := make(chan Result[struct{}])
 	go func() {
 		defer close(out)

@@ -1,97 +1,146 @@
 package image
 
 import (
+	"io"
+	"io/fs"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/leonhfr/mochi/internal/parser"
+	"github.com/leonhfr/mochi/mochi"
 )
 
-func Test_NewMap(t *testing.T) {
+func Test_newImage(t *testing.T) {
 	path := "/testdata/Markdown.md"
 	tests := []struct {
-		name        string
-		images      map[string]Image
-		calls       map[string]bool
-		destination string
-		altText     string
-		want        map[string]Image
+		name   string
+		call   testRead
+		parsed parser.Image
+		want   Image
+		ok     bool
 	}{
 		{
-			name:        "should not add when destination is an URL",
-			calls:       map[string]bool{"/testdata/example.com/image.png": false},
-			destination: "example.com/image.png",
-			want:        map[string]Image{},
-		},
-		{
-			name: "should not add when already in map",
-			images: map[string]Image{
-				"/testdata/scream.png": {Filename: "22abb8f07c02970e", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
+			name: "should return false when error",
+			call: testRead{
+				path: "/testdata/scream.png",
+				err:  fs.ErrNotExist,
 			},
-			calls:       map[string]bool{"/testdata/scream.png": true},
-			destination: "./scream.png",
-			want: map[string]Image{
-				"/testdata/scream.png": {Filename: "22abb8f07c02970e", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
+			parsed: parser.Image{
+				Destination: "scream.png",
 			},
 		},
 		{
-			name:        "should not add when mime type does not match",
-			calls:       map[string]bool{"/testdata/markdown.md": true},
-			destination: "./markdown.md",
-			want:        map[string]Image{},
-		},
-		{
-			name:        "should add",
-			calls:       map[string]bool{"/testdata/scream.png": true},
-			destination: "./scream.png",
-			want: map[string]Image{
-				"/testdata/scream.png": {Filename: "22abb8f07c02970e", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
+			name: "should return false when mime type not recognized",
+			call: testRead{
+				path:    "/testdata/scream.unknown",
+				content: "IMAGE CONTENT",
+			},
+			parsed: parser.Image{
+				Destination: "scream.unknown",
 			},
 		},
 		{
-			name:        "should add",
-			calls:       map[string]bool{"/testdata/img/scream.png": true},
-			destination: "img/scream.png",
-			want: map[string]Image{
-				"/testdata/img/scream.png": {Filename: "41f30bab5ed70157", Destination: "img/scream.png", Extension: "png", MimeType: "image/png"},
+			name: "should return image",
+			call: testRead{
+				path:    "/testdata/scream.png",
+				content: "IMAGE CONTENT",
 			},
+			parsed: parser.Image{
+				Destination: "scream.png",
+				AltText:     "alt text",
+			},
+			want: Image{
+				attachment: mochi.Attachment{
+					FileName:    "22abb8f07c02970e.png",
+					ContentType: "image/png",
+					Data:        "SU1BR0UgQ09OVEVO",
+				},
+				Hash:        "1923784bcb1663bbbd9efd9765c36382",
+				path:        "/testdata/scream.png",
+				destination: "scream.png",
+				altText:     "alt text",
+			},
+			ok: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fc := newMockFileChecker(tt.calls)
-			images := NewMap(fc, path, []Parsed{{Destination: tt.destination, AltText: tt.altText}})
-			assert.Equal(t, tt.want, images)
-			fc.AssertExpectations(t)
+			r := newMockReader([]testRead{tt.call})
+			got, ok := newImage(r, path, tt.parsed)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.ok, ok)
+			r.AssertExpectations(t)
 		})
 	}
 }
 
-func Test_Map_Replace(t *testing.T) {
-	images := map[string]Image{
-		"testdata/scream.png":         {Filename: "scream_hash", Destination: "./scream.png", Extension: "png", MimeType: "image/png", AltText: "Scream"},
-		"testdata/constellations.png": {Filename: "constellations_hash", Destination: "./constellations.jpg", Extension: "jpg", MimeType: "image/jpg"},
+func Test_readImage(t *testing.T) {
+	tests := []struct {
+		name    string
+		call    testRead
+		path    string
+		hash    string
+		content string
+		err     error
+	}{
+		{
+			name: "should read image",
+			call: testRead{
+				path:    "/testdata/scream.png",
+				content: "IMAGE CONTENT",
+			},
+			path:    "/testdata/scream.png",
+			hash:    "1923784bcb1663bbbd9efd9765c36382",
+			content: "SU1BR0UgQ09OVEVO",
+		},
+		{
+			name: "should return error",
+			call: testRead{
+				path:    "/testdata/scream.png",
+				content: "",
+				err:     fs.ErrNotExist,
+			},
+			path: "/testdata/scream.png",
+			err:  fs.ErrNotExist,
+		},
 	}
-	source := "![Scream](./scream.png)\n![](./constellations.jpg)"
-	want := "![Scream](@media/scream_hash.png)\n![](@media/constellations_hash.jpg)"
-	got := Replace(images, source)
-	assert.Equal(t, want, got)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := newMockReader([]testRead{tt.call})
+			hash, content, err := readImage(r, tt.path)
+			assert.Equal(t, tt.hash, hash)
+			assert.Equal(t, tt.content, content)
+			assert.Equal(t, tt.err, err)
+			r.AssertExpectations(t)
+		})
+	}
 }
 
-type mockFileChecker struct {
+type testRead struct {
+	path    string
+	content string
+	err     error
+}
+
+type mockFile struct {
 	mock.Mock
 }
 
-func newMockFileChecker(calls map[string]bool) *mockFileChecker {
-	m := new(mockFileChecker)
-	for path, ok := range calls {
-		m.On("Exists", path).Return(ok)
+func newMockReader(calls []testRead) *mockFile {
+	m := new(mockFile)
+	for _, call := range calls {
+		m.On("Read", call.path).Return(call.content, call.err)
 	}
 	return m
 }
 
-func (m *mockFileChecker) Exists(p string) bool {
+func (m *mockFile) Read(p string) (io.ReadCloser, error) {
 	args := m.Mock.Called(p)
-	return args.Bool(0)
+	rc := strings.NewReader(args.String(0))
+	return io.NopCloser(rc), args.Error(1)
 }

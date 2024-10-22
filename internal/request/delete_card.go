@@ -3,6 +3,8 @@ package request
 import (
 	"context"
 	"fmt"
+
+	"github.com/leonhfr/mochi/internal/image"
 )
 
 type deleteCard struct {
@@ -15,7 +17,7 @@ func DeleteCard(cardID string) Request {
 }
 
 // Execute implements the Request interface.
-func (r *deleteCard) Execute(ctx context.Context, client Client, _ Reader, _ Lockfile) error {
+func (r *deleteCard) Execute(ctx context.Context, client Client, _ image.Reader, _ Lockfile) error {
 	return client.DeleteCard(ctx, r.cardID)
 }
 

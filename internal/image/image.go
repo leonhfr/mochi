@@ -1,11 +1,17 @@
 package image
 
 import (
+	"bytes"
 	//nolint:gosec
 	"crypto/md5"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"path/filepath"
 	"strings"
+
+	"github.com/leonhfr/mochi/internal/parser"
+	"github.com/leonhfr/mochi/mochi"
 )
 
 const fileNameLength = 16
@@ -19,71 +25,87 @@ var mimeTypes = map[string]string{
 	"webp": "image/webp",
 }
 
-// FileCheck is the interface implemented to check file existence.
-type FileCheck interface {
-	Exists(path string) bool
+// Reader represents the interface to read files.
+type Reader interface {
+	Read(path string) (io.ReadCloser, error)
 }
 
-// Image contains the data of one image.
+// Image contains the data for an Image.
 type Image struct {
-	Filename    string // md5 of path relative to root
-	Extension   string
-	MimeType    string
-	Destination string // original destination
-	AltText     string
+	attachment  mochi.Attachment // filename: [md5 of path].ext
+	Hash        string           // md5 of contents
+	path        string           // absolute path to file
+	destination string           // original destination
+	altText     string           // original alt text
 }
 
-// Parsed contains the data of a parsed image.
-type Parsed struct {
-	Destination string
-	AltText     string
-}
-
-// New creates a new Image.
-func New(fc FileCheck, path string, parsed Parsed) (string, Image, bool) {
+// newImage creates a new image.
+func newImage(reader Reader, path string, parsed parser.Image) (Image, bool) {
 	absPath := filepath.Join(filepath.Dir(path), parsed.Destination)
-	if !fc.Exists(absPath) {
-		return "", Image{}, false
+	hash, content, err := readImage(reader, absPath)
+	if err != nil {
+		return Image{}, false
 	}
 
-	if filepath.IsAbs(parsed.Destination) {
-		absPath = parsed.Destination
-	}
-
-	ext := strings.TrimLeft(filepath.Ext(parsed.Destination), ".")
-	mime, ok := mimeTypes[ext]
+	extension := getExtension(parsed.Destination)
+	mimeType, ok := getMimeType(extension)
 	if !ok {
-		return "", Image{}, false
+		return Image{}, false
 	}
 
-	//nolint:gosec
-	hash := fmt.Sprintf("%x", md5.Sum([]byte(absPath)))
-	return absPath, Image{
-		Filename:    hash[:fileNameLength],
-		Extension:   ext,
-		MimeType:    mime,
-		Destination: parsed.Destination,
-		AltText:     parsed.AltText,
+	pathHash := getPathHash(absPath)
+	filename := getFilename(pathHash, extension)
+
+	return Image{
+		attachment: mochi.Attachment{
+			FileName:    filename,
+			ContentType: mimeType,
+			Data:        content,
+		},
+		path:        absPath,
+		Hash:        hash,
+		destination: parsed.Destination,
+		altText:     parsed.AltText,
 	}, true
 }
 
-// NewMap create a new map from parsed images.
-func NewMap(fc FileCheck, path string, parsed []Parsed) map[string]Image {
-	images := make(map[string]Image)
-	for _, p := range parsed {
-		if absPath, image, ok := New(fc, path, p); ok {
-			images[absPath] = image
-		}
+func readImage(reader Reader, absPath string) (string, string, error) {
+	file, err := reader.Read(absPath)
+	if err != nil {
+		return "", "", err
 	}
-	return images
+	defer file.Close()
+
+	bytes := bytes.NewBuffer(nil)
+	base64Encoder := base64.NewEncoder(base64.StdEncoding, bytes)
+	defer base64Encoder.Close()
+
+	//nolint:gosec
+	hashEncoder := md5.New()
+	tee := io.TeeReader(file, hashEncoder)
+	if _, err := io.Copy(base64Encoder, tee); err != nil {
+		return "", "", err
+	}
+
+	hash := fmt.Sprintf("%x", hashEncoder.Sum(nil))
+	return hash, bytes.String(), nil
 }
 
-// Replace replaces images link in the Markdown source to mochi Markdown.
-func Replace(images map[string]Image, source string) string {
-	for _, image := range images {
-		from := fmt.Sprintf("![%s](%s)", image.AltText, image.Destination)
-		to := fmt.Sprintf("![%s](@media/%s.%s)", image.AltText, image.Filename, image.Extension)
-		source = strings.ReplaceAll(source, from, to)
-	}
-	return source
+func getExtension(destination string) string {
+	return strings.TrimLeft(filepath.Ext(destination), ".")
+}
+
+func getMimeType(extension string) (string, bool) {
+	mime, ok := mimeTypes[extension]
+	return mime, ok
+}
+
+func getPathHash(absPath string) string {
+	//nolint:gosec
+	return fmt.Sprintf("%x", md5.Sum([]byte(absPath)))
+}
+
+func getFilename(pathHash, extension string) string {
+	shortHash := pathHash[:fileNameLength]
+	return fmt.Sprintf("%s.%s", shortHash, extension)
 }

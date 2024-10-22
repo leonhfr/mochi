@@ -23,27 +23,16 @@ func CreateCard(deckID string, card parser.Card) Request {
 }
 
 // Execute implements the Request interface.
-func (r *createRequest) Execute(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
-	parsed := []image.Parsed{}
-	for _, img := range r.card.Images {
-		parsed = append(parsed, image.Parsed{
-			Destination: img.Destination,
-			AltText:     img.AltText,
-		})
-	}
-	images := image.NewMap(reader, r.card.Path, parsed)
-	attachments, err := image.Attachments(reader, images)
-	if err != nil {
-		return err
-	}
+func (r *createRequest) Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error {
+	images := image.New(reader, r.card.Path, r.card.Images)
 
 	req := mochi.CreateCardRequest{
-		Content: image.Replace(images, r.card.Content),
+		Content: images.Replace(r.card.Content),
 		DeckID:  r.deckID,
 		Fields: map[string]mochi.Field{
 			"name": {ID: "name", Value: r.card.Name},
 		},
-		Attachments: getAttachments(attachments),
+		Attachments: images.Attachments(),
 		Pos:         getCardPos(r.card),
 	}
 
@@ -52,7 +41,7 @@ func (r *createRequest) Execute(ctx context.Context, client Client, reader Reade
 		return err
 	}
 
-	hashMap := getHashMap(attachments)
+	hashMap := images.HashMap()
 	if err := lf.SetCard(r.deckID, card.ID, r.card.Filename, hashMap); err != nil {
 		return err
 	}

@@ -25,41 +25,30 @@ func UpdateCard(deckID, cardID string, card parser.Card) Request {
 }
 
 // Execute implements the Request interface.
-func (r *updateCard) Execute(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
-	parsed := []image.Parsed{}
-	for _, img := range r.card.Images {
-		parsed = append(parsed, image.Parsed{
-			Destination: img.Destination,
-			AltText:     img.AltText,
-		})
-	}
-	images := image.NewMap(reader, r.card.Path, parsed)
-	attachments, err := image.Attachments(reader, images)
-	if err != nil {
-		return err
-	}
+func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error {
+	images := image.New(reader, r.card.Path, r.card.Images)
 
-	paths := getPaths(attachments)
+	paths := images.Paths()
 	lf.CleanImages(r.deckID, r.cardID, paths)
 
 	hashes := lf.GetImageHashes(r.deckID, r.cardID, paths)
-	filtered := []image.Attachment{}
-	for index, attachment := range attachments {
-		if hash := hashes[index]; hash != "" || hash != attachment.Hash {
-			filtered = append(filtered, attachment)
+	filtered := image.Images{}
+	for index, image := range images {
+		if hash := hashes[index]; hash != "" || hash != image.Hash {
+			filtered = append(filtered, image)
 		}
 	}
 
 	req := mochi.UpdateCardRequest{
-		Content:     image.Replace(images, r.card.Content),
-		Attachments: getAttachments(filtered),
+		Content:     images.Replace(r.card.Content),
+		Attachments: filtered.Attachments(),
 	}
 
 	if _, err := client.UpdateCard(ctx, r.cardID, req); err != nil {
 		return err
 	}
 
-	hashMap := getHashMap(attachments)
+	hashMap := filtered.HashMap()
 	if err := lf.SetCard(r.deckID, r.cardID, r.card.Filename, hashMap); err != nil {
 		return err
 	}
