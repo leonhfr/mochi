@@ -141,21 +141,21 @@ func Test_Headings_Convert(t *testing.T) {
 			path:     "/subdirectory/Images.md",
 			source:   "# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
 			fileChecks: map[string]bool{
-				"images/example-1.png":              true,
-				"subdirectory/images/example-2.png": true,
+				"/images/example-1.png":              true,
+				"/subdirectory/images/example-2.png": true,
 			},
 			want: []Card{
 				{
 					Name:     "Images | Heading 1",
-					Content:  "Images | Heading 1\n\n# Heading 1\n\nContent 1.\n\n![Example 1](@media/a36c3bd88549d06a.png)\n",
+					Content:  "Images | Heading 1\n\n# Heading 1\n\nContent 1.\n\n![Example 1](@media/db7ab4bbe96b326a.png)\n",
 					Filename: "Images.md",
-					Images:   map[string]image.Image{"images/example-1.png": {Filename: "a36c3bd88549d06a", Extension: "png", MimeType: "image/png", Destination: "../images/example-1.png", AltText: "Example 1"}},
+					Images:   map[string]image.Image{"/images/example-1.png": {Filename: "db7ab4bbe96b326a", Extension: "png", MimeType: "image/png", Destination: "../images/example-1.png", AltText: "Example 1"}},
 				},
 				{
 					Name:     "Images | Heading 2",
-					Content:  "Images | Heading 2\n\n# Heading 2\n\n![Example 2](@media/df43905890ddb084.png)\n",
+					Content:  "Images | Heading 2\n\n# Heading 2\n\n![Example 2](@media/01a5479a1f430b25.png)\n",
 					Filename: "Images.md",
-					Images:   map[string]image.Image{"subdirectory/images/example-2.png": {Filename: "df43905890ddb084", Extension: "png", MimeType: "image/png", Destination: "images/example-2.png", AltText: "Example 2"}},
+					Images:   map[string]image.Image{"/subdirectory/images/example-2.png": {Filename: "01a5479a1f430b25", Extension: "png", MimeType: "image/png", Destination: "images/example-2.png", AltText: "Example 2"}},
 					Index:    1,
 				},
 			},

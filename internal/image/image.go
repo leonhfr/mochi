@@ -41,8 +41,7 @@ type Parsed struct {
 
 // New creates a new Image.
 func New(fc FileCheck, path string, parsed Parsed) (string, Image, bool) {
-	dirPath := filepath.Join("./", filepath.Dir(path))
-	absPath := filepath.Join(dirPath, parsed.Destination)
+	absPath := filepath.Join(filepath.Dir(path), parsed.Destination)
 	if !fc.Exists(absPath) {
 		return "", Image{}, false
 	}

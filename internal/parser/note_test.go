@@ -34,16 +34,16 @@ func Test_Note_Convert(t *testing.T) {
 			path:   "/testdata/lorem-ipsum/Lorem ipsum.md",
 			source: "# Noun\n\n## Gender\n\n![Example 1](../images/example-1.png)\n\nInline image: ![Example 2](./example-2.png)",
 			fileChecks: map[string]bool{
-				"testdata/images/example-1.png":      true,
-				"testdata/lorem-ipsum/example-2.png": true,
+				"/testdata/images/example-1.png":      true,
+				"/testdata/lorem-ipsum/example-2.png": true,
 			},
 			want: []Card{{
 				Name:     "Lorem ipsum",
-				Content:  "# Noun\n\n## Gender\n\n![Example 1](@media/b5bfa9ed69e38849.png)\n\nInline image: ![Example 2](@media/4ddfa64aa5f5ed9d.png)",
+				Content:  "# Noun\n\n## Gender\n\n![Example 1](@media/05142e92797cb245.png)\n\nInline image: ![Example 2](@media/2c36bee942023edc.png)",
 				Filename: "Lorem ipsum.md",
 				Images: map[string]image.Image{
-					"testdata/images/example-1.png":      {Filename: "b5bfa9ed69e38849", Extension: "png", MimeType: "image/png", Destination: "../images/example-1.png", AltText: "Example 1"},
-					"testdata/lorem-ipsum/example-2.png": {Filename: "4ddfa64aa5f5ed9d", Extension: "png", MimeType: "image/png", Destination: "./example-2.png", AltText: "Example 2"},
+					"/testdata/images/example-1.png":      {Filename: "05142e92797cb245", Extension: "png", MimeType: "image/png", Destination: "../images/example-1.png", AltText: "Example 1"},
+					"/testdata/lorem-ipsum/example-2.png": {Filename: "2c36bee942023edc", Extension: "png", MimeType: "image/png", Destination: "./example-2.png", AltText: "Example 2"},
 				},
 			}},
 		},

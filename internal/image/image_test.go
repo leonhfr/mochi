@@ -19,41 +19,41 @@ func Test_NewMap(t *testing.T) {
 	}{
 		{
 			name:        "should not add when destination is an URL",
-			calls:       map[string]bool{"testdata/example.com/image.png": false},
+			calls:       map[string]bool{"/testdata/example.com/image.png": false},
 			destination: "example.com/image.png",
 			want:        map[string]Image{},
 		},
 		{
 			name: "should not add when already in map",
 			images: map[string]Image{
-				"testdata/scream.png": {Filename: "a42069093fdb614a", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
+				"/testdata/scream.png": {Filename: "22abb8f07c02970e", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
 			},
-			calls:       map[string]bool{"testdata/scream.png": true},
+			calls:       map[string]bool{"/testdata/scream.png": true},
 			destination: "./scream.png",
 			want: map[string]Image{
-				"testdata/scream.png": {Filename: "a42069093fdb614a", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
+				"/testdata/scream.png": {Filename: "22abb8f07c02970e", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
 			},
 		},
 		{
 			name:        "should not add when mime type does not match",
-			calls:       map[string]bool{"testdata/markdown.md": true},
+			calls:       map[string]bool{"/testdata/markdown.md": true},
 			destination: "./markdown.md",
 			want:        map[string]Image{},
 		},
 		{
 			name:        "should add",
-			calls:       map[string]bool{"testdata/scream.png": true},
+			calls:       map[string]bool{"/testdata/scream.png": true},
 			destination: "./scream.png",
 			want: map[string]Image{
-				"testdata/scream.png": {Filename: "a42069093fdb614a", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
+				"/testdata/scream.png": {Filename: "22abb8f07c02970e", Destination: "./scream.png", Extension: "png", MimeType: "image/png"},
 			},
 		},
 		{
 			name:        "should add",
-			calls:       map[string]bool{"testdata/img/scream.png": true},
+			calls:       map[string]bool{"/testdata/img/scream.png": true},
 			destination: "img/scream.png",
 			want: map[string]Image{
-				"testdata/img/scream.png": {Filename: "8f88acfcbf1e64f0", Destination: "img/scream.png", Extension: "png", MimeType: "image/png"},
+				"/testdata/img/scream.png": {Filename: "41f30bab5ed70157", Destination: "img/scream.png", Extension: "png", MimeType: "image/png"},
 			},
 		},
 	}
