@@ -7,25 +7,25 @@ import (
 	"github.com/leonhfr/mochi/mochi"
 )
 
-type archive struct {
+type archiveCard struct {
 	cardID string
 }
 
-// NewArchive returns a new archive card request.
-func NewArchive(cardID string) Request {
-	return &archive{
+// ArchiveCard returns a new archive card request.
+func ArchiveCard(cardID string) Request {
+	return &archiveCard{
 		cardID: cardID,
 	}
 }
 
 // Sync implements the SyncRequest interface.
-func (r *archive) Sync(ctx context.Context, client Client, _ Reader, _ Lockfile) error {
+func (r *archiveCard) Sync(ctx context.Context, client Client, _ Reader, _ Lockfile) error {
 	req := mochi.UpdateCardRequest{Archived: true}
 	_, err := client.UpdateCard(ctx, r.cardID, req)
 	return err
 }
 
 // String implements the fmt.Stringer interface.
-func (r *archive) String() string {
+func (r *archiveCard) String() string {
 	return fmt.Sprintf("archive request for card ID %s", r.cardID)
 }

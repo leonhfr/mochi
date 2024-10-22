@@ -9,21 +9,21 @@ import (
 	"github.com/leonhfr/mochi/mochi"
 )
 
-type create struct {
+type createRequest struct {
 	deckID string
 	card   parser.Card
 }
 
-// NewCreate returns a new create card request.
-func NewCreate(deckID string, card parser.Card) Request {
-	return &create{
+// CreateCard returns a new create card request.
+func CreateCard(deckID string, card parser.Card) Request {
+	return &createRequest{
 		deckID: deckID,
 		card:   card,
 	}
 }
 
 // Sync implements the SyncRequest interface.
-func (r *create) Sync(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
+func (r *createRequest) Sync(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
 	attachments, err := image.Attachments(reader, r.card.Images)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (r *create) Sync(ctx context.Context, client Client, reader Reader, lf Lock
 }
 
 // String implements the fmt.Stringer interface.
-func (r *create) String() string {
+func (r *createRequest) String() string {
 	return fmt.Sprintf("create request for file %s", r.card.Filename)
 }
 

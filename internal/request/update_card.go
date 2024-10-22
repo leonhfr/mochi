@@ -9,15 +9,15 @@ import (
 	"github.com/leonhfr/mochi/mochi"
 )
 
-type update struct {
+type updateCard struct {
 	deckID string
 	cardID string
 	card   parser.Card
 }
 
-// NewUpdate returns a new update card request.
-func NewUpdate(deckID, cardID string, card parser.Card) Request {
-	return &update{
+// UpdateCard returns a new update card request.
+func UpdateCard(deckID, cardID string, card parser.Card) Request {
+	return &updateCard{
 		deckID: deckID,
 		cardID: cardID,
 		card:   card,
@@ -25,7 +25,7 @@ func NewUpdate(deckID, cardID string, card parser.Card) Request {
 }
 
 // Sync implements the SyncRequest interface.
-func (r *update) Sync(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
+func (r *updateCard) Sync(ctx context.Context, client Client, reader Reader, lf Lockfile) error {
 	attachments, err := image.Attachments(reader, r.card.Images)
 	if err != nil {
 		return err
@@ -60,6 +60,6 @@ func (r *update) Sync(ctx context.Context, client Client, reader Reader, lf Lock
 }
 
 // String implements the fmt.Stringer interface.
-func (r *update) String() string {
+func (r *updateCard) String() string {
 	return fmt.Sprintf("update request for card ID %s", r.cardID)
 }

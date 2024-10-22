@@ -20,7 +20,7 @@ func DumpRequests(ctx context.Context, client DumpClient, deckID string) ([]requ
 	}
 	reqs := make([]request.Request, 0, len(cards))
 	for _, card := range cards {
-		reqs = append(reqs, request.NewDelete(card.ID))
+		reqs = append(reqs, request.DeleteCard(card.ID))
 	}
 	return reqs, nil
 }

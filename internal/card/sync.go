@@ -22,7 +22,7 @@ func SyncRequests(lf Lockfile, deckID string, mochiCards []mochi.Card, parsedCar
 	groupedCards := groupCardsByFilename(groupedMochiCards, groupedParsedCards)
 	reqs := []request.Request{}
 	for _, mochiCard := range notMatched {
-		reqs = append(reqs, request.NewArchive(mochiCard.ID))
+		reqs = append(reqs, request.DeleteCard(mochiCard.ID))
 	}
 	for _, group := range groupedCards {
 		groupReqs := upsertSyncRequests(deckID, group.mochi, group.parsed)
@@ -44,18 +44,18 @@ func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []pa
 	for _, mochiCard := range mochiCards {
 		index := slices.IndexFunc(tmp, indexFunc(mochiCard))
 		if index < 0 {
-			reqs = append(reqs, request.NewArchive(mochiCard.ID))
+			reqs = append(reqs, request.DeleteCard(mochiCard.ID))
 			continue
 		}
 
 		if mochiCard.Content != tmp[index].Content {
-			reqs = append(reqs, request.NewUpdate(deckID, mochiCard.ID, tmp[index]))
+			reqs = append(reqs, request.UpdateCard(deckID, mochiCard.ID, tmp[index]))
 		}
 		tmp = sliceRemove(tmp, index)
 	}
 
 	for _, parsedCard := range tmp {
-		reqs = append(reqs, request.NewCreate(deckID, parsedCard))
+		reqs = append(reqs, request.CreateCard(deckID, parsedCard))
 	}
 
 	return reqs
