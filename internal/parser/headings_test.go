@@ -66,6 +66,13 @@ func Test_Headings_Convert(t *testing.T) {
 			},
 		},
 		{
+			name:     "level 1 only headers",
+			maxLevel: 1,
+			path:     "/Headings.md",
+			source:   "# Title 1\n\n# Title 2\n\n# Title 3\n\n# Title 4\n\n# Title 5\n",
+			want:     []Card{},
+		},
+		{
 			name:     "level 1",
 			maxLevel: 1,
 			path:     "/Headings.md",
@@ -128,7 +135,7 @@ func Test_Headings_Convert(t *testing.T) {
 				},
 				{
 					Name:     "Headings | Heading 3 | Heading 3.1",
-					Content:  "Headings | Heading 3 | Heading 3.1\n\n# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
+					Content:  "Headings | Heading 3 | Heading 3.1\n\n## Heading 3.1\n\nMore card content.\n",
 					Filename: "Headings.md",
 					Images:   map[string]image.Image{},
 					Index:    4,

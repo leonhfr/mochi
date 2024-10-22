@@ -111,6 +111,7 @@ func getHeadingCards(fc FileCheck, path string, headings []parsedHeading, source
 
 		content := bytes.TrimSpace(source[start:stop])
 		if !bytes.ContainsRune(content, '\n') {
+			start = stop
 			continue
 		}
 
