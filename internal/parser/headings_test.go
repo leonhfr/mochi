@@ -46,7 +46,7 @@ func Test_Headings_Convert(t *testing.T) {
 			maxLevel: 1,
 			path:     "/Headings.md",
 			source:   "# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n\n# Heading 2\n\nContent 3.\n",
-			want: Result{Cards: []Card{
+			want: Result{Deck: "Headings", Cards: []Card{
 				{
 					Name:     "Headings | Heading 1",
 					Content:  "Headings | Heading 1\n\n# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n",
@@ -67,14 +67,14 @@ func Test_Headings_Convert(t *testing.T) {
 			maxLevel: 1,
 			path:     "/Headings.md",
 			source:   "# Title 1\n\n# Title 2\n\n# Title 3\n\n# Title 4\n\n# Title 5\n",
-			want:     Result{Cards: []Card{}},
+			want:     Result{Deck: "Headings", Cards: []Card{}},
 		},
 		{
 			name:     "level 1",
 			maxLevel: 1,
 			path:     "/Headings.md",
 			source:   headingSource,
-			want: Result{Cards: []Card{
+			want: Result{Deck: "Headings", Cards: []Card{
 				{
 					Name:     "Headings | Heading 1",
 					Content:  "Headings | Heading 1\n\n# Heading 1\n\nSome text here.\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n\n## Heading 1.2\n\nAnother content.\n",
@@ -102,7 +102,7 @@ func Test_Headings_Convert(t *testing.T) {
 			maxLevel: 2,
 			path:     "/Headings.md",
 			source:   headingSource,
-			want: Result{Cards: []Card{
+			want: Result{Deck: "Headings", Cards: []Card{
 				{
 					Name:     "Headings | Heading 1",
 					Content:  "Headings | Heading 1\n\n# Heading 1\n\nSome text here.\n",
@@ -144,7 +144,7 @@ func Test_Headings_Convert(t *testing.T) {
 			maxLevel: 2,
 			path:     "/Headings.md",
 			source:   "## Title 1\n\nContent 1.\n\n## Title 2\n\n### Title 2.1\n\nContent 1.\n",
-			want: Result{Cards: []Card{
+			want: Result{Deck: "Headings", Cards: []Card{
 				{
 					Name:     "Headings | Title 1",
 					Content:  "Headings | Title 1\n\n## Title 1\n\nContent 1.\n",
@@ -165,7 +165,7 @@ func Test_Headings_Convert(t *testing.T) {
 			maxLevel: 1,
 			path:     "/subdirectory/Images.md",
 			source:   "# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
-			want: Result{Cards: []Card{
+			want: Result{Deck: "Images", Cards: []Card{
 				{
 					Name:     "Images | Heading 1",
 					Content:  "Images | Heading 1\n\n# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n",

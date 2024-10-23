@@ -66,7 +66,10 @@ func (h *headings) convert(path string, source []byte) (Result, error) {
 
 	cards := getHeadingCards(path, parsed, source)
 
-	return Result{Cards: cards}, err
+	return Result{
+		Deck:  getNameFromPath(path),
+		Cards: cards,
+	}, err
 }
 
 func getHeadingCards(path string, headings []parsedHeading, source []byte) []Card {

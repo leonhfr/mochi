@@ -12,6 +12,7 @@ var extensions = []string{".md"}
 
 // Result contains the result.
 type Result struct {
+	Deck  string
 	Cards []Card
 }
 
