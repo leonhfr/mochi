@@ -1,81 +1,75 @@
 package sync
 
-import (
-	"container/heap"
-	"path/filepath"
-	"strings"
-)
+import "container/heap"
 
-// Directory represents the path to a directory and its files.
-type Directory struct {
-	Path      string
-	FilePaths []string
-	level     int
+// Heap represents a priority heap.
+type Heap[T PriorityItem] struct {
+	heap *priorityHeap[T]
 }
 
-// Heap represents a heap of directories.
-// Priority is given to lower levels (closer to root).
-type Heap struct {
-	dirs *dirHeap
-}
-
-// NewHeap initializes and returns a new DirHeap.
-func NewHeap() *Heap {
-	h := &dirHeap{}
+// NewHeap initializes and returns a new Heap.
+func NewHeap[T PriorityItem]() *Heap[T] {
+	h := &priorityHeap[T]{}
 	heap.Init(h)
-	return &Heap{h}
+	return &Heap[T]{h}
 }
 
 // Len returns the heap length.
-func (h *Heap) Len() int {
-	return h.dirs.Len()
+func (h *Heap[T]) Len() int {
+	return h.heap.Len()
 }
 
-// Push pushes a new path to the heap.
-func (h *Heap) Push(path string) {
-	heap.Push(h.dirs, path)
+// Push pushes a new item to the heap.
+func (h *Heap[T]) Push(item T) {
+	heap.Push(h.heap, item)
 }
 
-// Pop returns the heap directory closest to the root.
-func (h *Heap) Pop() Directory {
-	return heap.Pop(h.dirs).(Directory)
+// Pop returns the heap item with the most priority (lowest).
+func (h *Heap[T]) Pop() Group[T] {
+	return heap.Pop(h.heap).(Group[T])
 }
 
-type dirHeap []Directory
+// PriorityItem is the interface that Item should implement
+// to be grouped and prioritized.
+type PriorityItem interface {
+	Base() string
+	Priority() int
+}
 
-func (h dirHeap) Len() int           { return len(h) }                  // Len implements heap.Interface.
-func (h dirHeap) Less(i, j int) bool { return h[i].level < h[j].level } // Less implements heap.Interface.
-func (h dirHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }        // Swap implements heap.Interface.
+// Group contains the a group of items.
+type Group[T PriorityItem] struct {
+	Base     string
+	Items    []T
+	priority int
+}
+
+type priorityHeap[T PriorityItem] []Group[T]
+
+func (h priorityHeap[T]) Less(i, j int) bool { return h[i].priority < h[j].priority } // Less implements heap.Interface.
+func (h priorityHeap[T]) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }              // Swap implements heap.Interface.
+func (h priorityHeap[T]) Len() int           { return len(h) }                        // Len implements heap.Interface.
 
 // Push implements heap.Interface.
-func (h *dirHeap) Push(x any) {
-	filePath := x.(string)
-	path := filepath.Dir(filePath)
+func (h *priorityHeap[T]) Push(x any) {
+	newItem := x.(T)
 	for i, item := range *h {
-		if item.Path == path {
-			(*h)[i].FilePaths = append((*h)[i].FilePaths, filePath)
+		if item.Base == newItem.Base() {
+			(*h)[i].Items = append((*h)[i].Items, newItem)
 			return
 		}
 	}
-	*h = append(*h, Directory{
-		Path:      path,
-		FilePaths: []string{filePath},
-		level:     getLevel(path),
+	*h = append(*h, Group[T]{
+		Base:     newItem.Base(),
+		Items:    []T{newItem},
+		priority: newItem.Priority(),
 	})
 }
 
 // Pop implements heap.Interface.
-func (h *dirHeap) Pop() any {
+func (h *priorityHeap[T]) Pop() any {
 	old := *h
 	n := len(old)
 	x := old[n-1]
 	*h = old[0 : n-1]
 	return x
-}
-
-func getLevel(path string) int {
-	if path == "/" {
-		return 0
-	}
-	return strings.Count(path, "/")
 }

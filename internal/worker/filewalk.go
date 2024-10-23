@@ -19,22 +19,22 @@ type Walker interface {
 
 // FileWalk is the worker that recursively walks directories and outputs them by
 // priority (shorter base directory length).
-func FileWalk(ctx context.Context, logger Logger, walker Walker, workspace string, extensions []string) (<-chan sync.Directory, error) {
-	h := sync.NewHeap()
+func FileWalk(ctx context.Context, logger Logger, walker Walker, workspace string, extensions []string) (<-chan sync.Group[sync.Path], error) {
+	h := sync.NewHeap[sync.Path]()
 
 	if err := walker.Walk(
 		workspace,
 		extensions,
-		func(path string) { h.Push(path) },
+		func(path string) { h.Push(sync.Path(path)) },
 	); err != nil {
-		out := make(chan sync.Directory)
+		out := make(chan sync.Group[sync.Path])
 		close(out)
 		return out, err
 	}
 
 	logger.Infof("filewalk: found %d directories", h.Len())
 
-	out := make(chan sync.Directory, h.Len())
+	out := make(chan sync.Group[sync.Path], h.Len())
 	go func() {
 		defer close(out)
 

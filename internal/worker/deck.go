@@ -20,27 +20,27 @@ type Deck struct {
 }
 
 // SyncDecks creates any missing decks and updates any mismatched name.
-func SyncDecks(ctx context.Context, logger Logger, client deck.Client, config deck.Config, lf deck.Lockfile, in <-chan sync.Directory) <-chan Result[Deck] {
+func SyncDecks(ctx context.Context, logger Logger, client deck.Client, config deck.Config, lf deck.Lockfile, in <-chan sync.Group[sync.Path]) <-chan Result[Deck] {
 	out := make(chan Result[Deck], cap(in))
 	go func() {
 		defer close(out)
 
 		for dir := range in {
-			logger.Infof("deck sync: %s (%d files)", dir.Path, len(dir.FilePaths))
-			deckConfig, ok := config.GetDeck(dir.Path)
+			logger.Infof("deck sync: %s (%d files)", dir.Base, len(dir.Items))
+			deckConfig, ok := config.GetDeck(dir.Base)
 			if !ok {
-				logger.Infof("deck sync: discarded %s", dir.Path)
+				logger.Infof("deck sync: discarded %s", dir.Base)
 				continue
 			}
 
-			deckID, err := deck.Sync(ctx, client, config, lf, dir.Path)
-			logger.Infof("deck sync(deckID %s): synced %s", deckID, dir.Path)
+			deckID, err := deck.Sync(ctx, client, config, lf, dir.Base)
+			logger.Infof("deck sync(deckID %s): synced %s", deckID, dir.Base)
 
 			out <- Result[Deck]{
 				data: Deck{
 					deckID:    deckID,
 					config:    deckConfig,
-					filePaths: dir.FilePaths,
+					filePaths: sync.ConvertPaths(dir.Items),
 				},
 				err: err,
 			}
