@@ -1,4 +1,4 @@
-package sync
+package heap
 
 import (
 	"testing"
@@ -20,7 +20,7 @@ func Test_Heap_Path(t *testing.T) {
 		{priority: 2, Base: "/lorem-ipsum/Notes", Items: []Path{"/lorem-ipsum/Notes/Note 1.md", "/lorem-ipsum/Notes/Note 2.md"}},
 	}
 
-	h := NewHeap[Path]()
+	h := New[Path]()
 	for _, path := range input {
 		h.Push(path)
 	}

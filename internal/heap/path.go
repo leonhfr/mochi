@@ -1,4 +1,4 @@
-package sync
+package heap
 
 import (
 	"path/filepath"
@@ -8,7 +8,7 @@ import (
 // Path represents a file path.
 type Path string
 
-var _ PriorityItem = Path("")
+var _ Item = Path("")
 
 // Base implements the PriorityItem interface.
 func (p Path) Base() string {

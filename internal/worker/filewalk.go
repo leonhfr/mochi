@@ -3,7 +3,7 @@ package worker
 import (
 	"context"
 
-	"github.com/leonhfr/mochi/internal/sync"
+	"github.com/leonhfr/mochi/internal/heap"
 )
 
 // Logger is the interface to log output.
@@ -19,22 +19,22 @@ type Walker interface {
 
 // FileWalk is the worker that recursively walks directories and outputs them by
 // priority (shorter base directory length).
-func FileWalk(ctx context.Context, logger Logger, walker Walker, workspace string, extensions []string) (<-chan sync.Group[sync.Path], error) {
-	h := sync.NewHeap[sync.Path]()
+func FileWalk(ctx context.Context, logger Logger, walker Walker, workspace string, extensions []string) (<-chan heap.Group[heap.Path], error) {
+	h := heap.New[heap.Path]()
 
 	if err := walker.Walk(
 		workspace,
 		extensions,
-		func(path string) { h.Push(sync.Path(path)) },
+		func(path string) { h.Push(heap.Path(path)) },
 	); err != nil {
-		out := make(chan sync.Group[sync.Path])
+		out := make(chan heap.Group[heap.Path])
 		close(out)
 		return out, err
 	}
 
 	logger.Infof("filewalk: found %d directories", h.Len())
 
-	out := make(chan sync.Group[sync.Path], h.Len())
+	out := make(chan heap.Group[heap.Path], h.Len())
 	go func() {
 		defer close(out)
 

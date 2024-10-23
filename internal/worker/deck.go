@@ -8,7 +8,7 @@ import (
 
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/deck"
-	"github.com/leonhfr/mochi/internal/sync"
+	"github.com/leonhfr/mochi/internal/heap"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -20,27 +20,27 @@ type Deck struct {
 }
 
 // SyncDecks creates any missing decks and updates any mismatched name.
-func SyncDecks(ctx context.Context, logger Logger, client deck.Client, config deck.Config, lf deck.Lockfile, in <-chan sync.Group[sync.Path]) <-chan Result[Deck] {
+func SyncDecks(ctx context.Context, logger Logger, client deck.Client, config deck.Config, lf deck.Lockfile, in <-chan heap.Group[heap.Path]) <-chan Result[Deck] {
 	out := make(chan Result[Deck], cap(in))
 	go func() {
 		defer close(out)
 
-		for dir := range in {
-			logger.Infof("deck sync: %s (%d files)", dir.Base, len(dir.Items))
-			deckConfig, ok := config.GetDeck(dir.Base)
+		for group := range in {
+			logger.Infof("deck sync: %s (%d files)", group.Base, len(group.Items))
+			deckConfig, ok := config.GetDeck(group.Base)
 			if !ok {
-				logger.Infof("deck sync: discarded %s", dir.Base)
+				logger.Infof("deck sync: discarded %s", group.Base)
 				continue
 			}
 
-			deckID, err := deck.Sync(ctx, client, config, lf, dir.Base)
-			logger.Infof("deck sync(deckID %s): synced %s", deckID, dir.Base)
+			deckID, err := deck.Sync(ctx, client, config, lf, group.Base)
+			logger.Infof("deck sync(deckID %s): synced %s", deckID, group.Base)
 
 			out <- Result[Deck]{
 				data: Deck{
 					deckID:    deckID,
 					config:    deckConfig,
-					filePaths: sync.ConvertPaths(dir.Items),
+					filePaths: heap.ConvertPaths(group.Items),
 				},
 				err: err,
 			}

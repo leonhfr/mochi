@@ -1,14 +1,14 @@
-package sync
+package heap
 
 import "container/heap"
 
 // Heap represents a priority heap.
-type Heap[T PriorityItem] struct {
+type Heap[T Item] struct {
 	heap *priorityHeap[T]
 }
 
-// NewHeap initializes and returns a new Heap.
-func NewHeap[T PriorityItem]() *Heap[T] {
+// New initializes and returns a new Heap.
+func New[T Item]() *Heap[T] {
 	h := &priorityHeap[T]{}
 	heap.Init(h)
 	return &Heap[T]{h}
@@ -29,21 +29,21 @@ func (h *Heap[T]) Pop() Group[T] {
 	return heap.Pop(h.heap).(Group[T])
 }
 
-// PriorityItem is the interface that Item should implement
-// to be grouped and prioritized.
-type PriorityItem interface {
+// Item is the interface that should be implemented
+// for an item to be grouped and prioritized.
+type Item interface {
 	Base() string
 	Priority() int
 }
 
 // Group contains the a group of items.
-type Group[T PriorityItem] struct {
+type Group[T Item] struct {
 	Base     string
 	Items    []T
 	priority int
 }
 
-type priorityHeap[T PriorityItem] []Group[T]
+type priorityHeap[T Item] []Group[T]
 
 func (h priorityHeap[T]) Less(i, j int) bool { return h[i].priority < h[j].priority } // Less implements heap.Interface.
 func (h priorityHeap[T]) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }              // Swap implements heap.Interface.
