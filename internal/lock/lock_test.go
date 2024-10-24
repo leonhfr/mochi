@@ -2,6 +2,7 @@ package lock
 
 import (
 	"io"
+	"io/fs"
 	"strings"
 	"testing"
 
@@ -16,7 +17,6 @@ func Test_Parse(t *testing.T) {
 		name        string
 		target      string
 		path        string
-		exists      bool
 		fileContent string
 		fileError   error
 		wantPath    string
@@ -24,17 +24,17 @@ func Test_Parse(t *testing.T) {
 		err         bool
 	}{
 		{
-			name:     "no lockfile found",
-			target:   "testdata",
-			path:     "testdata/mochi-lock.json",
-			wantPath: "testdata/mochi-lock.json",
-			wantData: lockData{},
+			name:      "no lockfile found",
+			target:    "testdata",
+			path:      "testdata/mochi-lock.json",
+			fileError: fs.ErrNotExist,
+			wantPath:  "testdata/mochi-lock.json",
+			wantData:  lockData{},
 		},
 		{
 			name:        "lockfile found",
 			target:      "testdata",
 			path:        "testdata/mochi-lock.json",
-			exists:      true,
 			fileContent: `{"DECK_ID":{"path":"DECK_PATH","name":"DECK_NAME"}}`,
 			wantPath:    "testdata/mochi-lock.json",
 			wantData:    lockData{"DECK_ID": Deck{Path: "DECK_PATH", Name: "DECK_NAME"}},
@@ -43,7 +43,6 @@ func Test_Parse(t *testing.T) {
 			name:        "missing path and name",
 			target:      "testdata",
 			path:        "testdata/mochi-lock.json",
-			exists:      true,
 			fileContent: `{"DECK_ID":{}}`,
 			err:         true,
 		},
@@ -51,7 +50,6 @@ func Test_Parse(t *testing.T) {
 			name:        "missing card filename",
 			target:      "testdata",
 			path:        "testdata/mochi-lock.json",
-			exists:      true,
 			fileContent: `{"DECK_ID":{"path":"DECK_PATH","name":"DECK_NAME","cards":{"CARD_ID":{}}}}`,
 			err:         true,
 		},
@@ -60,10 +58,7 @@ func Test_Parse(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rw := new(mockFile)
-			rw.On("Exists", tt.path).Return(tt.exists)
-			if tt.exists {
-				rw.On("Read", tt.path).Return(tt.fileContent, tt.fileError)
-			}
+			rw.On("Read", tt.path).Return(tt.fileContent, tt.fileError)
 
 			got, err := Parse(rw, tt.target)
 
@@ -403,11 +398,6 @@ func Test_Lock_SetCard(t *testing.T) {
 
 type mockFile struct {
 	mock.Mock
-}
-
-func (m *mockFile) Exists(p string) bool {
-	args := m.Mock.Called(p)
-	return args.Bool(0)
 }
 
 func (m *mockFile) Read(p string) (io.ReadCloser, error) {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"io"
+	"io/fs"
 	"strings"
 	"testing"
 
@@ -11,10 +12,6 @@ import (
 
 func Test_Parse(t *testing.T) {
 	type (
-		testExist struct {
-			path   string
-			exists bool
-		}
 		testRead struct {
 			path string
 			file string
@@ -25,8 +22,7 @@ func Test_Parse(t *testing.T) {
 		name    string
 		target  string
 		parsers []string
-		exists  []testExist
-		read    *testRead
+		read    []testRead
 		want    *Config
 		err     bool
 	}{
@@ -34,9 +30,9 @@ func Test_Parse(t *testing.T) {
 			name:    "no config found",
 			target:  "testdata",
 			parsers: []string{"note"},
-			exists: []testExist{
-				{"testdata/mochi.yaml", false},
-				{"testdata/mochi.yml", false},
+			read: []testRead{
+				{path: "testdata/mochi.yaml", err: fs.ErrNotExist},
+				{path: "testdata/mochi.yml", err: fs.ErrNotExist},
 			},
 			err: true,
 		},
@@ -44,13 +40,11 @@ func Test_Parse(t *testing.T) {
 			name:    "mochi.yaml",
 			target:  "testdata",
 			parsers: []string{"note"},
-			exists: []testExist{
-				{"testdata/mochi.yaml", true},
-			},
-			read: &testRead{
-				path: "testdata/mochi.yaml",
-				file: "rootName: ROOT_NAME\ndecks:\n  - path: sed-interdum-libero\n    name: Sed interdum libero\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
-				err:  nil,
+			read: []testRead{
+				{
+					path: "testdata/mochi.yaml",
+					file: "rootName: ROOT_NAME\ndecks:\n  - path: sed-interdum-libero\n    name: Sed interdum libero\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
+				},
 			},
 			want: &Config{RateLimit: 50, RootName: "ROOT_NAME", Decks: []Deck{
 				{Path: "/sed-interdum-libero", Name: "Sed interdum libero"},
@@ -61,14 +55,15 @@ func Test_Parse(t *testing.T) {
 			name:    "mochi.yml",
 			target:  "testdata",
 			parsers: []string{"note"},
-			exists: []testExist{
-				{"testdata/mochi.yaml", false},
-				{"testdata/mochi.yml", true},
-			},
-			read: &testRead{
-				path: "testdata/mochi.yml",
-				file: "rootName: ROOT_NAME\ndecks:\n  - path: lorem-ipsum\n",
-				err:  nil,
+			read: []testRead{
+				{
+					path: "testdata/mochi.yaml",
+					err:  fs.ErrNotExist,
+				},
+				{
+					path: "testdata/mochi.yml",
+					file: "rootName: ROOT_NAME\ndecks:\n  - path: lorem-ipsum\n",
+				},
 			},
 			want: &Config{RateLimit: 50, RootName: "ROOT_NAME", Decks: []Deck{{Path: "/lorem-ipsum"}}},
 		},
@@ -76,14 +71,15 @@ func Test_Parse(t *testing.T) {
 			name:    "should set default root deck name",
 			target:  "testdata",
 			parsers: []string{"note"},
-			exists: []testExist{
-				{"testdata/mochi.yaml", false},
-				{"testdata/mochi.yml", true},
-			},
-			read: &testRead{
-				path: "testdata/mochi.yml",
-				file: "decks:\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
-				err:  nil,
+			read: []testRead{
+				{
+					path: "testdata/mochi.yaml",
+					err:  fs.ErrNotExist,
+				},
+				{
+					path: "testdata/mochi.yml",
+					file: "decks:\n  - path: lorem-ipsum\n    name: Lorem ipsum\n",
+				},
 			},
 			want: &Config{RateLimit: 50, RootName: "Root Deck", Decks: []Deck{{Path: "/lorem-ipsum", Name: "Lorem ipsum"}}},
 		},
@@ -91,14 +87,11 @@ func Test_Parse(t *testing.T) {
 			name:    "invalid config",
 			target:  "testdata",
 			parsers: []string{"note"},
-			exists: []testExist{
-				{"testdata/mochi.yaml", false},
-				{"testdata/mochi.yml", true},
-			},
-			read: &testRead{
-				path: "testdata/mochi.yml",
-				file: "decks:\n  - name: Lorem ipsum\n",
-				err:  nil,
+			read: []testRead{
+				{
+					path: "testdata/mochi.yaml",
+					file: "decks:\n  - name: Lorem ipsum\n",
+				},
 			},
 			err: true,
 		},
@@ -107,11 +100,8 @@ func Test_Parse(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := new(mockFile)
-			for _, te := range tt.exists {
-				r.On("Exists", te.path).Return(te.exists)
-			}
-			if tt.read != nil {
-				r.On("Read", tt.read.path).Return(tt.read.file, tt.read.err)
+			for _, read := range tt.read {
+				r.On("Read", read.path).Return(read.file, read.err)
 			}
 
 			got, err := Parse(r, tt.target, tt.parsers)
@@ -182,11 +172,6 @@ func Test_Config_GetDeck(t *testing.T) {
 
 type mockFile struct {
 	mock.Mock
-}
-
-func (m *mockFile) Exists(p string) bool {
-	args := m.Mock.Called(p)
-	return args.Bool(0)
 }
 
 func (m *mockFile) Read(p string) (io.ReadCloser, error) {

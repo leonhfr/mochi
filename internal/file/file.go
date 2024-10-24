@@ -47,18 +47,14 @@ func (System) Walk(workspace string, extensions []string, cb func(string)) error
 	})
 }
 
-// Exists checks the existence of the file at path.
-func (System) Exists(path string) bool {
-	info, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	return !info.IsDir()
-}
-
 // Read returns an io.ReadCloser from the file at path.
+//
+// If file not exists, it returns fs.ErrNotExist.
 func (System) Read(path string) (io.ReadCloser, error) {
 	file, err := os.Open(path)
+	if os.IsNotExist(err) {
+		return file, fs.ErrNotExist
+	}
 	return file, err
 }
 

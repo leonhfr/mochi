@@ -1,12 +1,13 @@
 package file
 
 import (
+	"io/fs"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_List(t *testing.T) {
+func Test_Walk(t *testing.T) {
 	want := []string{
 		"/Root level card.md",
 		"/journal/yyyy-mm-dd.md",
@@ -23,20 +24,21 @@ func Test_List(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_Exists(t *testing.T) {
+func Test_Open_Error(t *testing.T) {
 	tests := []struct {
 		name string
 		path string
-		want bool
+		err  error
 	}{
-		{"exists", "../../testdata/mochi.yml", true},
-		{"does not exist", "../../testdata/mochi.yaml", false},
+		{"exists", "../../testdata/mochi.yml", nil},
+		{"does not exist", "../../testdata/mochi.yaml", fs.ErrNotExist},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewSystem().Exists(tt.path)
-			assert.Equal(t, tt.want, got)
+			rc, err := NewSystem().Read(tt.path)
+			assert.Equal(t, tt.err, err)
+			defer rc.Close()
 		})
 	}
 }

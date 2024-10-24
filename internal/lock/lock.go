@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"path/filepath"
 	"slices"
 	"sync"
@@ -48,7 +49,6 @@ type Lock struct {
 
 // ReaderWriter represents the interface to interact with a lockfile.
 type ReaderWriter interface {
-	Exists(string) bool
 	Read(string) (io.ReadCloser, error)
 	Write(string) (io.WriteCloser, error)
 }
@@ -61,12 +61,11 @@ func Parse(rw ReaderWriter, target string) (*Lock, error) {
 		path: path,
 		rw:   rw,
 	}
-	if !rw.Exists(path) {
-		return lock, nil
-	}
 
 	r, err := rw.Read(path)
-	if err != nil {
+	if err == fs.ErrNotExist {
+		return lock, nil
+	} else if err != nil {
 		return nil, err
 	}
 	defer r.Close()

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"path/filepath"
 	"slices"
 
@@ -43,9 +44,8 @@ type Deck struct {
 	Parser string `yaml:"parser" validate:"parser"`
 }
 
-// Reader represents the interface to interact with a config file.
+// Reader represents the interface to read a config file.
 type Reader interface {
-	Exists(string) bool
 	Read(string) (io.ReadCloser, error)
 }
 
@@ -57,23 +57,21 @@ func Parse(reader Reader, target string, parsers []string) (*Config, error) {
 
 	for _, ext := range configExtensions {
 		path := filepath.Join(target, fmt.Sprintf("%s.%s", configName, ext))
-		if !reader.Exists(path) {
+		rc, err := reader.Read(path)
+		if err == fs.ErrNotExist {
 			continue
+		} else if err != nil {
+			return nil, err
 		}
+		defer rc.Close()
 
-		return parseConfig(reader, path)
+		return parseConfig(rc)
 	}
 
 	return nil, ErrNoConfig
 }
 
-func parseConfig(reader Reader, path string) (*Config, error) {
-	r, err := reader.Read(path)
-	if err != nil {
-		return nil, err
-	}
-	defer r.Close()
-
+func parseConfig(r io.Reader) (*Config, error) {
 	decoder := yaml.NewDecoder(r)
 	decoder.KnownFields(true)
 
