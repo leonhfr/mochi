@@ -30,7 +30,7 @@ func SyncRequests(ctx context.Context, logger Logger, client Client, cr card.Rea
 	go func() {
 		defer close(out)
 
-		s := stream.New().WithMaxGoroutines(cap(in))
+		s := stream.New()
 		for deck := range in {
 			deck := deck
 			s.Go(func() stream.Callback {
@@ -87,7 +87,7 @@ func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, 
 	go func() {
 		defer close(out)
 
-		s := stream.New().WithMaxGoroutines(cap(in))
+		s := stream.New()
 		for req := range in {
 			req := req
 			s.Go(func() stream.Callback {

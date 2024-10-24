@@ -21,13 +21,13 @@ type Deck struct {
 
 // SyncDecks creates any missing decks and updates any mismatched name.
 func SyncDecks(ctx context.Context, logger Logger, client deck.Client, config deck.Config, lf deck.Lockfile, in <-chan heap.Group[heap.Path]) <-chan Result[Deck] {
-	out := make(chan Result[Deck], cap(in))
+	out := make(chan Result[Deck])
 	go func() {
 		defer close(out)
 
 		for group := range in {
 			logger.Infof("deck sync: %s (%d files)", group.Base, len(group.Items))
-			deckConfig, ok := config.GetDeck(group.Base)
+			deckConfig, ok := config.Deck(group.Base)
 			if !ok {
 				logger.Infof("deck sync: discarded %s", group.Base)
 				continue
@@ -60,7 +60,7 @@ func ListDecks(ctx context.Context, client DeckListClient) (<-chan string, error
 	if err != nil {
 		return nil, err
 	}
-	out := make(chan string, len(decks))
+	out := make(chan string)
 	go func() {
 		defer close(out)
 		for _, deck := range decks {

@@ -11,7 +11,7 @@ import (
 
 // Lockfile is the interface that should be implemented to update the lockfile.
 type Lockfile interface {
-	GetCard(deckID string, cardID string) (lock.Card, bool)
+	Card(deckID string, cardID string) (lock.Card, bool)
 }
 
 // SyncRequests parses the note files and returns the requests
@@ -94,7 +94,7 @@ func groupMochiCardsByFilename(lf Lockfile, deckID string, mochiCards []mochi.Ca
 	matched := make(map[string][]mochi.Card)
 	var notMatched []mochi.Card
 	for _, mochiCard := range mochiCards {
-		if lockCard, ok := lf.GetCard(deckID, mochiCard.ID); ok {
+		if lockCard, ok := lf.Card(deckID, mochiCard.ID); ok {
 			matched[lockCard.Filename] = append(matched[lockCard.Filename], mochiCard)
 		} else {
 			notMatched = append(notMatched, mochiCard)

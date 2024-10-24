@@ -109,8 +109,8 @@ func cleanConfig(config Config) Config {
 	return config
 }
 
-// GetDeck returns the deck config that matches the path.
-func (c *Config) GetDeck(path string) (Deck, bool) {
+// Deck returns the deck config that matches the path.
+func (c *Config) Deck(path string) (Deck, bool) {
 	if path == "/" && c.SkipRoot {
 		return Deck{}, false
 	} else if path == "/" {

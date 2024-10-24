@@ -162,10 +162,10 @@ func (l *Lock) CleanImages(deckID, cardID string, paths []string) {
 	}
 }
 
-// GetDeck returns an existing decks information from a directory string.
+// Deck returns an existing decks information from a directory string.
 //
 // Assumes mutex is already acquired.
-func (l *Lock) GetDeck(path string) (string, Deck, bool) {
+func (l *Lock) Deck(path string) (string, Deck, bool) {
 	for deckID, deck := range l.data {
 		if deck.Path == path {
 			return deckID, deck, true
@@ -198,8 +198,8 @@ func (l *Lock) UpdateDeckName(id, name string) {
 	l.updated = true
 }
 
-// GetCard returns an existing cards data.
-func (l *Lock) GetCard(deckID, cardID string) (Card, bool) {
+// Card returns an existing cards data.
+func (l *Lock) Card(deckID, cardID string) (Card, bool) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
@@ -237,9 +237,9 @@ func (l *Lock) SetCard(deckID, cardID, filename string, images map[string]string
 	return nil
 }
 
-// GetImageHashes returns the image hashes.
+// ImageHashes returns the image hashes.
 // If the image does not exist an empty string is returned.
-func (l *Lock) GetImageHashes(deckID, cardID string, paths []string) []string {
+func (l *Lock) ImageHashes(deckID, cardID string, paths []string) []string {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 

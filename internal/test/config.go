@@ -7,10 +7,10 @@ import (
 )
 
 type Config struct {
-	GetDeck []ConfigGetDeck
+	Deck []ConfigDeck
 }
 
-type ConfigGetDeck struct {
+type ConfigDeck struct {
 	Path string
 	Deck config.Deck
 	OK   bool
@@ -18,9 +18,9 @@ type ConfigGetDeck struct {
 
 func NewMockConfig(calls Config) *MockConfig {
 	cfg := new(MockConfig)
-	for _, call := range calls.GetDeck {
+	for _, call := range calls.Deck {
 		cfg.
-			On("GetDeck", call.Path).
+			On("Deck", call.Path).
 			Return(call.Deck, call.OK)
 	}
 	return cfg
@@ -30,7 +30,7 @@ type MockConfig struct {
 	mock.Mock
 }
 
-func (m *MockConfig) GetDeck(path string) (config.Deck, bool) {
+func (m *MockConfig) Deck(path string) (config.Deck, bool) {
 	args := m.Called(path)
 	return args.Get(0).(config.Deck), args.Bool(1)
 }

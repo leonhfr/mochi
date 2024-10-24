@@ -19,7 +19,7 @@ type Client interface {
 type Lockfile interface {
 	CleanImages(deckID, cardID string, paths []string)
 	SetCard(deckID, cardID, filename string, images map[string]string) error
-	GetImageHashes(deckID, cardID string, paths []string) []string
+	ImageHashes(deckID, cardID string, paths []string) []string
 }
 
 // Request is the interface that should be implemented to execute a request.

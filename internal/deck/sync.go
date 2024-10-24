@@ -17,14 +17,14 @@ type Client interface {
 
 // Config is the interface to interact with the config.
 type Config interface {
-	GetDeck(string) (config.Deck, bool)
+	Deck(string) (config.Deck, bool)
 }
 
 // Lockfile is the interface to interact with the lockfile.
 type Lockfile interface {
 	Lock()
 	Unlock()
-	GetDeck(string) (string, lock.Deck, bool)
+	Deck(string) (string, lock.Deck, bool)
 	SetDeck(string, string, string, string)
 	UpdateDeckName(string, string)
 }
@@ -37,7 +37,7 @@ func Sync(ctx context.Context, client Client, config Config, lf Lockfile, path s
 	lf.Lock()
 	defer lf.Unlock()
 
-	id, deck, ok := lf.GetDeck(path)
+	id, deck, ok := lf.Deck(path)
 	if name := getDeckName(config, path); ok && deck.Name != name {
 		err = updateDeckName(ctx, client, lf, deckID, name)
 		return id, err
@@ -81,7 +81,7 @@ func updateDeckName(ctx context.Context, client Client, lf Lockfile, deckID, nam
 }
 
 func getDeckName(config Config, path string) string {
-	deck, ok := config.GetDeck(path)
+	deck, ok := config.Deck(path)
 	if ok && deck.Name != "" {
 		return deck.Name
 	}
@@ -96,7 +96,7 @@ func getStack(lockfile Lockfile, path string) (string, []string) {
 	stack := []string{path}
 	for !isTopLevelDirectory(path) {
 		path = filepath.Dir(path)
-		deckID, _, ok := lockfile.GetDeck(path)
+		deckID, _, ok := lockfile.Deck(path)
 		if ok {
 			return deckID, stack
 		}

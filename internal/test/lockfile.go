@@ -8,12 +8,12 @@ import (
 
 type Lockfile struct {
 	Lock           int
-	GetDeck        []LockfileGetDeck
+	GetDeck        []LockfileDeck
 	SetDeck        []LockfileSetDeck
 	UpdateDeckName []LockfileUpdateDeckName
 }
 
-type LockfileGetDeck struct {
+type LockfileDeck struct {
 	Path   string
 	DeckID string
 	Deck   lock.Deck
@@ -40,7 +40,7 @@ func NewMockLockfile(calls Lockfile) *MockLockfile {
 	}
 	for _, call := range calls.GetDeck {
 		lf.
-			On("GetDeck", call.Path).
+			On("Deck", call.Path).
 			Return(call.DeckID, call.Deck, call.OK)
 	}
 	for _, call := range calls.SetDeck {
@@ -68,7 +68,7 @@ func (m *MockLockfile) Unlock() {
 	m.Called()
 }
 
-func (m *MockLockfile) GetDeck(path string) (string, lock.Deck, bool) {
+func (m *MockLockfile) Deck(path string) (string, lock.Deck, bool) {
 	args := m.Called(path)
 	return args.String(0), args.Get(1).(lock.Deck), args.Bool(2)
 }

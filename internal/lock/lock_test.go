@@ -235,7 +235,7 @@ func Test_Lock_CleanCards(t *testing.T) {
 	}
 }
 
-func Test_Lock_GetDeck(t *testing.T) {
+func Test_Lock_Deck(t *testing.T) {
 	tests := []struct {
 		name   string
 		data   lockData
@@ -262,7 +262,7 @@ func Test_Lock_GetDeck(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			lock := &Lock{data: tt.data}
-			deckID, deck, ok := lock.GetDeck(tt.path)
+			deckID, deck, ok := lock.Deck(tt.path)
 			assert.Equal(t, tt.deckID, deckID)
 			assert.Equal(t, tt.deck, deck)
 			assert.Equal(t, tt.ok, ok)
@@ -290,7 +290,7 @@ func Test_Lock_UpdateDeckName(t *testing.T) {
 	assert.True(t, lock.updated)
 }
 
-func Test_Lock_GetCard(t *testing.T) {
+func Test_Lock_Card(t *testing.T) {
 	tests := []struct {
 		name   string
 		data   lockData
@@ -325,7 +325,7 @@ func Test_Lock_GetCard(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			lock := &Lock{data: tt.data}
-			got, ok := lock.GetCard(tt.deckID, tt.cardID)
+			got, ok := lock.Card(tt.deckID, tt.cardID)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.ok, ok)
 		})

@@ -116,7 +116,7 @@ func Test_Parse(t *testing.T) {
 	}
 }
 
-func Test_Config_GetDeck(t *testing.T) {
+func Test_Config_Deck(t *testing.T) {
 	tests := []struct {
 		name   string
 		config *Config
@@ -163,7 +163,7 @@ func Test_Config_GetDeck(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, ok := tt.config.GetDeck(tt.path)
+			got, ok := tt.config.Deck(tt.path)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.ok, ok)
 		})

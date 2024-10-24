@@ -32,13 +32,13 @@ func Test_Sync(t *testing.T) {
 				},
 			},
 			config: test.Config{
-				GetDeck: []test.ConfigGetDeck{
+				Deck: []test.ConfigDeck{
 					{Path: "/test/data", Deck: config.Deck{Name: "DECK_DATA_NAME"}, OK: true},
 				},
 			},
 			lockfile: test.Lockfile{
 				Lock: 1,
-				GetDeck: []test.LockfileGetDeck{
+				GetDeck: []test.LockfileDeck{
 					{Path: "/test/data"},
 					{Path: "/test", DeckID: "DECK_TEST_ID", OK: true},
 				},
@@ -160,13 +160,13 @@ func Test_updateDeckName(t *testing.T) {
 func Test_getDeckName(t *testing.T) {
 	tests := []struct {
 		name  string
-		calls []test.ConfigGetDeck
+		calls []test.ConfigDeck
 		path  string
 		want  string
 	}{
 		{
 			name: "config deck has name",
-			calls: []test.ConfigGetDeck{
+			calls: []test.ConfigDeck{
 				{Path: "/test/data", Deck: config.Deck{Name: "DECK_NAME"}, OK: true},
 			},
 			path: "/test/data",
@@ -174,7 +174,7 @@ func Test_getDeckName(t *testing.T) {
 		},
 		{
 			name: "config deck has empty name",
-			calls: []test.ConfigGetDeck{
+			calls: []test.ConfigDeck{
 				{Path: "/test/data", Deck: config.Deck{}, OK: true},
 			},
 			path: "/test/data",
@@ -182,7 +182,7 @@ func Test_getDeckName(t *testing.T) {
 		},
 		{
 			name: "no config deck",
-			calls: []test.ConfigGetDeck{
+			calls: []test.ConfigDeck{
 				{Path: "/test/data", OK: false},
 			},
 			path: "/test/data",
@@ -192,7 +192,7 @@ func Test_getDeckName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := test.NewMockConfig(test.Config{GetDeck: tt.calls})
+			cfg := test.NewMockConfig(test.Config{Deck: tt.calls})
 			got := getDeckName(cfg, tt.path)
 			assert.Equal(t, tt.want, got)
 			cfg.AssertExpectations(t)
@@ -204,7 +204,7 @@ func Test_getStack(t *testing.T) {
 	tests := []struct {
 		name   string
 		path   string
-		calls  []test.LockfileGetDeck
+		calls  []test.LockfileDeck
 		deckID string
 		stack  []string
 	}{
@@ -216,7 +216,7 @@ func Test_getStack(t *testing.T) {
 		{
 			name: "recursive to top level directory",
 			path: "/test/data/notes",
-			calls: []test.LockfileGetDeck{
+			calls: []test.LockfileDeck{
 				{Path: "/test/data"},
 				{Path: "/test"},
 			},
@@ -225,7 +225,7 @@ func Test_getStack(t *testing.T) {
 		{
 			name: "recursive to existing",
 			path: "/test/data/notes",
-			calls: []test.LockfileGetDeck{
+			calls: []test.LockfileDeck{
 				{Path: "/test/data"},
 				{Path: "/test", DeckID: "DECK_ID", OK: true},
 			},

@@ -31,7 +31,7 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Re
 	paths := images.Paths()
 	lf.CleanImages(r.deckID, r.cardID, paths)
 
-	hashes := lf.GetImageHashes(r.deckID, r.cardID, paths)
+	hashes := lf.ImageHashes(r.deckID, r.cardID, paths)
 	filtered := image.Images{}
 	for index, image := range images {
 		if hash := hashes[index]; hash != "" || hash != image.Hash {
