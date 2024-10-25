@@ -77,11 +77,11 @@ func ListDecks(ctx context.Context, client DeckListClient) (<-chan string, error
 // CleanDecksClient is the client interface to clean decks.
 type CleanDecksClient interface {
 	DeckListClient
-	deck.CleanClient
+	deck.DeleteEmptyClient
 }
 
-// CleanDecks cleans the decks and returns true if at least one deck has been cleaned.
-func CleanDecks(ctx context.Context, client CleanDecksClient) (bool, error) {
+// DeleteLeafDecks cleans the decks and returns true if at least one deck has been cleaned.
+func DeleteLeafDecks(ctx context.Context, client CleanDecksClient) (bool, error) {
 	decks, err := client.ListDecks(ctx)
 	if err != nil {
 		return false, err
@@ -93,7 +93,7 @@ func CleanDecks(ctx context.Context, client CleanDecksClient) (bool, error) {
 	}
 
 	done, err := iter.MapErr(leaves, func(deckID *string) (bool, error) {
-		return deck.Clean(ctx, client, *deckID)
+		return deck.DeleteEmpty(ctx, client, *deckID)
 	})
 
 	return slices.Contains(done, true), err

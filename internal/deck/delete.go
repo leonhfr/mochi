@@ -21,14 +21,14 @@ func LeafDecks(decks []mochi.Deck) []string {
 	return leaves
 }
 
-// CleanClient is the interface to clean mochi decks.
-type CleanClient interface {
+// DeleteEmptyClient is the interface to clean mochi decks.
+type DeleteEmptyClient interface {
 	ListCardsInDeck(ctx context.Context, id string) ([]mochi.Card, error)
 	DeleteDeck(ctx context.Context, id string) error
 }
 
-// Clean deletes the deck if it does not contain any cards.
-func Clean(ctx context.Context, client CleanClient, deckID string) (bool, error) {
+// DeleteEmpty deletes the deck if it does not contain any cards.
+func DeleteEmpty(ctx context.Context, client DeleteEmptyClient, deckID string) (bool, error) {
 	cards, err := client.ListCardsInDeck(ctx, deckID)
 	if err != nil {
 		return false, err

@@ -121,20 +121,12 @@ func (l *Lock) CleanDecks(decks []mochi.Deck) {
 	}
 }
 
-// CleanCards removes from the lockfile the inexistent cards in a deck.
+// Deck returns a deck.
 //
 // Assumes mutex is already acquired.
-func (l *Lock) CleanCards(deckID string, cardIDs []string) {
-	if _, ok := l.decks[deckID]; !ok {
-		return
-	}
-
-	for cardID := range l.decks[deckID].Cards {
-		if !slices.Contains(cardIDs, cardID) {
-			delete(l.decks[deckID].Cards, cardID)
-			l.updated = true
-		}
-	}
+func (l *Lock) Deck(id string) (Deck, bool) {
+	deck, ok := l.decks[id]
+	return deck, ok
 }
 
 // DeckFromPath returns an existing decks information from a directory string.
@@ -210,32 +202,12 @@ func (l *Lock) SetCard(deckID, cardID, filename string, images map[string]string
 	return nil
 }
 
-// ImageHashes returns the image hashes.
-// If the image does not exist an empty string is returned.
+// DeleteCard deletes a card in the given deck.
 //
 // Assumes mutex is already acquired.
-func (l *Lock) ImageHashes(deckID, cardID string, paths []string) []string {
-	hashes := make([]string, 0, len(paths))
-	for _, path := range paths {
-		hashes = append(hashes, l.getImageHash(deckID, cardID, path))
-	}
-
-	return hashes
-}
-
-// requires read lock to be already acquired.
-//
-// Assumes mutex is already acquired.
-func (l *Lock) getImageHash(deckID, cardID, path string) string {
-	if _, ok := l.decks[deckID]; !ok {
-		return ""
-	}
-
-	if _, ok := l.decks[deckID].Cards[cardID]; !ok {
-		return ""
-	}
-
-	return l.decks[deckID].Cards[cardID].Images[path]
+func (l *Lock) DeleteCard(deckID, cardID string) {
+	delete(l.decks[deckID].Cards, cardID)
+	l.updated = true
 }
 
 // Updated returns whether the lockfile has been updated.

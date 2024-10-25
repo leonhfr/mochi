@@ -49,7 +49,7 @@ func Dump(ctx context.Context, logger Logger, token, workspace string) (err erro
 	wg.Wait()
 
 	for {
-		ok, err := worker.CleanDecks(ctx, client)
+		ok, err := worker.DeleteLeafDecks(ctx, client)
 		if err != nil {
 			return err
 		}

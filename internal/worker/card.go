@@ -7,6 +7,7 @@ import (
 
 	"github.com/leonhfr/mochi/internal/card"
 	"github.com/leonhfr/mochi/internal/image"
+	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -21,7 +22,8 @@ type Client interface {
 // Lockfile is the interface the lockfile should implement to generate the sync requests.
 type Lockfile interface {
 	card.Lockfile
-	CleanCards(deckID string, cardIDs []string)
+	Deck(id string) (lock.Deck, bool)
+	DeleteCard(deckID, cardID string)
 }
 
 // SyncRequests returns a stream of requests to sync the cards.
@@ -133,11 +135,17 @@ func syncRequests(ctx context.Context, logger Logger, client Client, cr card.Rea
 }
 
 func cleanCards(lf Lockfile, deckID string, mochiCards []mochi.Card) {
-	cardIDs := make([]string, 0, len(mochiCards))
-	for _, card := range mochiCards {
-		cardIDs = append(cardIDs, card.ID)
-	}
 	lf.Lock()
 	defer lf.Unlock()
-	lf.CleanCards(deckID, cardIDs)
+
+	deck, ok := lf.Deck(deckID)
+	if !ok {
+		return
+	}
+
+	for _, mochiCard := range mochiCards {
+		if _, ok := deck.Cards[mochiCard.ID]; !ok {
+			lf.DeleteCard(deckID, mochiCard.ID)
+		}
+	}
 }
