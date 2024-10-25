@@ -42,6 +42,12 @@ func Test_Headings_Convert(t *testing.T) {
 		want     Result
 	}{
 		{
+			name:     "empty file",
+			maxLevel: 1,
+			path:     "/Empty.md",
+			want:     Result{Deck: "Empty"},
+		},
+		{
 			name:     "simple level 1",
 			maxLevel: 1,
 			path:     "/Headings.md",

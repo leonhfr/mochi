@@ -77,9 +77,11 @@ func getHeadingCards(path string, headings []parsedHeading, source []byte) []Car
 		return nil
 	}
 
-	if len(headings) == 1 {
+	if len(headings) == 1 && len(source) > 0 {
 		name := getNameFromPath(path)
 		return []Card{createNoteCard(name, path, source, headings[0].images)}
+	} else if len(headings) == 1 {
+		return nil
 	}
 
 	cards := []Card{}
