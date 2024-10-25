@@ -6,12 +6,9 @@ import (
 	"io"
 	"io/fs"
 	"path/filepath"
-	"slices"
 	"sync"
 
 	"github.com/go-playground/validator/v10"
-
-	"github.com/leonhfr/mochi/mochi"
 )
 
 const lockName = "mochi-lock.json"
@@ -91,34 +88,9 @@ func (l *Lock) Unlock() {
 	l.mu.Unlock()
 }
 
-// CleanDecks removes from the lockfile the inexistent decks
-// and updates the deck names if they differ.
-//
-// Assumes mutex is already acquired.
-func (l *Lock) CleanDecks(decks []mochi.Deck) {
-	for id, lockDeck := range l.decks {
-		index := slices.IndexFunc(decks, func(deck mochi.Deck) bool {
-			return deck.ID == id
-		})
-
-		if index < 0 {
-			delete(l.decks, id)
-			l.updated = true
-			continue
-		}
-
-		if decks[index].ParentID != lockDeck.ParentID {
-			delete(l.decks, id)
-			l.updated = true
-			continue
-		}
-
-		if decks[index].Name != lockDeck.Name {
-			lockDeck.Name = decks[index].Name
-			l.decks[id] = lockDeck
-			l.updated = true
-		}
-	}
+// Decks returns all decks.
+func (l *Lock) Decks() map[string]Deck {
+	return l.decks
 }
 
 // Deck returns a deck.
@@ -162,6 +134,14 @@ func (l *Lock) UpdateDeck(id, name string) {
 	tmp := l.decks[id]
 	tmp.Name = name
 	l.decks[id] = tmp
+	l.updated = true
+}
+
+// DeleteDeck deletes a deck from the lockfile.
+//
+// Assumes mutex is already acquired.
+func (l *Lock) DeleteDeck(id string) {
+	delete(l.decks, id)
 	l.updated = true
 }
 

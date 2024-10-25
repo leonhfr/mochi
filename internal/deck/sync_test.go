@@ -38,7 +38,7 @@ func Test_Sync(t *testing.T) {
 			},
 			lockfile: test.Lockfile{
 				Lock: 1,
-				DeckFromPath: []test.LockfileDeck{
+				DeckFromPath: []test.LockfileDeckFromPath{
 					{Path: "/test/data"},
 					{Path: "/test", DeckID: "DECK_TEST_ID", OK: true},
 				},
@@ -204,7 +204,7 @@ func Test_getStack(t *testing.T) {
 	tests := []struct {
 		name   string
 		path   string
-		calls  []test.LockfileDeck
+		calls  []test.LockfileDeckFromPath
 		deckID string
 		stack  []string
 	}{
@@ -216,7 +216,7 @@ func Test_getStack(t *testing.T) {
 		{
 			name: "recursive to top level directory",
 			path: "/test/data/notes",
-			calls: []test.LockfileDeck{
+			calls: []test.LockfileDeckFromPath{
 				{Path: "/test/data"},
 				{Path: "/test"},
 			},
@@ -225,7 +225,7 @@ func Test_getStack(t *testing.T) {
 		{
 			name: "recursive to existing",
 			path: "/test/data/notes",
-			calls: []test.LockfileDeck{
+			calls: []test.LockfileDeckFromPath{
 				{Path: "/test/data"},
 				{Path: "/test", DeckID: "DECK_ID", OK: true},
 			},

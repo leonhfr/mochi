@@ -8,8 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-
-	"github.com/leonhfr/mochi/mochi"
 )
 
 func Test_Parse(t *testing.T) {
@@ -70,87 +68,6 @@ func Test_Parse(t *testing.T) {
 				assert.NoError(t, err)
 			}
 			rw.AssertExpectations(t)
-		})
-	}
-}
-
-func Test_Lock_CleanDecks(t *testing.T) {
-	tests := []struct {
-		name    string
-		decks   []mochi.Deck
-		data    map[string]Deck
-		want    map[string]Deck
-		updated bool
-	}{
-		{
-			name: "should not modify the lock",
-			decks: []mochi.Deck{
-				{ID: "DECK_ID_2", Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
-				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
-			},
-			data: map[string]Deck{
-				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
-				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
-			},
-			want: map[string]Deck{
-				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
-				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
-			},
-			updated: false,
-		},
-		{
-			name: "should remove decks that are not in the slice",
-			decks: []mochi.Deck{
-				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
-			},
-			data: map[string]Deck{
-				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
-				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
-			},
-			want: map[string]Deck{
-				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
-			},
-			updated: true,
-		},
-		{
-			name: "should remove decks whose parent id have changed",
-			decks: []mochi.Deck{
-				{ID: "DECK_ID_2", Name: "DECK_NAME_2", ParentID: ""},
-				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
-			},
-			data: map[string]Deck{
-				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
-				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
-			},
-			want: map[string]Deck{
-				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
-			},
-			updated: true,
-		},
-		{
-			name: "should update the deck name",
-			decks: []mochi.Deck{
-				{ID: "DECK_ID_2", Name: "NEW_DECK_NAME_2", ParentID: "DECK_ID_1"},
-				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
-			},
-			data: map[string]Deck{
-				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
-				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
-			},
-			want: map[string]Deck{
-				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
-				"DECK_ID_2": {Name: "NEW_DECK_NAME_2", ParentID: "DECK_ID_1"},
-			},
-			updated: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			lock := &Lock{decks: tt.data}
-			lock.CleanDecks(tt.decks)
-			assert.Equal(t, lock.decks, tt.want)
-			assert.Equal(t, lock.updated, tt.updated)
 		})
 	}
 }

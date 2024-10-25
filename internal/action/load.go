@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/leonhfr/mochi/internal/config"
+	"github.com/leonhfr/mochi/internal/deck"
 	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/throttle"
 	"github.com/leonhfr/mochi/mochi"
@@ -45,14 +46,10 @@ func loadLockfile(ctx context.Context, logger Logger, client *mochi.Client, rw l
 		return nil, err
 	}
 
-	decks, err := client.ListDecks(ctx)
+	err = deck.Clean(ctx, client, lf)
 	if err != nil {
 		return nil, err
 	}
-
-	lf.Lock()
-	defer lf.Unlock()
-	lf.CleanDecks(decks)
 
 	logger.Infof("loaded lockfile")
 	logger.Debugf("lockfile: %v", lf.String())
