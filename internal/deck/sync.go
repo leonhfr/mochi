@@ -1,4 +1,4 @@
-package card
+package deck
 
 import (
 	"slices"
@@ -9,8 +9,8 @@ import (
 	"github.com/leonhfr/mochi/mochi"
 )
 
-// Lockfile is the interface that should be implemented to update the lockfile.
-type Lockfile interface {
+// SyncLockfile is the interface that should be implemented to update the lockfile.
+type SyncLockfile interface {
 	Lock()
 	Unlock()
 	Card(deckID string, cardID string) (lock.Card, bool)
@@ -18,7 +18,7 @@ type Lockfile interface {
 
 // SyncRequests parses the note files and returns the requests
 // required to sync them.
-func SyncRequests(lf Lockfile, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []request.Request {
+func SyncRequests(lf SyncLockfile, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []request.Request {
 	groupedMochiCards, notMatched := groupMochiCardsByFilename(lf, deckID, mochiCards)
 	groupedParsedCards := groupParsedCardsByFilename(parsedCards)
 	groupedCards := groupCardsByFilename(groupedMochiCards, groupedParsedCards)
@@ -92,7 +92,7 @@ func groupCardsByFilename(mochiCards map[string][]mochi.Card, parsedCards map[st
 	return groups
 }
 
-func groupMochiCardsByFilename(lf Lockfile, deckID string, mochiCards []mochi.Card) (map[string][]mochi.Card, []mochi.Card) {
+func groupMochiCardsByFilename(lf SyncLockfile, deckID string, mochiCards []mochi.Card) (map[string][]mochi.Card, []mochi.Card) {
 	lf.Lock()
 	defer lf.Unlock()
 

@@ -5,7 +5,6 @@ import (
 
 	"github.com/sourcegraph/conc/stream"
 
-	"github.com/leonhfr/mochi/internal/card"
 	"github.com/leonhfr/mochi/internal/deck"
 	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/internal/lock"
@@ -22,7 +21,7 @@ type Client interface {
 
 // Lockfile is the interface the lockfile should implement to generate the sync requests.
 type Lockfile interface {
-	card.Lockfile
+	deck.SyncLockfile
 	Deck(id string) (lock.Deck, bool)
 	DeleteCard(deckID, cardID string)
 }
@@ -128,6 +127,6 @@ func syncRequests(ctx context.Context, logger Logger, client Client, reader deck
 	}
 
 	logger.Infof("card sync(deckID %s): generating sync requests", syncDeck.deckID)
-	reqs := card.SyncRequests(lf, syncDeck.deckID, mochiCards, parsedCards)
+	reqs := deck.SyncRequests(lf, syncDeck.deckID, mochiCards, parsedCards)
 	return reqs, nil
 }
