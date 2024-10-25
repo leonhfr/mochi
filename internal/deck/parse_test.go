@@ -1,4 +1,4 @@
-package card
+package deck
 
 import (
 	"errors"
