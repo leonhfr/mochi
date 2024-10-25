@@ -137,26 +137,6 @@ func (l *Lock) CleanCards(deckID string, cardIDs []string) {
 	}
 }
 
-// CleanImages removes from the lockfile the inexistent paths in a card.
-//
-// Assumes mutex is already acquired.
-func (l *Lock) CleanImages(deckID, cardID string, paths []string) {
-	if _, ok := l.decks[deckID]; !ok {
-		return
-	}
-
-	if _, ok := l.decks[deckID].Cards[cardID]; !ok {
-		return
-	}
-
-	for path := range l.decks[deckID].Cards[cardID].Images {
-		if !slices.Contains[[]string](paths, path) {
-			delete(l.decks[deckID].Cards[cardID].Images, path)
-			l.updated = true
-		}
-	}
-}
-
 // DeckFromPath returns an existing decks information from a directory string.
 //
 // Assumes mutex is already acquired.

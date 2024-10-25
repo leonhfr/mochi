@@ -38,11 +38,10 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Re
 		return err
 	}
 
-	hashMap := filtered.HashMap()
 	lf.Lock()
 	defer lf.Unlock()
 
-	if err := lf.SetCard(r.deckID, r.cardID, r.card.Filename, hashMap); err != nil {
+	if err := lf.SetCard(r.deckID, r.cardID, r.card.Filename, images.HashMap()); err != nil {
 		return err
 	}
 
@@ -53,13 +52,19 @@ func filteredAttachments(lf Lockfile, deckID, cardID string, images image.Images
 	lf.Lock()
 	defer lf.Unlock()
 
-	paths := images.Paths()
-	lf.CleanImages(deckID, cardID, paths)
+	paths := make([]string, len(images))
+	for i, image := range images {
+		paths[i] = image.Path
+	}
 
-	hashes := lf.ImageHashes(deckID, cardID, paths)
+	card, ok := lf.Card(deckID, cardID)
+	if !ok {
+		return images
+	}
+
 	filtered := image.Images{}
-	for index, image := range images {
-		if hash := hashes[index]; hash != "" || hash != image.Hash {
+	for _, image := range images {
+		if md5, ok := card.Images[image.Path]; !ok || md5 != image.Hash {
 			filtered = append(filtered, image)
 		}
 	}

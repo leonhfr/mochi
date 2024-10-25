@@ -59,7 +59,7 @@ func Test_newImage(t *testing.T) {
 					Data:        "SU1BR0UgQ09OVEVO",
 				},
 				Hash:        "1923784bcb1663bbbd9efd9765c36382",
-				path:        "/testdata/scream.png",
+				Path:        "/testdata/scream.png",
 				destination: "scream.png",
 				altText:     "alt text",
 			},

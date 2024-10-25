@@ -31,20 +31,11 @@ func (images Images) Attachments() []mochi.Attachment {
 	return attachments
 }
 
-// Paths returns the list of absolute paths.
-func (images Images) Paths() []string {
-	paths := make([]string, len(images))
-	for i, image := range images {
-		paths[i] = image.path
-	}
-	return paths
-}
-
 // HashMap returns the map of [abs path]hash.
 func (images Images) HashMap() map[string]string {
 	hashMap := make(map[string]string)
 	for _, image := range images {
-		hashMap[image.path] = image.Hash
+		hashMap[image.Path] = image.Hash
 	}
 	return hashMap
 }

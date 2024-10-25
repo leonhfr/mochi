@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/leonhfr/mochi/internal/image"
+	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -19,9 +20,8 @@ type Client interface {
 type Lockfile interface {
 	Lock()
 	Unlock()
-	CleanImages(deckID, cardID string, paths []string)
+	Card(deckID, cardID string) (lock.Card, bool)
 	SetCard(deckID, cardID, filename string, images map[string]string) error
-	ImageHashes(deckID, cardID string, paths []string) []string
 }
 
 // Request is the interface that should be implemented to execute a request.

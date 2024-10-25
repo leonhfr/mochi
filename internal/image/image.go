@@ -34,7 +34,7 @@ type Reader interface {
 type Image struct {
 	attachment  mochi.Attachment // filename: [md5 of path].ext
 	Hash        string           // md5 of contents
-	path        string           // absolute path to file
+	Path        string           // absolute path to file
 	destination string           // original destination
 	altText     string           // original alt text
 }
@@ -62,7 +62,7 @@ func newImage(reader Reader, path string, parsed parser.Image) (Image, bool) {
 			ContentType: mimeType,
 			Data:        content,
 		},
-		path:        absPath,
+		Path:        absPath,
 		Hash:        hash,
 		destination: parsed.Destination,
 		altText:     parsed.AltText,
