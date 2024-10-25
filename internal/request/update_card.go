@@ -28,17 +28,7 @@ func UpdateCard(deckID, cardID string, card parser.Card) Request {
 func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error {
 	images := image.New(reader, r.card.Path, r.card.Images)
 
-	paths := images.Paths()
-	lf.CleanImages(r.deckID, r.cardID, paths)
-
-	hashes := lf.ImageHashes(r.deckID, r.cardID, paths)
-	filtered := image.Images{}
-	for index, image := range images {
-		if hash := hashes[index]; hash != "" || hash != image.Hash {
-			filtered = append(filtered, image)
-		}
-	}
-
+	filtered := filteredAttachments(lf, r.deckID, r.cardID, images)
 	req := mochi.UpdateCardRequest{
 		Content:     images.Replace(r.card.Content),
 		Attachments: filtered.Attachments(),
@@ -49,11 +39,31 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Re
 	}
 
 	hashMap := filtered.HashMap()
+	lf.Lock()
+	defer lf.Unlock()
+
 	if err := lf.SetCard(r.deckID, r.cardID, r.card.Filename, hashMap); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func filteredAttachments(lf Lockfile, deckID, cardID string, images image.Images) image.Images {
+	lf.Lock()
+	defer lf.Unlock()
+
+	paths := images.Paths()
+	lf.CleanImages(deckID, cardID, paths)
+
+	hashes := lf.ImageHashes(deckID, cardID, paths)
+	filtered := image.Images{}
+	for index, image := range images {
+		if hash := hashes[index]; hash != "" || hash != image.Hash {
+			filtered = append(filtered, image)
+		}
+	}
+	return filtered
 }
 
 // String implements the fmt.Stringer interface.

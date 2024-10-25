@@ -50,6 +50,8 @@ func loadLockfile(ctx context.Context, logger Logger, client *mochi.Client, rw l
 		return nil, err
 	}
 
+	lf.Lock()
+	defer lf.Unlock()
 	lf.CleanDecks(decks)
 
 	logger.Infof("loaded lockfile")

@@ -93,10 +93,9 @@ func (l *Lock) Unlock() {
 
 // CleanDecks removes from the lockfile the inexistent decks
 // and updates the deck names if they differ.
+//
+// Assumes mutex is already acquired.
 func (l *Lock) CleanDecks(decks []mochi.Deck) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	for id, lockDeck := range l.decks {
 		index := slices.IndexFunc(decks, func(deck mochi.Deck) bool {
 			return deck.ID == id
@@ -123,10 +122,9 @@ func (l *Lock) CleanDecks(decks []mochi.Deck) {
 }
 
 // CleanCards removes from the lockfile the inexistent cards in a deck.
+//
+// Assumes mutex is already acquired.
 func (l *Lock) CleanCards(deckID string, cardIDs []string) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	if _, ok := l.decks[deckID]; !ok {
 		return
 	}
@@ -140,10 +138,9 @@ func (l *Lock) CleanCards(deckID string, cardIDs []string) {
 }
 
 // CleanImages removes from the lockfile the inexistent paths in a card.
+//
+// Assumes mutex is already acquired.
 func (l *Lock) CleanImages(deckID, cardID string, paths []string) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	if _, ok := l.decks[deckID]; !ok {
 		return
 	}
@@ -197,10 +194,9 @@ func (l *Lock) UpdateDeckName(id, name string) {
 }
 
 // Card returns an existing cards data.
+//
+// Assumes mutex is already acquired.
 func (l *Lock) Card(deckID, cardID string) (Card, bool) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	if _, ok := l.decks[deckID]; !ok {
 		return Card{}, false
 	}
@@ -210,10 +206,9 @@ func (l *Lock) Card(deckID, cardID string) (Card, bool) {
 }
 
 // SetCard sets a card in the given deck.
+//
+// Assumes mutex is already acquired.
 func (l *Lock) SetCard(deckID, cardID, filename string, images map[string]string) error {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	if _, ok := l.decks[deckID]; !ok {
 		return fmt.Errorf("deck %s not found", deckID)
 	}
@@ -237,10 +232,9 @@ func (l *Lock) SetCard(deckID, cardID, filename string, images map[string]string
 
 // ImageHashes returns the image hashes.
 // If the image does not exist an empty string is returned.
+//
+// Assumes mutex is already acquired.
 func (l *Lock) ImageHashes(deckID, cardID string, paths []string) []string {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	hashes := make([]string, 0, len(paths))
 	for _, path := range paths {
 		hashes = append(hashes, l.getImageHash(deckID, cardID, path))
@@ -250,6 +244,8 @@ func (l *Lock) ImageHashes(deckID, cardID string, paths []string) []string {
 }
 
 // requires read lock to be already acquired.
+//
+// Assumes mutex is already acquired.
 func (l *Lock) getImageHash(deckID, cardID, path string) string {
 	if _, ok := l.decks[deckID]; !ok {
 		return ""
@@ -274,9 +270,6 @@ func (l *Lock) String() string {
 
 // Write writes the lockfile to the target directory.
 func (l *Lock) Write() error {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	if !l.updated {
 		return nil
 	}

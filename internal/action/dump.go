@@ -65,6 +65,9 @@ var _ request.Lockfile = &noOpLockfile{}
 
 type noOpLockfile struct{}
 
+func (lf *noOpLockfile) Lock()   {}
+func (lf *noOpLockfile) Unlock() {}
+
 func (lf *noOpLockfile) CleanImages(_, _ string, _ []string) {}
 
 func (lf *noOpLockfile) SetCard(_, _, _ string, _ map[string]string) error {

@@ -11,6 +11,8 @@ import (
 
 // Lockfile is the interface that should be implemented to update the lockfile.
 type Lockfile interface {
+	Lock()
+	Unlock()
 	Card(deckID string, cardID string) (lock.Card, bool)
 }
 
@@ -91,6 +93,9 @@ func groupCardsByFilename(mochiCards map[string][]mochi.Card, parsedCards map[st
 }
 
 func groupMochiCardsByFilename(lf Lockfile, deckID string, mochiCards []mochi.Card) (map[string][]mochi.Card, []mochi.Card) {
+	lf.Lock()
+	defer lf.Unlock()
+
 	matched := make(map[string][]mochi.Card)
 	var notMatched []mochi.Card
 	for _, mochiCard := range mochiCards {

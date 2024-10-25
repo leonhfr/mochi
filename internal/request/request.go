@@ -17,6 +17,8 @@ type Client interface {
 
 // Lockfile is the interface the lockfile implement to sync cards.
 type Lockfile interface {
+	Lock()
+	Unlock()
 	CleanImages(deckID, cardID string, paths []string)
 	SetCard(deckID, cardID, filename string, images map[string]string) error
 	ImageHashes(deckID, cardID string, paths []string) []string

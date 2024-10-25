@@ -42,6 +42,9 @@ func (r *createRequest) Execute(ctx context.Context, client Client, reader image
 	}
 
 	hashMap := images.HashMap()
+	lf.Lock()
+	defer lf.Unlock()
+
 	if err := lf.SetCard(r.deckID, card.ID, r.card.Filename, hashMap); err != nil {
 		return err
 	}

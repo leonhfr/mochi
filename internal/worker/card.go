@@ -137,5 +137,7 @@ func cleanCards(lf Lockfile, deckID string, mochiCards []mochi.Card) {
 	for _, card := range mochiCards {
 		cardIDs = append(cardIDs, card.ID)
 	}
+	lf.Lock()
+	defer lf.Unlock()
 	lf.CleanCards(deckID, cardIDs)
 }
