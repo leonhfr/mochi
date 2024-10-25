@@ -4,6 +4,7 @@ import (
 	"io"
 	"path/filepath"
 
+	"github.com/leonhfr/mochi/internal/heap"
 	"github.com/leonhfr/mochi/internal/parser"
 )
 
@@ -25,23 +26,62 @@ func Parse(r Reader, p Parser, workspace, parserName string, filePaths []string)
 		if err != nil {
 			return nil, err
 		}
-		cards = append(cards, parsed...)
+		cards = append(cards, parsed.Cards...)
 	}
 	return cards, nil
 }
 
-func parseFile(r Reader, p Parser, workspace, parserName, path string) ([]parser.Card, error) {
+// ParseCards parses the note files for cards.
+func ParseCards(r Reader, p Parser, workspace, parserName string, filePaths []string) ([]Card, error) {
+	var cards []Card
+	for _, path := range filePaths {
+		parsed, err := parseFile(r, p, workspace, parserName, path)
+		if err != nil {
+			return nil, err
+		}
+		cards = append(cards, newCards(parsed)...)
+	}
+	return cards, nil
+}
+
+func parseFile(r Reader, p Parser, workspace, parserName, path string) (parser.Result, error) {
 	path = filepath.Join(workspace, path)
 	bytes, err := r.Read(path)
 	if err != nil {
-		return nil, err
+		return parser.Result{}, err
 	}
 	defer bytes.Close()
 
 	result, err := p.Convert(parserName, path, bytes)
 	if err != nil {
-		return nil, err
+		return parser.Result{}, err
 	}
 
-	return result.Cards, nil
+	return result, nil
+}
+
+// Card contains the data to group and prioritize a card.
+type Card struct {
+	base string
+	card parser.Card
+}
+
+var _ heap.Item = &Card{}
+
+func newCards(result parser.Result) []Card {
+	cards := make([]Card, len(result.Cards))
+	for i, card := range result.Cards {
+		cards[i] = Card{base: result.Deck, card: card}
+	}
+	return cards
+}
+
+// Base implements the PriorityItem interface.
+func (c Card) Base() string {
+	return c.base
+}
+
+// Priority implements the PriorityItem interface.
+func (c Card) Priority() int {
+	return len(c.base)
 }

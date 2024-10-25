@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v3"
@@ -118,7 +119,7 @@ func (c *Config) Deck(path string) (Deck, bool) {
 	}
 
 	for _, deck := range c.Decks {
-		if deck.Path == path {
+		if strings.HasPrefix(path, deck.Path) {
 			return deck, true
 		}
 	}

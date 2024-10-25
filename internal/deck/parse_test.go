@@ -42,7 +42,7 @@ func Test_parseFile(t *testing.T) {
 		readCalls   []readCall
 		parserCalls []test.ParserCall
 		path        string
-		want        []parser.Card
+		want        parser.Result
 		err         bool
 	}{
 		{
@@ -83,7 +83,7 @@ func Test_parseFile(t *testing.T) {
 				Result: parser.Result{Cards: []parser.Card{{Name: "TEST"}}},
 			}},
 			path: "/lorem-ipsum.md",
-			want: []parser.Card{{Name: "TEST"}},
+			want: parser.Result{Cards: []parser.Card{{Name: "TEST"}}},
 		},
 	}
 
