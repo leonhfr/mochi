@@ -33,7 +33,7 @@ func Test_Create(t *testing.T) {
 			},
 			config: test.Config{
 				Deck: []test.ConfigDeck{
-					{Path: "/test/data", Deck: config.Deck{Name: "DECK_DATA_NAME"}, OK: true},
+					{Path: "/test/data", Deck: config.Deck{Name: "DECK_DATA_NAME", Path: "/test/data"}, OK: true},
 				},
 			},
 			lockfile: test.Lockfile{
@@ -167,10 +167,18 @@ func Test_getDeckName(t *testing.T) {
 		{
 			name: "config deck has name",
 			calls: []test.ConfigDeck{
-				{Path: "/test/data", Deck: config.Deck{Name: "DECK_NAME"}, OK: true},
+				{Path: "/test/data", Deck: config.Deck{Name: "DECK_NAME", Path: "/test/data"}, OK: true},
 			},
 			path: "/test/data",
 			want: "DECK_NAME",
+		},
+		{
+			name: "config deck parent has name",
+			calls: []test.ConfigDeck{
+				{Path: "/test/data/subDeck", Deck: config.Deck{Name: "DECK_NAME", Path: "/test/data"}, OK: true},
+			},
+			path: "/test/data/subDeck",
+			want: "subDeck",
 		},
 		{
 			name: "config deck has empty name",

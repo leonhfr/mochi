@@ -82,7 +82,7 @@ func updateDeckName(ctx context.Context, client CreateClient, lf CreateLockfile,
 
 func getDeckName(config CreateConfig, path string) string {
 	deck, ok := config.Deck(path)
-	if ok && deck.Name != "" {
+	if ok && deck.Path == path && deck.Name != "" {
 		return deck.Name
 	}
 	return filepath.Base(path)
