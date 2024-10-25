@@ -22,7 +22,14 @@ func init() {
 	validate = validator.New()
 }
 
-type lockData map[string]Deck // indexed by deck id
+// Lock represents a lockfile.
+type Lock struct {
+	decks   map[string]Deck // indexed by deck id
+	path    string
+	updated bool
+	mu      sync.Mutex
+	rw      ReaderWriter
+}
 
 // Deck contains the information about existing decks.
 type Deck struct {
@@ -38,15 +45,6 @@ type Card struct {
 	Images   map[string]string `json:"images,omitempty"`             // map[path]md5 hash
 }
 
-// Lock represents a lockfile.
-type Lock struct {
-	data    lockData
-	path    string
-	updated bool
-	mu      sync.RWMutex
-	rw      ReaderWriter
-}
-
 // ReaderWriter represents the interface to interact with a lockfile.
 type ReaderWriter interface {
 	Read(string) (io.ReadCloser, error)
@@ -57,9 +55,9 @@ type ReaderWriter interface {
 func Parse(rw ReaderWriter, target string) (*Lock, error) {
 	path := filepath.Join(target, lockName)
 	lock := &Lock{
-		data: make(lockData),
-		path: path,
-		rw:   rw,
+		decks: make(map[string]Deck),
+		path:  path,
+		rw:    rw,
 	}
 
 	r, err := rw.Read(path)
@@ -70,11 +68,11 @@ func Parse(rw ReaderWriter, target string) (*Lock, error) {
 	}
 	defer r.Close()
 
-	if err := json.NewDecoder(r).Decode(&lock.data); err != nil {
+	if err := json.NewDecoder(r).Decode(&lock.decks); err != nil {
 		return nil, err
 	}
 
-	for _, data := range lock.data {
+	for _, data := range lock.decks {
 		if err := validate.Struct(&data); err != nil {
 			return nil, err
 		}
@@ -99,26 +97,26 @@ func (l *Lock) CleanDecks(decks []mochi.Deck) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	for id, lockDeck := range l.data {
+	for id, lockDeck := range l.decks {
 		index := slices.IndexFunc(decks, func(deck mochi.Deck) bool {
 			return deck.ID == id
 		})
 
 		if index < 0 {
-			delete(l.data, id)
+			delete(l.decks, id)
 			l.updated = true
 			continue
 		}
 
 		if decks[index].ParentID != lockDeck.ParentID {
-			delete(l.data, id)
+			delete(l.decks, id)
 			l.updated = true
 			continue
 		}
 
 		if decks[index].Name != lockDeck.Name {
 			lockDeck.Name = decks[index].Name
-			l.data[id] = lockDeck
+			l.decks[id] = lockDeck
 			l.updated = true
 		}
 	}
@@ -129,13 +127,13 @@ func (l *Lock) CleanCards(deckID string, cardIDs []string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if _, ok := l.data[deckID]; !ok {
+	if _, ok := l.decks[deckID]; !ok {
 		return
 	}
 
-	for cardID := range l.data[deckID].Cards {
+	for cardID := range l.decks[deckID].Cards {
 		if !slices.Contains(cardIDs, cardID) {
-			delete(l.data[deckID].Cards, cardID)
+			delete(l.decks[deckID].Cards, cardID)
 			l.updated = true
 		}
 	}
@@ -146,17 +144,17 @@ func (l *Lock) CleanImages(deckID, cardID string, paths []string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if _, ok := l.data[deckID]; !ok {
+	if _, ok := l.decks[deckID]; !ok {
 		return
 	}
 
-	if _, ok := l.data[deckID].Cards[cardID]; !ok {
+	if _, ok := l.decks[deckID].Cards[cardID]; !ok {
 		return
 	}
 
-	for path := range l.data[deckID].Cards[cardID].Images {
+	for path := range l.decks[deckID].Cards[cardID].Images {
 		if !slices.Contains[[]string](paths, path) {
-			delete(l.data[deckID].Cards[cardID].Images, path)
+			delete(l.decks[deckID].Cards[cardID].Images, path)
 			l.updated = true
 		}
 	}
@@ -166,7 +164,7 @@ func (l *Lock) CleanImages(deckID, cardID string, paths []string) {
 //
 // Assumes mutex is already acquired.
 func (l *Lock) Deck(path string) (string, Deck, bool) {
-	for deckID, deck := range l.data {
+	for deckID, deck := range l.decks {
 		if deck.Path == path {
 			return deckID, deck, true
 		}
@@ -179,7 +177,7 @@ func (l *Lock) Deck(path string) (string, Deck, bool) {
 //
 // Assumes mutex is already acquired.
 func (l *Lock) SetDeck(id, parentID, path, name string) {
-	l.data[id] = Deck{
+	l.decks[id] = Deck{
 		ParentID: parentID,
 		Path:     path,
 		Name:     name,
@@ -192,22 +190,22 @@ func (l *Lock) SetDeck(id, parentID, path, name string) {
 //
 // Assumes mutex is already acquired.
 func (l *Lock) UpdateDeckName(id, name string) {
-	tmp := l.data[id]
+	tmp := l.decks[id]
 	tmp.Name = name
-	l.data[id] = tmp
+	l.decks[id] = tmp
 	l.updated = true
 }
 
 // Card returns an existing cards data.
 func (l *Lock) Card(deckID, cardID string) (Card, bool) {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
-	if _, ok := l.data[deckID]; !ok {
+	if _, ok := l.decks[deckID]; !ok {
 		return Card{}, false
 	}
 
-	card, ok := l.data[deckID].Cards[cardID]
+	card, ok := l.decks[deckID].Cards[cardID]
 	return card, ok
 }
 
@@ -216,19 +214,19 @@ func (l *Lock) SetCard(deckID, cardID, filename string, images map[string]string
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if _, ok := l.data[deckID]; !ok {
+	if _, ok := l.decks[deckID]; !ok {
 		return fmt.Errorf("deck %s not found", deckID)
 	}
 
-	if l.data[deckID].Cards == nil {
-		l.data[deckID] = Deck{
-			Path:  l.data[deckID].Path,
-			Name:  l.data[deckID].Name,
+	if l.decks[deckID].Cards == nil {
+		l.decks[deckID] = Deck{
+			Path:  l.decks[deckID].Path,
+			Name:  l.decks[deckID].Name,
 			Cards: map[string]Card{},
 		}
 	}
 
-	l.data[deckID].Cards[cardID] = Card{
+	l.decks[deckID].Cards[cardID] = Card{
 		Filename: filename,
 		Images:   images,
 	}
@@ -240,8 +238,8 @@ func (l *Lock) SetCard(deckID, cardID, filename string, images map[string]string
 // ImageHashes returns the image hashes.
 // If the image does not exist an empty string is returned.
 func (l *Lock) ImageHashes(deckID, cardID string, paths []string) []string {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
 	hashes := make([]string, 0, len(paths))
 	for _, path := range paths {
@@ -253,15 +251,15 @@ func (l *Lock) ImageHashes(deckID, cardID string, paths []string) []string {
 
 // requires read lock to be already acquired.
 func (l *Lock) getImageHash(deckID, cardID, path string) string {
-	if _, ok := l.data[deckID]; !ok {
+	if _, ok := l.decks[deckID]; !ok {
 		return ""
 	}
 
-	if _, ok := l.data[deckID].Cards[cardID]; !ok {
+	if _, ok := l.decks[deckID].Cards[cardID]; !ok {
 		return ""
 	}
 
-	return l.data[deckID].Cards[cardID].Images[path]
+	return l.decks[deckID].Cards[cardID].Images[path]
 }
 
 // Updated returns whether the lockfile has been updated.
@@ -271,7 +269,7 @@ func (l *Lock) Updated() bool {
 
 // String implements fmt.Stringer.
 func (l *Lock) String() string {
-	return fmt.Sprintf("data(updated: %t): %v", l.updated, l.data)
+	return fmt.Sprintf("data(updated: %t): %v", l.updated, l.decks)
 }
 
 // Write writes the lockfile to the target directory.
@@ -289,5 +287,5 @@ func (l *Lock) Write() error {
 	}
 	defer w.Close()
 
-	return json.NewEncoder(w).Encode(l.data)
+	return json.NewEncoder(w).Encode(l.decks)
 }

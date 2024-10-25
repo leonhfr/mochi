@@ -20,7 +20,7 @@ func Test_Parse(t *testing.T) {
 		fileContent string
 		fileError   error
 		wantPath    string
-		wantData    lockData
+		wantData    map[string]Deck
 		err         bool
 	}{
 		{
@@ -29,7 +29,7 @@ func Test_Parse(t *testing.T) {
 			path:      "testdata/mochi-lock.json",
 			fileError: fs.ErrNotExist,
 			wantPath:  "testdata/mochi-lock.json",
-			wantData:  lockData{},
+			wantData:  map[string]Deck{},
 		},
 		{
 			name:        "lockfile found",
@@ -37,7 +37,7 @@ func Test_Parse(t *testing.T) {
 			path:        "testdata/mochi-lock.json",
 			fileContent: `{"DECK_ID":{"path":"DECK_PATH","name":"DECK_NAME"}}`,
 			wantPath:    "testdata/mochi-lock.json",
-			wantData:    lockData{"DECK_ID": Deck{Path: "DECK_PATH", Name: "DECK_NAME"}},
+			wantData:    map[string]Deck{"DECK_ID": {Path: "DECK_PATH", Name: "DECK_NAME"}},
 		},
 		{
 			name:        "missing path and name",
@@ -66,7 +66,7 @@ func Test_Parse(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.Equal(t, tt.wantPath, got.path)
-				assert.Equal(t, tt.wantData, got.data)
+				assert.Equal(t, tt.wantData, got.decks)
 				assert.NoError(t, err)
 			}
 			rw.AssertExpectations(t)
@@ -78,8 +78,8 @@ func Test_Lock_CleanDecks(t *testing.T) {
 	tests := []struct {
 		name    string
 		decks   []mochi.Deck
-		data    lockData
-		want    lockData
+		data    map[string]Deck
+		want    map[string]Deck
 		updated bool
 	}{
 		{
@@ -88,11 +88,11 @@ func Test_Lock_CleanDecks(t *testing.T) {
 				{ID: "DECK_ID_2", Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
 				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
 			},
-			data: lockData{
+			data: map[string]Deck{
 				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
 				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
-			want: lockData{
+			want: map[string]Deck{
 				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
 				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
@@ -103,11 +103,11 @@ func Test_Lock_CleanDecks(t *testing.T) {
 			decks: []mochi.Deck{
 				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
 			},
-			data: lockData{
+			data: map[string]Deck{
 				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
 				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
-			want: lockData{
+			want: map[string]Deck{
 				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
 			},
 			updated: true,
@@ -118,11 +118,11 @@ func Test_Lock_CleanDecks(t *testing.T) {
 				{ID: "DECK_ID_2", Name: "DECK_NAME_2", ParentID: ""},
 				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
 			},
-			data: lockData{
+			data: map[string]Deck{
 				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
 				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
-			want: lockData{
+			want: map[string]Deck{
 				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
 			},
 			updated: true,
@@ -133,11 +133,11 @@ func Test_Lock_CleanDecks(t *testing.T) {
 				{ID: "DECK_ID_2", Name: "NEW_DECK_NAME_2", ParentID: "DECK_ID_1"},
 				{ID: "DECK_ID_1", Name: "DECK_NAME_1", ParentID: ""},
 			},
-			data: lockData{
+			data: map[string]Deck{
 				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
 				"DECK_ID_2": {Name: "DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
-			want: lockData{
+			want: map[string]Deck{
 				"DECK_ID_1": {Name: "DECK_NAME_1", ParentID: ""},
 				"DECK_ID_2": {Name: "NEW_DECK_NAME_2", ParentID: "DECK_ID_1"},
 			},
@@ -147,9 +147,9 @@ func Test_Lock_CleanDecks(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lock := &Lock{data: tt.data}
+			lock := &Lock{decks: tt.data}
 			lock.CleanDecks(tt.decks)
-			assert.Equal(t, lock.data, tt.want)
+			assert.Equal(t, lock.decks, tt.want)
 			assert.Equal(t, lock.updated, tt.updated)
 		})
 	}
@@ -160,22 +160,22 @@ func Test_Lock_CleanCards(t *testing.T) {
 		name    string
 		deckID  string
 		cardIDs []string
-		data    lockData
-		want    lockData
+		data    map[string]Deck
+		want    map[string]Deck
 		updated bool
 	}{
 		{
 			name:    "should not modify the lock if deck is not found",
 			deckID:  "DECK_ID_1",
 			cardIDs: []string{"CARD_ID_1", "CARD_ID_2", "CARD_ID_3"},
-			data: lockData{
+			data: map[string]Deck{
 				"DECK_ID_2": {Cards: map[string]Card{
 					"CARD_ID_1": {},
 					"CARD_ID_2": {},
 					"CARD_ID_3": {},
 				}},
 			},
-			want: lockData{
+			want: map[string]Deck{
 				"DECK_ID_2": {Cards: map[string]Card{
 					"CARD_ID_1": {},
 					"CARD_ID_2": {},
@@ -188,14 +188,14 @@ func Test_Lock_CleanCards(t *testing.T) {
 			name:    "should not modify the lock if cards are present",
 			deckID:  "DECK_ID",
 			cardIDs: []string{"CARD_ID_1", "CARD_ID_2", "CARD_ID_3"},
-			data: lockData{
+			data: map[string]Deck{
 				"DECK_ID": {Cards: map[string]Card{
 					"CARD_ID_1": {},
 					"CARD_ID_2": {},
 					"CARD_ID_3": {},
 				}},
 			},
-			want: lockData{
+			want: map[string]Deck{
 				"DECK_ID": {Cards: map[string]Card{
 					"CARD_ID_1": {},
 					"CARD_ID_2": {},
@@ -208,14 +208,14 @@ func Test_Lock_CleanCards(t *testing.T) {
 			name:    "should remove cards that are not in the slice",
 			deckID:  "DECK_ID",
 			cardIDs: []string{"CARD_ID_1", "CARD_ID_2"},
-			data: lockData{
+			data: map[string]Deck{
 				"DECK_ID": {Cards: map[string]Card{
 					"CARD_ID_1": {},
 					"CARD_ID_2": {},
 					"CARD_ID_3": {},
 				}},
 			},
-			want: lockData{
+			want: map[string]Deck{
 				"DECK_ID": {Cards: map[string]Card{
 					"CARD_ID_1": {},
 					"CARD_ID_2": {},
@@ -227,9 +227,9 @@ func Test_Lock_CleanCards(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lock := &Lock{data: tt.data}
+			lock := &Lock{decks: tt.data}
 			lock.CleanCards(tt.deckID, tt.cardIDs)
-			assert.Equal(t, lock.data, tt.want)
+			assert.Equal(t, lock.decks, tt.want)
 			assert.Equal(t, lock.updated, tt.updated)
 		})
 	}
@@ -238,7 +238,7 @@ func Test_Lock_CleanCards(t *testing.T) {
 func Test_Lock_Deck(t *testing.T) {
 	tests := []struct {
 		name   string
-		data   lockData
+		data   map[string]Deck
 		path   string
 		deckID string
 		deck   Deck
@@ -246,7 +246,7 @@ func Test_Lock_Deck(t *testing.T) {
 	}{
 		{
 			name:   "deck found",
-			data:   lockData{"DECK_ID": {Name: "DECK_NAME", Path: "/lorem-ipsum"}},
+			data:   map[string]Deck{"DECK_ID": {Name: "DECK_NAME", Path: "/lorem-ipsum"}},
 			path:   "/lorem-ipsum",
 			deckID: "DECK_ID",
 			deck:   Deck{Name: "DECK_NAME", Path: "/lorem-ipsum"},
@@ -254,14 +254,14 @@ func Test_Lock_Deck(t *testing.T) {
 		},
 		{
 			name: "deck not found",
-			data: lockData{"DECK_ID": {Name: "DECK_NAME", Path: "/lorem-ipsum"}},
+			data: map[string]Deck{"DECK_ID": {Name: "DECK_NAME", Path: "/lorem-ipsum"}},
 			path: "/sed-interdum-libero",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lock := &Lock{data: tt.data}
+			lock := &Lock{decks: tt.data}
 			deckID, deck, ok := lock.Deck(tt.path)
 			assert.Equal(t, tt.deckID, deckID)
 			assert.Equal(t, tt.deck, deck)
@@ -272,28 +272,28 @@ func Test_Lock_Deck(t *testing.T) {
 
 func Test_Lock_SetDeck(t *testing.T) {
 	deckID, parentID, path, name := "DECK_ID", "PARENT_DECK_ID", "/deck", "Deck"
-	want := lockData{
-		deckID: Deck{ParentID: parentID, Path: path, Name: name, Cards: map[string]Card{}},
+	want := map[string]Deck{
+		deckID: {ParentID: parentID, Path: path, Name: name, Cards: map[string]Card{}},
 	}
-	lock := &Lock{data: make(lockData)}
+	lock := &Lock{decks: make(map[string]Deck)}
 	lock.SetDeck(deckID, parentID, path, name)
-	assert.Equal(t, lock.data, want)
+	assert.Equal(t, lock.decks, want)
 	assert.True(t, lock.updated)
 }
 
 func Test_Lock_UpdateDeckName(t *testing.T) {
 	deckID, parentID, path, name := "DECK_ID", "PARENT_DECK_ID", "/deck", "Deck"
 	want := "Updated deck name"
-	lock := &Lock{data: lockData{deckID: Deck{ParentID: parentID, Path: path, Name: name}}}
+	lock := &Lock{decks: map[string]Deck{deckID: {ParentID: parentID, Path: path, Name: name}}}
 	lock.UpdateDeckName(deckID, want)
-	assert.Equal(t, lock.data[deckID].Name, want)
+	assert.Equal(t, lock.decks[deckID].Name, want)
 	assert.True(t, lock.updated)
 }
 
 func Test_Lock_Card(t *testing.T) {
 	tests := []struct {
 		name   string
-		data   lockData
+		data   map[string]Deck
 		deckID string
 		cardID string
 		want   Card
@@ -306,13 +306,13 @@ func Test_Lock_Card(t *testing.T) {
 		},
 		{
 			name:   "card does not exist",
-			data:   lockData{"DECK_ID": Deck{}},
+			data:   map[string]Deck{"DECK_ID": {}},
 			deckID: "DECK_ID",
 			cardID: "CARD_ID",
 		},
 		{
 			name: "card found",
-			data: lockData{"DECK_ID": Deck{
+			data: map[string]Deck{"DECK_ID": {
 				Cards: map[string]Card{"CARD_ID": {Filename: "lorem-ipsum.md"}},
 			}},
 			deckID: "DECK_ID",
@@ -324,7 +324,7 @@ func Test_Lock_Card(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lock := &Lock{data: tt.data}
+			lock := &Lock{decks: tt.data}
 			got, ok := lock.Card(tt.deckID, tt.cardID)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.ok, ok)
@@ -335,45 +335,45 @@ func Test_Lock_Card(t *testing.T) {
 func Test_Lock_SetCard(t *testing.T) {
 	tests := []struct {
 		name     string
-		data     lockData
+		data     map[string]Deck
 		deckID   string
 		cardID   string
 		filename string
 		images   map[string]string
-		want     lockData
+		want     map[string]Deck
 		err      bool
 	}{
 		{
 			name:     "deck does not exist",
-			data:     lockData{},
+			data:     map[string]Deck{},
 			deckID:   "DECK_ID",
 			cardID:   "CARD_ID",
 			filename: "/lorem-ipsum.md",
-			want:     lockData{},
+			want:     map[string]Deck{},
 			err:      true,
 		},
 		{
 			name: "rewrite when card already exists",
-			data: lockData{"DECK_ID": Deck{
+			data: map[string]Deck{"DECK_ID": {
 				Cards: map[string]Card{"CARD_ID": {Filename: "/old.md"}},
 			}},
 			deckID:   "DECK_ID",
 			cardID:   "CARD_ID",
 			filename: "/lorem-ipsum.md",
-			want: lockData{"DECK_ID": Deck{
+			want: map[string]Deck{"DECK_ID": {
 				Cards: map[string]Card{"CARD_ID": {Filename: "/lorem-ipsum.md"}},
 			}},
 		},
 		{
 			name: "card set",
-			data: lockData{"DECK_ID": Deck{
+			data: map[string]Deck{"DECK_ID": {
 				Cards: map[string]Card{},
 			}},
 			deckID:   "DECK_ID",
 			cardID:   "CARD_ID",
 			filename: "/lorem-ipsum.md",
 			images:   map[string]string{"./scream.png": "md5"},
-			want: lockData{"DECK_ID": Deck{
+			want: map[string]Deck{"DECK_ID": {
 				Cards: map[string]Card{"CARD_ID": {
 					Filename: "/lorem-ipsum.md",
 					Images:   map[string]string{"./scream.png": "md5"},
@@ -384,9 +384,9 @@ func Test_Lock_SetCard(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lock := &Lock{data: tt.data}
+			lock := &Lock{decks: tt.data}
 			err := lock.SetCard(tt.deckID, tt.cardID, tt.filename, tt.images)
-			assert.Equal(t, tt.want, lock.data)
+			assert.Equal(t, tt.want, lock.decks)
 			if tt.err {
 				assert.Error(t, err)
 			} else {
