@@ -24,9 +24,9 @@ type Config interface {
 type Lockfile interface {
 	Lock()
 	Unlock()
-	Deck(string) (string, lock.Deck, bool)
+	DeckFromPath(string) (string, lock.Deck, bool)
 	SetDeck(string, string, string, string)
-	UpdateDeckName(string, string)
+	UpdateDeck(string, string)
 }
 
 // Sync syncs the name with the given path to mochi.
@@ -37,7 +37,7 @@ func Sync(ctx context.Context, client Client, config Config, lf Lockfile, path s
 	lf.Lock()
 	defer lf.Unlock()
 
-	id, deck, ok := lf.Deck(path)
+	id, deck, ok := lf.DeckFromPath(path)
 	if name := getDeckName(config, path); ok && deck.Name != name {
 		err = updateDeckName(ctx, client, lf, deckID, name)
 		return id, err
@@ -76,7 +76,7 @@ func updateDeckName(ctx context.Context, client Client, lf Lockfile, deckID, nam
 	if err != nil {
 		return err
 	}
-	lf.UpdateDeckName(deckID, name)
+	lf.UpdateDeck(deckID, name)
 	return nil
 }
 
@@ -96,7 +96,7 @@ func getStack(lockfile Lockfile, path string) (string, []string) {
 	stack := []string{path}
 	for !isTopLevelDirectory(path) {
 		path = filepath.Dir(path)
-		deckID, _, ok := lockfile.Deck(path)
+		deckID, _, ok := lockfile.DeckFromPath(path)
 		if ok {
 			return deckID, stack
 		}

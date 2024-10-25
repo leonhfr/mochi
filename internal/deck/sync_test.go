@@ -38,7 +38,7 @@ func Test_Sync(t *testing.T) {
 			},
 			lockfile: test.Lockfile{
 				Lock: 1,
-				GetDeck: []test.LockfileDeck{
+				DeckFromPath: []test.LockfileDeck{
 					{Path: "/test/data"},
 					{Path: "/test", DeckID: "DECK_TEST_ID", OK: true},
 				},
@@ -148,7 +148,7 @@ func Test_updateDeckName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := test.NewMockMochi(test.Mochi{UpdateDeck: tt.client})
-			lf := test.NewMockLockfile(test.Lockfile{UpdateDeckName: tt.lockfile})
+			lf := test.NewMockLockfile(test.Lockfile{UpdateDeck: tt.lockfile})
 			err := updateDeckName(context.Background(), client, lf, tt.deckID, tt.deckName)
 			assert.Equal(t, tt.err, err)
 			client.AssertExpectations(t)
@@ -236,7 +236,7 @@ func Test_getStack(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lf := test.NewMockLockfile(test.Lockfile{GetDeck: tt.calls})
+			lf := test.NewMockLockfile(test.Lockfile{DeckFromPath: tt.calls})
 			deckID, stack := getStack(lf, tt.path)
 			assert.Equal(t, tt.deckID, deckID)
 			assert.Equal(t, tt.stack, stack)

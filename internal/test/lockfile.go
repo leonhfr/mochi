@@ -7,10 +7,10 @@ import (
 )
 
 type Lockfile struct {
-	Lock           int
-	GetDeck        []LockfileDeck
-	SetDeck        []LockfileSetDeck
-	UpdateDeckName []LockfileUpdateDeckName
+	Lock         int
+	DeckFromPath []LockfileDeck
+	SetDeck      []LockfileSetDeck
+	UpdateDeck   []LockfileUpdateDeckName
 }
 
 type LockfileDeck struct {
@@ -38,9 +38,9 @@ func NewMockLockfile(calls Lockfile) *MockLockfile {
 		lf.On("Lock").Return()
 		lf.On("Unlock").Return()
 	}
-	for _, call := range calls.GetDeck {
+	for _, call := range calls.DeckFromPath {
 		lf.
-			On("Deck", call.Path).
+			On("DeckFromPath", call.Path).
 			Return(call.DeckID, call.Deck, call.OK)
 	}
 	for _, call := range calls.SetDeck {
@@ -48,9 +48,9 @@ func NewMockLockfile(calls Lockfile) *MockLockfile {
 			On("SetDeck", call.ID, call.ParentID, call.Path, call.Name).
 			Return()
 	}
-	for _, call := range calls.UpdateDeckName {
+	for _, call := range calls.UpdateDeck {
 		lf.
-			On("UpdateDeckName", call.ID, call.Name).
+			On("UpdateDeck", call.ID, call.Name).
 			Return()
 	}
 	return lf
@@ -68,7 +68,7 @@ func (m *MockLockfile) Unlock() {
 	m.Called()
 }
 
-func (m *MockLockfile) Deck(path string) (string, lock.Deck, bool) {
+func (m *MockLockfile) DeckFromPath(path string) (string, lock.Deck, bool) {
 	args := m.Called(path)
 	return args.String(0), args.Get(1).(lock.Deck), args.Bool(2)
 }
@@ -77,6 +77,6 @@ func (m *MockLockfile) SetDeck(id, parentID, path, name string) {
 	m.Called(id, parentID, path, name)
 }
 
-func (m *MockLockfile) UpdateDeckName(id, name string) {
+func (m *MockLockfile) UpdateDeck(id, name string) {
 	m.Called(id, name)
 }

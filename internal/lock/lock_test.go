@@ -235,7 +235,7 @@ func Test_Lock_CleanCards(t *testing.T) {
 	}
 }
 
-func Test_Lock_Deck(t *testing.T) {
+func Test_Lock_DeckFromPath(t *testing.T) {
 	tests := []struct {
 		name   string
 		data   map[string]Deck
@@ -262,7 +262,7 @@ func Test_Lock_Deck(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			lock := &Lock{decks: tt.data}
-			deckID, deck, ok := lock.Deck(tt.path)
+			deckID, deck, ok := lock.DeckFromPath(tt.path)
 			assert.Equal(t, tt.deckID, deckID)
 			assert.Equal(t, tt.deck, deck)
 			assert.Equal(t, tt.ok, ok)
@@ -281,11 +281,11 @@ func Test_Lock_SetDeck(t *testing.T) {
 	assert.True(t, lock.updated)
 }
 
-func Test_Lock_UpdateDeckName(t *testing.T) {
+func Test_Lock_UpdateDeck(t *testing.T) {
 	deckID, parentID, path, name := "DECK_ID", "PARENT_DECK_ID", "/deck", "Deck"
 	want := "Updated deck name"
 	lock := &Lock{decks: map[string]Deck{deckID: {ParentID: parentID, Path: path, Name: name}}}
-	lock.UpdateDeckName(deckID, want)
+	lock.UpdateDeck(deckID, want)
 	assert.Equal(t, lock.decks[deckID].Name, want)
 	assert.True(t, lock.updated)
 }

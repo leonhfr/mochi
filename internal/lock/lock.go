@@ -157,10 +157,10 @@ func (l *Lock) CleanImages(deckID, cardID string, paths []string) {
 	}
 }
 
-// Deck returns an existing decks information from a directory string.
+// DeckFromPath returns an existing decks information from a directory string.
 //
 // Assumes mutex is already acquired.
-func (l *Lock) Deck(path string) (string, Deck, bool) {
+func (l *Lock) DeckFromPath(path string) (string, Deck, bool) {
 	for deckID, deck := range l.decks {
 		if deck.Path == path {
 			return deckID, deck, true
@@ -183,10 +183,10 @@ func (l *Lock) SetDeck(id, parentID, path, name string) {
 	l.updated = true
 }
 
-// UpdateDeckName updates a deck name in the lockfile.
+// UpdateDeck updates a deck name in the lockfile.
 //
 // Assumes mutex is already acquired.
-func (l *Lock) UpdateDeckName(id, name string) {
+func (l *Lock) UpdateDeck(id, name string) {
 	tmp := l.decks[id]
 	tmp.Name = name
 	l.decks[id] = tmp
