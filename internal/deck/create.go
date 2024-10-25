@@ -9,19 +9,19 @@ import (
 	"github.com/leonhfr/mochi/mochi"
 )
 
-// Client is the interface to sync mochi decks.
-type Client interface {
+// CreateClient is the interface to sync mochi decks.
+type CreateClient interface {
 	CreateDeck(context.Context, mochi.CreateDeckRequest) (mochi.Deck, error)
 	UpdateDeck(context.Context, string, mochi.UpdateDeckRequest) (mochi.Deck, error)
 }
 
-// Config is the interface to interact with the config.
-type Config interface {
+// CreateConfig is the interface to interact with the config.
+type CreateConfig interface {
 	Deck(string) (config.Deck, bool)
 }
 
-// Lockfile is the interface to interact with the lockfile.
-type Lockfile interface {
+// CreateLockfile is the interface to interact with the lockfile.
+type CreateLockfile interface {
 	Lock()
 	Unlock()
 	DeckFromPath(string) (string, lock.Deck, bool)
@@ -29,11 +29,11 @@ type Lockfile interface {
 	UpdateDeck(string, string)
 }
 
-// Sync syncs the name with the given path to mochi.
+// Create creates the deck.
 //
 // It will create any intermediate decks as required until a root deck is reached.
 // If the names do not match, the remote deck will be updated.
-func Sync(ctx context.Context, client Client, config Config, lf Lockfile, path string) (deckID string, err error) {
+func Create(ctx context.Context, client CreateClient, config CreateConfig, lf CreateLockfile, path string) (deckID string, err error) {
 	lf.Lock()
 	defer lf.Unlock()
 
@@ -59,7 +59,7 @@ func Sync(ctx context.Context, client Client, config Config, lf Lockfile, path s
 	return
 }
 
-func createDeck(ctx context.Context, client Client, lf Lockfile, parentID, path, name string) (string, error) {
+func createDeck(ctx context.Context, client CreateClient, lf CreateLockfile, parentID, path, name string) (string, error) {
 	deck, err := client.CreateDeck(ctx, mochi.CreateDeckRequest{
 		Name:     name,
 		ParentID: parentID,
@@ -71,7 +71,7 @@ func createDeck(ctx context.Context, client Client, lf Lockfile, parentID, path,
 	return deck.ID, nil
 }
 
-func updateDeckName(ctx context.Context, client Client, lf Lockfile, deckID, name string) error {
+func updateDeckName(ctx context.Context, client CreateClient, lf CreateLockfile, deckID, name string) error {
 	_, err := client.UpdateDeck(ctx, deckID, mochi.UpdateDeckRequest{Name: name})
 	if err != nil {
 		return err
@@ -80,7 +80,7 @@ func updateDeckName(ctx context.Context, client Client, lf Lockfile, deckID, nam
 	return nil
 }
 
-func getDeckName(config Config, path string) string {
+func getDeckName(config CreateConfig, path string) string {
 	deck, ok := config.Deck(path)
 	if ok && deck.Name != "" {
 		return deck.Name
@@ -88,7 +88,7 @@ func getDeckName(config Config, path string) string {
 	return filepath.Base(path)
 }
 
-func getStack(lockfile Lockfile, path string) (string, []string) {
+func getStack(lockfile CreateLockfile, path string) (string, []string) {
 	if path == "/" {
 		return "", []string{path}
 	}

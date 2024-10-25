@@ -11,7 +11,7 @@ import (
 	"github.com/leonhfr/mochi/mochi"
 )
 
-func Test_Sync(t *testing.T) {
+func Test_Create(t *testing.T) {
 	tests := []struct {
 		name     string
 		client   test.Mochi
@@ -56,7 +56,7 @@ func Test_Sync(t *testing.T) {
 			client := test.NewMockMochi(tt.client)
 			config := test.NewMockConfig(tt.config)
 			lf := test.NewMockLockfile(tt.lockfile)
-			got, err := Sync(context.Background(), client, config, lf, tt.path)
+			got, err := Create(context.Background(), client, config, lf, tt.path)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.err, err)
 			client.AssertExpectations(t)

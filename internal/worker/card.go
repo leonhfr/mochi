@@ -56,7 +56,7 @@ func SyncRequests(ctx context.Context, logger Logger, client Client, reader deck
 }
 
 // DumpRequests returns a stream of requests to delete the cards.
-func DumpRequests(ctx context.Context, logger Logger, client card.DumpClient, in <-chan string) <-chan Result[request.Request] {
+func DumpRequests(ctx context.Context, logger Logger, client deck.DumpClient, in <-chan string) <-chan Result[request.Request] {
 	out := make(chan Result[request.Request], inflightRequests)
 	go func() {
 		defer close(out)
@@ -66,7 +66,7 @@ func DumpRequests(ctx context.Context, logger Logger, client card.DumpClient, in
 			deckID := deckID
 			s.Go(func() stream.Callback {
 				logger.Infof("dump(deckID %s): generating delete requests", deckID)
-				reqs, err := card.DumpRequests(ctx, client, deckID)
+				reqs, err := deck.DumpRequests(ctx, client, deckID)
 				if err != nil {
 					return func() { out <- Result[request.Request]{err: err} }
 				}
@@ -116,12 +116,6 @@ func syncRequests(ctx context.Context, logger Logger, client Client, reader deck
 		return nil, err
 	}
 	logger.Infof("card sync(deckID %s): %d cards found", syncDeck.deckID, len(mochiCards))
-
-	logger.Infof("card sync(deckID %s): cleaning lockfile", syncDeck.deckID)
-	err = deck.CleanCards(ctx, client, lf, syncDeck.deckID)
-	if err != nil {
-		return nil, err
-	}
 
 	logger.Infof("card sync(deckID %s): parsing cards", syncDeck.deckID)
 	parsedCards, err := deck.Parse(reader, parser, workspace, syncDeck.config.Parser, syncDeck.filePaths)

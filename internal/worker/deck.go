@@ -20,7 +20,7 @@ type Deck struct {
 }
 
 // SyncDecks creates any missing decks and updates any mismatched name.
-func SyncDecks(ctx context.Context, logger Logger, client deck.Client, config deck.Config, lf deck.Lockfile, in <-chan heap.Group[heap.Path]) <-chan Result[Deck] {
+func SyncDecks(ctx context.Context, logger Logger, client deck.CreateClient, config deck.CreateConfig, lf deck.CreateLockfile, in <-chan heap.Group[heap.Path]) <-chan Result[Deck] {
 	out := make(chan Result[Deck])
 	go func() {
 		defer close(out)
@@ -33,7 +33,7 @@ func SyncDecks(ctx context.Context, logger Logger, client deck.Client, config de
 				continue
 			}
 
-			deckID, err := deck.Sync(ctx, client, config, lf, group.Base)
+			deckID, err := deck.Create(ctx, client, config, lf, group.Base)
 			logger.Infof("deck sync(deckID %s): synced %s", deckID, group.Base)
 
 			out <- Result[Deck]{
