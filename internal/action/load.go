@@ -46,7 +46,7 @@ func loadLockfile(ctx context.Context, logger Logger, client *mochi.Client, rw l
 		return nil, err
 	}
 
-	err = deck.Clean(ctx, client, lf)
+	err = deck.CleanDecks(ctx, client, lf)
 	if err != nil {
 		return nil, err
 	}

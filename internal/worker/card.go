@@ -6,6 +6,7 @@ import (
 	"github.com/sourcegraph/conc/stream"
 
 	"github.com/leonhfr/mochi/internal/card"
+	"github.com/leonhfr/mochi/internal/deck"
 	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/request"
@@ -108,44 +109,31 @@ func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, 
 	return out
 }
 
-func syncRequests(ctx context.Context, logger Logger, client Client, cr card.Reader, parser card.Parser, lf Lockfile, workspace string, deck Deck) ([]request.Request, error) {
-	logger.Infof("card sync(deckID %s): fetching cards", deck.deckID)
-	mochiCards, err := client.ListCardsInDeck(ctx, deck.deckID)
+func syncRequests(ctx context.Context, logger Logger, client Client, cr card.Reader, parser card.Parser, lf Lockfile, workspace string, syncDeck Deck) ([]request.Request, error) {
+	logger.Infof("card sync(deckID %s): fetching cards", syncDeck.deckID)
+	mochiCards, err := client.ListCardsInDeck(ctx, syncDeck.deckID)
 	if err != nil {
 		return nil, err
 	}
-	logger.Infof("card sync(deckID %s): %d cards found", deck.deckID, len(mochiCards))
+	logger.Infof("card sync(deckID %s): %d cards found", syncDeck.deckID, len(mochiCards))
 
-	logger.Infof("card sync(deckID %s): cleaning lockfile", deck.deckID)
-	cleanCards(lf, deck.deckID, mochiCards)
+	logger.Infof("card sync(deckID %s): cleaning lockfile", syncDeck.deckID)
+	err = deck.CleanCards(ctx, client, lf, syncDeck.deckID)
+	if err != nil {
+		return nil, err
+	}
 
-	logger.Infof("card sync(deckID %s): parsing cards", deck.deckID)
-	parsedCards, err := card.Parse(cr, parser, workspace, deck.config.Parser, deck.filePaths)
+	logger.Infof("card sync(deckID %s): parsing cards", syncDeck.deckID)
+	parsedCards, err := card.Parse(cr, parser, workspace, syncDeck.config.Parser, syncDeck.filePaths)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, parsedCard := range parsedCards {
-		logger.Debugf("card sync(deckID %s): parsed %v", deck.deckID, parsedCard)
+		logger.Debugf("card sync(deckID %s): parsed %v", syncDeck.deckID, parsedCard)
 	}
 
-	logger.Infof("card sync(deckID %s): generating sync requests", deck.deckID)
-	reqs := card.SyncRequests(lf, deck.deckID, mochiCards, parsedCards)
+	logger.Infof("card sync(deckID %s): generating sync requests", syncDeck.deckID)
+	reqs := card.SyncRequests(lf, syncDeck.deckID, mochiCards, parsedCards)
 	return reqs, nil
-}
-
-func cleanCards(lf Lockfile, deckID string, mochiCards []mochi.Card) {
-	lf.Lock()
-	defer lf.Unlock()
-
-	deck, ok := lf.Deck(deckID)
-	if !ok {
-		return
-	}
-
-	for _, mochiCard := range mochiCards {
-		if _, ok := deck.Cards[mochiCard.ID]; !ok {
-			lf.DeleteCard(deckID, mochiCard.ID)
-		}
-	}
 }

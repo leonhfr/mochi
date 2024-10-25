@@ -8,11 +8,19 @@ import (
 
 type Lockfile struct {
 	Lock         int
+	Deck         []LockfileDeck
 	Decks        []map[string]lock.Deck
 	DeckFromPath []LockfileDeckFromPath
 	SetDeck      []LockfileSetDeck
 	DeleteDeck   []string
-	UpdateDeck   []LockfileUpdateDeckName
+	UpdateDeck   []LockfileUpdateDeck
+	DeleteCard   []LockfileDeleteCard
+}
+
+type LockfileDeck struct {
+	DeckID string
+	Deck   lock.Deck
+	OK     bool
 }
 
 type LockfileDeckFromPath struct {
@@ -29,9 +37,14 @@ type LockfileSetDeck struct {
 	Name     string
 }
 
-type LockfileUpdateDeckName struct {
+type LockfileUpdateDeck struct {
 	ID   string
 	Name string
+}
+
+type LockfileDeleteCard struct {
+	DeckID string
+	CardID string
 }
 
 func NewMockLockfile(calls Lockfile) *MockLockfile {
@@ -40,30 +53,26 @@ func NewMockLockfile(calls Lockfile) *MockLockfile {
 		lf.On("Lock").Return()
 		lf.On("Unlock").Return()
 	}
+	for _, call := range calls.Deck {
+		lf.On("Deck", call.DeckID).Return(call.Deck, call.OK)
+	}
 	for _, call := range calls.DeckFromPath {
-		lf.
-			On("DeckFromPath", call.Path).
-			Return(call.DeckID, call.Deck, call.OK)
+		lf.On("DeckFromPath", call.Path).Return(call.DeckID, call.Deck, call.OK)
 	}
 	for _, call := range calls.Decks {
-		lf.
-			On("Decks").
-			Return(call)
+		lf.On("Decks").Return(call)
 	}
 	for _, call := range calls.SetDeck {
-		lf.
-			On("SetDeck", call.ID, call.ParentID, call.Path, call.Name).
-			Return()
+		lf.On("SetDeck", call.ID, call.ParentID, call.Path, call.Name).Return()
 	}
 	for _, call := range calls.UpdateDeck {
-		lf.
-			On("UpdateDeck", call.ID, call.Name).
-			Return()
+		lf.On("UpdateDeck", call.ID, call.Name).Return()
 	}
 	for _, call := range calls.DeleteDeck {
-		lf.
-			On("DeleteDeck", call).
-			Return()
+		lf.On("DeleteDeck", call).Return()
+	}
+	for _, call := range calls.DeleteCard {
+		lf.On("DeleteCard", call.DeckID, call.CardID).Return()
 	}
 	return lf
 }
@@ -80,6 +89,11 @@ func (m *MockLockfile) Unlock() {
 	m.Called()
 }
 
+func (m *MockLockfile) Deck(id string) (lock.Deck, bool) {
+	args := m.Called(id)
+	return args.Get(0).(lock.Deck), args.Bool(1)
+}
+
 func (m *MockLockfile) Decks() map[string]lock.Deck {
 	args := m.Called()
 	return args.Get(0).(map[string]lock.Deck)
@@ -94,10 +108,14 @@ func (m *MockLockfile) SetDeck(id, parentID, path, name string) {
 	m.Called(id, parentID, path, name)
 }
 
+func (m *MockLockfile) UpdateDeck(id, name string) {
+	m.Called(id, name)
+}
+
 func (m *MockLockfile) DeleteDeck(id string) {
 	m.Called(id)
 }
 
-func (m *MockLockfile) UpdateDeck(id, name string) {
-	m.Called(id, name)
+func (m *MockLockfile) DeleteCard(deckID, cardID string) {
+	m.Called(deckID, cardID)
 }

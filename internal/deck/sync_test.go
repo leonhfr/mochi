@@ -118,7 +118,7 @@ func Test_updateDeckName(t *testing.T) {
 	tests := []struct {
 		name     string
 		client   []test.MochiUpdateDeck
-		lockfile []test.LockfileUpdateDeckName
+		lockfile []test.LockfileUpdateDeck
 		deckID   string
 		deckName string
 		err      error
@@ -137,7 +137,7 @@ func Test_updateDeckName(t *testing.T) {
 			client: []test.MochiUpdateDeck{
 				{ID: "DECK_ID", Req: mochi.UpdateDeckRequest{Name: "DECK_NAME"}},
 			},
-			lockfile: []test.LockfileUpdateDeckName{
+			lockfile: []test.LockfileUpdateDeck{
 				{ID: "DECK_ID", Name: "DECK_NAME"},
 			},
 			deckID:   "DECK_ID",
