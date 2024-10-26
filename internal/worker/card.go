@@ -60,7 +60,7 @@ func DumpRequests(ctx context.Context, logger Logger, client deck.DumpClient, in
 	go func() {
 		defer close(out)
 
-		s := stream.New().WithMaxGoroutines(cap(in))
+		s := stream.New()
 		for deckID := range in {
 			deckID := deckID
 			s.Go(func() stream.Callback {

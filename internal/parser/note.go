@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
@@ -56,9 +58,10 @@ func (n *note) convert(path string, source []byte) (Result, error) {
 }
 
 func createNoteCard(name, path string, source []byte, images []Image) Card {
+	content := fmt.Sprintf("# %s\n\n%s", name, string(source))
 	return Card{
 		Name:     name,
-		Content:  string(source),
+		Content:  content,
 		Filename: getFilename(path),
 		Path:     path,
 		Images:   images,

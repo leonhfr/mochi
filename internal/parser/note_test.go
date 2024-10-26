@@ -18,10 +18,10 @@ func Test_Note_Convert(t *testing.T) {
 		{
 			name:   "simple note",
 			path:   "/testdata/lorem-ipsum/Lorem ipsum.md",
-			source: "# Title 1\nParagraph.\n",
+			source: "Paragraph.\n",
 			want: Result{Cards: []Card{{
 				Name:     "Lorem ipsum",
-				Content:  "# Title 1\nParagraph.\n",
+				Content:  "# Lorem ipsum\n\nParagraph.\n",
 				Filename: "Lorem ipsum.md",
 				Path:     "/testdata/lorem-ipsum/Lorem ipsum.md",
 				Images:   []Image{},
@@ -33,7 +33,7 @@ func Test_Note_Convert(t *testing.T) {
 			source: "# Noun\n\n## Gender\n\n![Example 1](../images/example-1.png)\n\nInline image: ![Example 2](./example-2.png)",
 			want: Result{Cards: []Card{{
 				Name:     "Lorem ipsum",
-				Content:  "# Noun\n\n## Gender\n\n![Example 1](../images/example-1.png)\n\nInline image: ![Example 2](./example-2.png)",
+				Content:  "# Lorem ipsum\n\n# Noun\n\n## Gender\n\n![Example 1](../images/example-1.png)\n\nInline image: ![Example 2](./example-2.png)",
 				Filename: "Lorem ipsum.md",
 				Path:     "/testdata/lorem-ipsum/Lorem ipsum.md",
 				Images: []Image{

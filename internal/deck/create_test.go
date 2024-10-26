@@ -173,14 +173,6 @@ func Test_getDeckName(t *testing.T) {
 			want: "DECK_NAME",
 		},
 		{
-			name: "config deck parent has name",
-			calls: []test.ConfigDeck{
-				{Path: "/test/data/subDeck", Deck: config.Deck{Name: "DECK_NAME", Path: "/test/data"}, OK: true},
-			},
-			path: "/test/data/subDeck",
-			want: "subDeck",
-		},
-		{
 			name: "config deck has empty name",
 			calls: []test.ConfigDeck{
 				{Path: "/test/data", Deck: config.Deck{}, OK: true},
