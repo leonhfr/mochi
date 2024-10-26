@@ -51,6 +51,28 @@ func Test_Parse(t *testing.T) {
 			fileContent: `{"DECK_ID":{"path":"DECK_PATH","name":"DECK_NAME","cards":{"CARD_ID":{}}}}`,
 			err:         true,
 		},
+		{
+			name:        "both path and virtual",
+			target:      "testdata",
+			path:        "testdata/mochi-lock.json",
+			fileContent: `{"DECK_ID":{"path":"DECK_PATH","name":"DECK_NAME","virtual":true,"cards":{}}}`,
+			err:         true,
+		},
+		{
+			name:        "neither path or virtual",
+			target:      "testdata",
+			path:        "testdata/mochi-lock.json",
+			fileContent: `{"DECK_ID":{"name":"DECK_NAME","cards":{}}}`,
+			err:         true,
+		},
+		{
+			name:        "virtual deck",
+			target:      "testdata",
+			path:        "testdata/mochi-lock.json",
+			fileContent: `{"DECK_ID":{"name":"DECK_NAME","virtual":true,"cards":{}}}`,
+			wantPath:    "testdata/mochi-lock.json",
+			wantData:    map[string]Deck{"DECK_ID": {Name: "DECK_NAME", Virtual: true, Cards: map[string]Card{}}},
+		},
 	}
 
 	for _, tt := range tests {
@@ -63,9 +85,9 @@ func Test_Parse(t *testing.T) {
 			if tt.err {
 				assert.Error(t, err)
 			} else {
+				assert.NoError(t, err)
 				assert.Equal(t, tt.wantPath, got.path)
 				assert.Equal(t, tt.wantData, got.decks)
-				assert.NoError(t, err)
 			}
 			rw.AssertExpectations(t)
 		})

@@ -17,6 +17,17 @@ var validate *validator.Validate
 
 func init() {
 	validate = validator.New()
+	validate.RegisterStructValidation(func(sl validator.StructLevel) {
+		deck := sl.Current().Interface().(Deck)
+		if len(deck.Path) == 0 && !deck.Virtual {
+			sl.ReportError(deck.Path, "path", "Path", "pathorvirtual", "")
+			sl.ReportError(deck.Virtual, "virtual", "Virtual", "pathorvirtual", "")
+		}
+		if len(deck.Path) > 0 && deck.Virtual {
+			sl.ReportError(deck.Path, "path", "Path", "pathorvirtual", "")
+			sl.ReportError(deck.Virtual, "virtual", "Virtual", "pathorvirtual", "")
+		}
+	}, Deck{})
 }
 
 // Lock represents a lockfile.
@@ -31,9 +42,10 @@ type Lock struct {
 // Deck contains the information about existing decks.
 type Deck struct {
 	ParentID string          `json:"parentID,omitempty"`
-	Path     string          `json:"path" validate:"required"`
+	Path     string          `json:"path"`
 	Name     string          `json:"name" validate:"required"`
 	Cards    map[string]Card `json:"cards,omitempty" validate:"dive"` // indexed by card id
+	Virtual  bool            `json:"virtual,omitempty"`
 }
 
 // Card contains the information about existing cards.
@@ -123,6 +135,19 @@ func (l *Lock) SetDeck(id, parentID, path, name string) {
 		Path:     path,
 		Name:     name,
 		Cards:    make(map[string]Card),
+	}
+	l.updated = true
+}
+
+// SetVirtualDeck sets a virtual deck in the lockfile.
+//
+// Assumes mutex is already acquired.
+func (l *Lock) SetVirtualDeck(id, parentID, name string) {
+	l.decks[id] = Deck{
+		ParentID: parentID,
+		Name:     name,
+		Cards:    make(map[string]Card),
+		Virtual:  true,
 	}
 	l.updated = true
 }

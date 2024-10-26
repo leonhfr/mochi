@@ -21,7 +21,7 @@ func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, 
 		for req := range in {
 			req := req
 			s.Go(func() stream.Callback {
-				logger.Infof("syncing: %s", req.String())
+				logger.Infof("executing: %s", req.String())
 				if err := req.Execute(ctx, client, reader, lf); err != nil {
 					return func() {
 						out <- Result[struct{}]{err: err}

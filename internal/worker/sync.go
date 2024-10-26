@@ -7,6 +7,7 @@ import (
 
 	"github.com/leonhfr/mochi/internal/deck"
 	"github.com/leonhfr/mochi/internal/heap"
+	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -14,6 +15,7 @@ import (
 // Deck contains a synced deck.
 type Deck struct {
 	deckID string
+	name   string
 	cards  []deck.Card
 }
 
@@ -25,7 +27,7 @@ func SyncDecks(ctx context.Context, logger Logger, r deck.Reader, p deck.Parser,
 		for group := range in {
 			deckConfig, ok := config.Deck(group.Base)
 			if !ok {
-				logger.Infof("parse(%s): discarding deck", group.Base)
+				logger.Infof("parse(%s): discarding directory", group.Base)
 				continue
 			}
 
@@ -45,12 +47,13 @@ func SyncDecks(ctx context.Context, logger Logger, r deck.Reader, p deck.Parser,
 			}
 
 			deckHeap := deck.Heap(cards)
-			logger.Infof("parse(%s): parsed %d cards into %s decks", group.Base, len(cards), deckHeap.Len())
+			logger.Infof("parse(%s): parsed %d cards into %d decks", group.Base, len(cards), deckHeap.Len())
 			for deckHeap.Len() > 0 {
 				group := deckHeap.Pop()
 				out <- Result[Deck]{
 					data: Deck{
 						deckID: deckID,
+						name:   group.Base,
 						cards:  group.Items,
 					},
 				}
@@ -62,20 +65,33 @@ func SyncDecks(ctx context.Context, logger Logger, r deck.Reader, p deck.Parser,
 
 // Client is the interface the mochi client should implement to generate the sync requests.
 type Client interface {
+	deck.CreateVirtualClient
 	ListCardsInDeck(ctx context.Context, deckID string) ([]mochi.Card, error)
 }
 
+// Lockfile is the interface the lockfile should implement to generate the sync requests.
+type Lockfile interface {
+	deck.SyncLockfile
+	deck.CreateVirtualLockfile
+}
+
 // SyncRequests returns a stream of requests to sync the cards.
-func SyncRequests(ctx context.Context, logger Logger, client Client, lf deck.SyncLockfile, in <-chan Deck) <-chan Result[request.Request] {
+func SyncRequests(ctx context.Context, logger Logger, client Client, lf Lockfile, in <-chan Deck) <-chan Result[request.Request] {
 	out := make(chan Result[request.Request], inflightRequests)
 	go func() {
 		defer close(out)
 
 		s := stream.New()
-		for deck := range in {
-			deck := deck
+		for syncDeck := range in {
+			syncDeck := syncDeck
 			s.Go(func() stream.Callback {
-				reqs, err := syncRequests(ctx, logger, client, lf, deck)
+				deckID, err := getDeckID(ctx, client, lf, syncDeck)
+				if err != nil {
+					return func() { out <- Result[request.Request]{err: err} }
+				}
+
+				cards := deck.ConvertCards(syncDeck.cards)
+				reqs, err := syncRequests(ctx, logger, client, lf, deckID, cards)
 				if err != nil {
 					return func() { out <- Result[request.Request]{err: err} }
 				}
@@ -93,16 +109,23 @@ func SyncRequests(ctx context.Context, logger Logger, client Client, lf deck.Syn
 	return out
 }
 
-func syncRequests(ctx context.Context, logger Logger, client Client, lf deck.SyncLockfile, syncDeck Deck) ([]request.Request, error) {
-	logger.Infof("card sync(deckID %s): fetching cards", syncDeck.deckID)
-	mochiCards, err := client.ListCardsInDeck(ctx, syncDeck.deckID)
+func getDeckID(ctx context.Context, client deck.CreateVirtualClient, lf deck.CreateVirtualLockfile, syncDeck Deck) (string, error) {
+	if syncDeck.name == "" {
+		return syncDeck.deckID, nil
+	}
+
+	return deck.CreateVirtual(ctx, client, lf, syncDeck.deckID, syncDeck.name)
+}
+
+func syncRequests(ctx context.Context, logger Logger, client Client, lf deck.SyncLockfile, deckID string, cards []parser.Card) ([]request.Request, error) {
+	logger.Infof("sync(deckID %s): fetching cards", deckID)
+	mochiCards, err := client.ListCardsInDeck(ctx, deckID)
 	if err != nil {
 		return nil, err
 	}
-	logger.Infof("card sync(deckID %s): %d cards found", syncDeck.deckID, len(mochiCards))
+	logger.Infof("sync(deckID %s): %d existing cards found", deckID, len(mochiCards))
 
-	cards := deck.ConvertCards(syncDeck.cards)
-	logger.Infof("card sync(deckID %s): generating sync requests", syncDeck.deckID)
-	reqs := deck.SyncRequests(lf, syncDeck.deckID, mochiCards, cards)
+	logger.Infof("sync(deckID %s): generating sync requests", deckID)
+	reqs := deck.SyncRequests(lf, deckID, mochiCards, cards)
 	return reqs, nil
 }
