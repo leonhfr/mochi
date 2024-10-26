@@ -19,20 +19,7 @@ type Parser interface {
 }
 
 // Parse parses the note files for cards.
-func Parse(r Reader, p Parser, workspace, parserName string, filePaths []string) ([]parser.Card, error) {
-	var cards []parser.Card
-	for _, path := range filePaths {
-		parsed, err := parseFile(r, p, workspace, parserName, path)
-		if err != nil {
-			return nil, err
-		}
-		cards = append(cards, parsed.Cards...)
-	}
-	return cards, nil
-}
-
-// ParseCards parses the note files for cards.
-func ParseCards(r Reader, p Parser, workspace, parserName string, filePaths []string) ([]Card, error) {
+func Parse(r Reader, p Parser, workspace, parserName string, filePaths []string) ([]Card, error) {
 	var cards []Card
 	for _, path := range filePaths {
 		parsed, err := parseFile(r, p, workspace, parserName, path)
@@ -60,6 +47,15 @@ func parseFile(r Reader, p Parser, workspace, parserName, path string) (parser.R
 	return result, nil
 }
 
+// Heap creates a card heap from cards.
+func Heap(cards []Card) *heap.Heap[Card] {
+	h := heap.New[Card]()
+	for _, card := range cards {
+		h.Push(card)
+	}
+	return h
+}
+
 // Card contains the data to group and prioritize a card.
 type Card struct {
 	base string
@@ -84,4 +80,13 @@ func (c Card) Base() string {
 // Priority implements the PriorityItem interface.
 func (c Card) Priority() int {
 	return len(c.base)
+}
+
+// ConvertCards converts a slice of cards back to parser.Card.
+func ConvertCards(cards []Card) []parser.Card {
+	items := make([]parser.Card, len(cards))
+	for i, card := range cards {
+		items[i] = card.card
+	}
+	return items
 }

@@ -48,9 +48,9 @@ func Sync(ctx context.Context, logger Logger, token, workspace string) (updated 
 		return false, err
 	}
 
-	deckR := worker.SyncDecks(ctx, logger, client, config, lf, dirC)
+	deckR := worker.SyncDecks(ctx, logger, fs, parser, client, config, lf, workspace, dirC)
 	deckC := worker.Unwrap(wg, deckR, errC)
-	syncR := worker.SyncRequests(ctx, logger, client, fs, parser, lf, workspace, deckC)
+	syncR := worker.SyncRequests(ctx, logger, client, lf, deckC)
 	syncC := worker.Unwrap(wg, syncR, errC)
 	doneR := worker.ExecuteRequests(ctx, logger, client, fs, lf, syncC)
 	_ = worker.Unwrap(wg, doneR, errC)

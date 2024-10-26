@@ -24,7 +24,7 @@ func (p Path) Priority() int {
 	return strings.Count(base, "/")
 }
 
-// ConvertPaths concerts a slice of paths back to string.
+// ConvertPaths converts a slice of paths back to string.
 func ConvertPaths(items []Path) []string {
 	paths := make([]string, len(items))
 	for i, item := range items {

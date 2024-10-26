@@ -6,7 +6,6 @@ import (
 
 	"github.com/sourcegraph/conc/iter"
 
-	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/deck"
 	"github.com/leonhfr/mochi/internal/heap"
 	"github.com/leonhfr/mochi/mochi"
@@ -14,35 +13,47 @@ import (
 
 // Deck contains a synced deck.
 type Deck struct {
-	deckID    string
-	config    config.Deck
-	filePaths []string
+	deckID string
+	cards  []deck.Card
 }
 
-// SyncDecks creates any missing decks and updates any mismatched name.
-func SyncDecks(ctx context.Context, logger Logger, client deck.CreateClient, config deck.CreateConfig, lf deck.CreateLockfile, in <-chan heap.Group[heap.Path]) <-chan Result[Deck] {
+// SyncDecks syncs the decks and parses the files.
+func SyncDecks(ctx context.Context, logger Logger, r deck.Reader, p deck.Parser, client deck.CreateClient, config deck.CreateConfig, lf deck.CreateLockfile, workspace string, in <-chan heap.Group[heap.Path]) <-chan Result[Deck] {
 	out := make(chan Result[Deck])
 	go func() {
 		defer close(out)
-
 		for group := range in {
-			logger.Infof("deck sync: %s (%d files)", group.Base, len(group.Items))
 			deckConfig, ok := config.Deck(group.Base)
 			if !ok {
-				logger.Infof("deck sync: discarded %s", group.Base)
+				logger.Infof("parse(%s): discarding deck", group.Base)
 				continue
 			}
 
+			logger.Infof("parse(%s): creating missing decks", group.Base)
 			deckID, err := deck.Create(ctx, client, config, lf, group.Base)
-			logger.Infof("deck sync(deckID %s): synced %s", deckID, group.Base)
+			if err != nil {
+				out <- Result[Deck]{err: err}
+				continue
+			}
 
-			out <- Result[Deck]{
-				data: Deck{
-					deckID:    deckID,
-					config:    deckConfig,
-					filePaths: heap.ConvertPaths(group.Items),
-				},
-				err: err,
+			logger.Infof("parse(%s): parsing %d files", group.Base, len(group.Items))
+			filePaths := heap.ConvertPaths(group.Items)
+			cards, err := deck.Parse(r, p, workspace, deckConfig.Parser, filePaths)
+			if err != nil {
+				out <- Result[Deck]{err: err}
+				continue
+			}
+
+			deckHeap := deck.Heap(cards)
+			logger.Infof("parse(%s): parsed %d cards into %s decks", group.Base, len(cards), deckHeap.Len())
+			for deckHeap.Len() > 0 {
+				group := deckHeap.Pop()
+				out <- Result[Deck]{
+					data: Deck{
+						deckID: deckID,
+						cards:  group.Items,
+					},
+				}
 			}
 		}
 	}()

@@ -25,7 +25,9 @@ func Test_Parse(t *testing.T) {
 		Result: parser.Result{Cards: []parser.Card{{Name: "TEST"}}},
 	}}
 	filePaths := []string{"/lorem-ipsum.md"}
-	want := []parser.Card{{Name: "TEST"}}
+	want := []Card{
+		{card: parser.Card{Name: "TEST"}},
+	}
 
 	r := newMockReader(readCalls)
 	p := test.NewMockParser(parserCalls)

@@ -27,7 +27,7 @@ type Lockfile interface {
 }
 
 // SyncRequests returns a stream of requests to sync the cards.
-func SyncRequests(ctx context.Context, logger Logger, client Client, reader deck.Reader, parser deck.Parser, lf Lockfile, workspace string, in <-chan Deck) <-chan Result[request.Request] {
+func SyncRequests(ctx context.Context, logger Logger, client Client, lf Lockfile, in <-chan Deck) <-chan Result[request.Request] {
 	out := make(chan Result[request.Request], inflightRequests)
 	go func() {
 		defer close(out)
@@ -36,7 +36,7 @@ func SyncRequests(ctx context.Context, logger Logger, client Client, reader deck
 		for deck := range in {
 			deck := deck
 			s.Go(func() stream.Callback {
-				reqs, err := syncRequests(ctx, logger, client, reader, parser, lf, workspace, deck)
+				reqs, err := syncRequests(ctx, logger, client, lf, deck)
 				if err != nil {
 					return func() { out <- Result[request.Request]{err: err} }
 				}
@@ -108,7 +108,7 @@ func ExecuteRequests(ctx context.Context, logger Logger, client request.Client, 
 	return out
 }
 
-func syncRequests(ctx context.Context, logger Logger, client Client, reader deck.Reader, parser deck.Parser, lf Lockfile, workspace string, syncDeck Deck) ([]request.Request, error) {
+func syncRequests(ctx context.Context, logger Logger, client Client, lf Lockfile, syncDeck Deck) ([]request.Request, error) {
 	logger.Infof("card sync(deckID %s): fetching cards", syncDeck.deckID)
 	mochiCards, err := client.ListCardsInDeck(ctx, syncDeck.deckID)
 	if err != nil {
@@ -116,17 +116,8 @@ func syncRequests(ctx context.Context, logger Logger, client Client, reader deck
 	}
 	logger.Infof("card sync(deckID %s): %d cards found", syncDeck.deckID, len(mochiCards))
 
-	logger.Infof("card sync(deckID %s): parsing cards", syncDeck.deckID)
-	parsedCards, err := deck.Parse(reader, parser, workspace, syncDeck.config.Parser, syncDeck.filePaths)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, parsedCard := range parsedCards {
-		logger.Debugf("card sync(deckID %s): parsed %v", syncDeck.deckID, parsedCard)
-	}
-
+	cards := deck.ConvertCards(syncDeck.cards)
 	logger.Infof("card sync(deckID %s): generating sync requests", syncDeck.deckID)
-	reqs := deck.SyncRequests(lf, syncDeck.deckID, mochiCards, parsedCards)
+	reqs := deck.SyncRequests(lf, syncDeck.deckID, mochiCards, cards)
 	return reqs, nil
 }

@@ -25,7 +25,7 @@ type CreateLockfile interface {
 	Lock()
 	Unlock()
 	DeckFromPath(string) (string, lock.Deck, bool)
-	SetDeck(string, string, string, string)
+	SetDeck(id, path, parentID, name string)
 	UpdateDeck(string, string)
 }
 
@@ -33,30 +33,33 @@ type CreateLockfile interface {
 //
 // It will create any intermediate decks as required until a root deck is reached.
 // If the names do not match, the remote deck will be updated.
-func Create(ctx context.Context, client CreateClient, config CreateConfig, lf CreateLockfile, path string) (deckID string, err error) {
+func Create(ctx context.Context, client CreateClient, config CreateConfig, lf CreateLockfile, path string) (string, error) {
 	lf.Lock()
 	defer lf.Unlock()
 
 	id, deck, ok := lf.DeckFromPath(path)
 	if name := getDeckName(config, path); ok && deck.Name != name {
-		err = updateDeckName(ctx, client, lf, deckID, name)
+		err := updateDeckName(ctx, client, lf, id, name)
 		return id, err
 	} else if ok {
 		return id, nil
 	}
 
+	return createDecks(ctx, client, config, lf, path)
+}
+
+func createDecks(ctx context.Context, client CreateClient, config CreateConfig, lf CreateLockfile, path string) (string, error) {
 	parentID, stack := getStack(lf, path)
 	for currentPath := ""; len(stack) > 0; {
 		currentPath, stack = stack[len(stack)-1], stack[:len(stack)-1]
 		name := getDeckName(config, currentPath)
-		deckID, err = createDeck(ctx, client, lf, parentID, currentPath, name)
+		deckID, err := createDeck(ctx, client, lf, parentID, currentPath, name)
 		if err != nil {
 			return "", err
 		}
 		parentID = deckID
 	}
-
-	return
+	return parentID, nil
 }
 
 func createDeck(ctx context.Context, client CreateClient, lf CreateLockfile, parentID, path, name string) (string, error) {
