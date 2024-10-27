@@ -32,6 +32,7 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Re
 	req := mochi.UpdateCardRequest{
 		Content:     images.Replace(r.card.Content),
 		Attachments: filtered.Attachments(),
+		Pos:         r.card.Position,
 	}
 
 	if _, err := client.UpdateCard(ctx, r.cardID, req); err != nil {

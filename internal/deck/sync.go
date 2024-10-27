@@ -50,7 +50,7 @@ func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []pa
 			continue
 		}
 
-		if mochiCard.Content != tmp[index].Content {
+		if !equalsCard(mochiCard, tmp[index]) {
 			reqs = append(reqs, request.UpdateCard(deckID, mochiCard.ID, tmp[index]))
 		}
 		tmp = sliceRemove(tmp, index)
@@ -61,6 +61,11 @@ func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []pa
 	}
 
 	return reqs
+}
+
+func equalsCard(mochiCard mochi.Card, parserCard parser.Card) bool {
+	return mochiCard.Content == parserCard.Content &&
+		mochiCard.Pos == parserCard.Position
 }
 
 func indexFunc(mochiCard mochi.Card) func(c parser.Card) bool {

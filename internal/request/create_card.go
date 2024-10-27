@@ -33,7 +33,7 @@ func (r *createRequest) Execute(ctx context.Context, client Client, reader image
 			"name": {ID: "name", Value: r.card.Name},
 		},
 		Attachments: images.Attachments(),
-		Pos:         getCardPos(r.card),
+		Pos:         r.card.Position,
 	}
 
 	card, err := client.CreateCard(ctx, req)
@@ -55,14 +55,4 @@ func (r *createRequest) Execute(ctx context.Context, client Client, reader image
 // String implements the fmt.Stringer interface.
 func (r *createRequest) String() string {
 	return fmt.Sprintf("create request for file %s", r.card.Filename)
-}
-
-func getCardPos(card parser.Card) string {
-	runes := make([]rune, 0, len(card.Filename))
-	for _, r := range card.Filename {
-		if ('0' <= r && r <= '9') || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z') {
-			runes = append(runes, r)
-		}
-	}
-	return fmt.Sprintf("%s%d", string(runes), card.Index)
 }

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"io"
 	"path/filepath"
 	"strings"
@@ -23,7 +24,7 @@ type Card struct {
 	Filename string
 	Path     string
 	Images   []Image
-	Index    int
+	Position string
 }
 
 // Image contains the parsed image data.
@@ -107,4 +108,14 @@ func getNameFromPath(path string) string {
 		base = strings.TrimSuffix(base, ext)
 	}
 	return base
+}
+
+func getPosition(filename string, index int) string {
+	runes := make([]rune, 0, len(filename))
+	for _, r := range filename {
+		if ('0' <= r && r <= '9') || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z') {
+			runes = append(runes, r)
+		}
+	}
+	return fmt.Sprintf("%s%04d", string(runes), index)
 }
