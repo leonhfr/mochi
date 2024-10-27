@@ -48,22 +48,31 @@ func Create(ctx context.Context, client CreateClient, config CreateConfig, lf Cr
 	return createDecks(ctx, client, config, lf, path)
 }
 
-// CreateVirtualClient is the interface to create virtual decks.
-type CreateVirtualClient interface {
+// VirtualClient is the interface to create virtual decks.
+type VirtualClient interface {
 	CreateDeck(context.Context, mochi.CreateDeckRequest) (mochi.Deck, error)
 }
 
-// CreateVirtualLockfile is the interface to interact with the lockfile.
-type CreateVirtualLockfile interface {
+// VirtualLockfile is the interface to interact with the lockfile.
+type VirtualLockfile interface {
 	Lock()
 	Unlock()
+	VirtualDecks(parentID string) map[string]lock.Deck
 	SetVirtualDeck(id, parentID, name string)
 }
 
-// CreateVirtual creates a virtual deck.
-func CreateVirtual(ctx context.Context, client CreateVirtualClient, lf CreateVirtualLockfile, parentID, name string) (deckID string, err error) {
+// Virtual returns a virtual deck and creates it if it doesn't already exist.
+func Virtual(ctx context.Context, client VirtualClient, lf VirtualLockfile, parentID, name string) (deckID string, err error) {
 	lf.Lock()
 	defer lf.Unlock()
+
+	decks := lf.VirtualDecks(parentID)
+	for id, deck := range decks {
+		if deck.Name == name {
+			return id, nil
+		}
+	}
+
 	deck, err := client.CreateDeck(ctx, mochi.CreateDeckRequest{
 		ParentID: parentID,
 		Name:     name,

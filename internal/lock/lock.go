@@ -105,6 +105,17 @@ func (l *Lock) Decks() map[string]Deck {
 	return l.decks
 }
 
+// VirtualDecks returns all virtual decks for a parent deck.
+func (l *Lock) VirtualDecks(parentID string) map[string]Deck {
+	decks := make(map[string]Deck)
+	for id, deck := range l.decks {
+		if deck.ParentID == parentID && deck.Virtual {
+			decks[id] = deck
+		}
+	}
+	return decks
+}
+
 // Deck returns a deck.
 //
 // Assumes mutex is already acquired.

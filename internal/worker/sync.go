@@ -65,14 +65,14 @@ func SyncDecks(ctx context.Context, logger Logger, r deck.Reader, p deck.Parser,
 
 // Client is the interface the mochi client should implement to generate the sync requests.
 type Client interface {
-	deck.CreateVirtualClient
+	deck.VirtualClient
 	ListCardsInDeck(ctx context.Context, deckID string) ([]mochi.Card, error)
 }
 
 // Lockfile is the interface the lockfile should implement to generate the sync requests.
 type Lockfile interface {
 	deck.SyncLockfile
-	deck.CreateVirtualLockfile
+	deck.VirtualLockfile
 }
 
 // SyncRequests returns a stream of requests to sync the cards.
@@ -109,12 +109,12 @@ func SyncRequests(ctx context.Context, logger Logger, client Client, lf Lockfile
 	return out
 }
 
-func getDeckID(ctx context.Context, client deck.CreateVirtualClient, lf deck.CreateVirtualLockfile, syncDeck Deck) (string, error) {
+func getDeckID(ctx context.Context, client deck.VirtualClient, lf deck.VirtualLockfile, syncDeck Deck) (string, error) {
 	if syncDeck.name == "" {
 		return syncDeck.deckID, nil
 	}
 
-	return deck.CreateVirtual(ctx, client, lf, syncDeck.deckID, syncDeck.name)
+	return deck.Virtual(ctx, client, lf, syncDeck.deckID, syncDeck.name)
 }
 
 func syncRequests(ctx context.Context, logger Logger, client Client, lf deck.SyncLockfile, deckID string, cards []parser.Card) ([]request.Request, error) {
