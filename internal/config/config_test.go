@@ -135,6 +135,13 @@ func Test_Config_Deck(t *testing.T) {
 			ok:   true,
 		},
 		{
+			name: "should not return the deck config",
+			config: &Config{Decks: []Deck{
+				{Path: "/sub/lorem-ipsum"},
+			}},
+			path: "/sub/lorem-ipsum-other",
+		},
+		{
 			name: "should return the root deck",
 			config: &Config{RootName: "ROOT_NAME", Decks: []Deck{
 				{Path: "/sed-interdum-libero"},

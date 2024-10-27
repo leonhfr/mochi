@@ -74,5 +74,5 @@ func filteredAttachments(lf Lockfile, deckID, cardID string, images image.Images
 
 // String implements the fmt.Stringer interface.
 func (r *updateCard) String() string {
-	return fmt.Sprintf("update request for card ID %s", r.cardID)
+	return fmt.Sprintf("update request for card ID %s (%s)", r.cardID, r.card.Filename)
 }

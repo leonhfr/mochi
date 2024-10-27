@@ -119,7 +119,7 @@ func (c *Config) Deck(path string) (Deck, bool) {
 	}
 
 	for _, deck := range c.Decks {
-		if strings.HasPrefix(path, deck.Path) {
+		if isParentDirectory(path, deck.Path) {
 			return deck, true
 		}
 	}
@@ -130,4 +130,18 @@ func getValidatorFunc(parsers []string) validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		return fl.Field().IsZero() || slices.Contains(parsers, fl.Field().String())
 	}
+}
+
+func isParentDirectory(path, parent string) bool {
+	pathParts := strings.Split(path, "/")
+	parentParts := strings.Split(parent, "/")
+	if len(parentParts) < len(pathParts) {
+		return false
+	}
+	for i, part := range pathParts {
+		if part != parentParts[i] {
+			return false
+		}
+	}
+	return true
 }

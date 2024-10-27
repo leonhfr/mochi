@@ -42,7 +42,7 @@ type Lock struct {
 // Deck contains the information about existing decks.
 type Deck struct {
 	ParentID string          `json:"parentID,omitempty"`
-	Path     string          `json:"path"`
+	Path     string          `json:"path,omitempty"`
 	Name     string          `json:"name" validate:"required"`
 	Cards    map[string]Card `json:"cards,omitempty" validate:"dive"` // indexed by card id
 	Virtual  bool            `json:"virtual,omitempty"`
