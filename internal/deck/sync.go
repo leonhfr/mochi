@@ -44,7 +44,7 @@ func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []pa
 
 	reqs := []request.Request{}
 	for _, mochiCard := range mochiCards {
-		index := slices.IndexFunc(tmp, indexFunc(mochiCard))
+		index := slices.IndexFunc(tmp, func(card parser.Card) bool { return card.Is(mochiCard) })
 		if index < 0 {
 			reqs = append(reqs, request.DeleteCard(mochiCard.ID))
 			continue
@@ -61,16 +61,6 @@ func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []pa
 	}
 
 	return reqs
-}
-
-func indexFunc(mochiCard mochi.Card) func(c parser.Card) bool {
-	return func(parsedCard parser.Card) bool {
-		name, ok := mochiCard.Fields["name"]
-		if !ok {
-			return mochiCard.Name == parsedCard.Name()
-		}
-		return name.Value == parsedCard.Name()
-	}
 }
 
 func sliceRemove[T any](s []T, i int) []T {

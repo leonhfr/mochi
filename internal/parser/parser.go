@@ -21,7 +21,6 @@ type Result struct {
 
 // Card represents a card.
 type Card interface {
-	Name() string
 	Content() string
 	Fields() map[string]mochi.Field
 	TemplateID() string
@@ -29,6 +28,7 @@ type Card interface {
 	Path() string
 	Filename() string
 	Position() string
+	Is(card mochi.Card) bool
 	Equals(card mochi.Card) bool
 }
 

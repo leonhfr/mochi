@@ -18,7 +18,7 @@ type ParserCall struct {
 }
 
 type ParserCard struct {
-	Name       string
+	Name       string // for tests
 	Content    string
 	TemplateID string
 	Path       string
@@ -57,7 +57,6 @@ func NewCard(card ParserCard) parser.Card {
 
 var _ parser.Card = (*parserCard)(nil)
 
-func (c *parserCard) Name() string                   { return c.name }
 func (c *parserCard) Content() string                { return c.content }
 func (c *parserCard) TemplateID() string             { return c.templateID }
 func (c *parserCard) Fields() map[string]mochi.Field { return c.fields }
@@ -65,6 +64,7 @@ func (c *parserCard) Path() string                   { return c.path }
 func (c *parserCard) Filename() string               { return c.filename }
 func (c *parserCard) Position() string               { return c.position }
 func (c *parserCard) Images() []parser.Image         { return c.images }
+func (c *parserCard) Is(card mochi.Card) bool        { return card.Name == c.name }
 func (c *parserCard) Equals(card mochi.Card) bool    { return c.equals }
 
 type MockParser struct {

@@ -71,6 +71,10 @@ func (c vocabularyCard) Path() string       { return c.path }
 func (c vocabularyCard) Filename() string   { return getFilename(c.path) }
 func (c vocabularyCard) Position() string   { return c.word }
 
+func (c vocabularyCard) Is(card mochi.Card) bool {
+	return nameEquals(card.Fields, c.word)
+}
+
 func (c vocabularyCard) Fields() map[string]mochi.Field {
 	return map[string]mochi.Field{
 		"name": {

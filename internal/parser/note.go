@@ -84,6 +84,10 @@ func (n noteCard) Filename() string   { return getFilename(n.path) }
 func (n noteCard) Position() string   { return "" }
 func (n noteCard) TemplateID() string { return "" }
 
+func (n noteCard) Is(card mochi.Card) bool {
+	return nameEquals(card.Fields, n.name)
+}
+
 func (n noteCard) Fields() map[string]mochi.Field {
 	return map[string]mochi.Field{
 		"name": {ID: "name", Value: n.name},
@@ -92,4 +96,12 @@ func (n noteCard) Fields() map[string]mochi.Field {
 
 func (n noteCard) Equals(card mochi.Card) bool {
 	return card.Content == n.content
+}
+
+func nameEquals(fields map[string]mochi.Field, name string) bool {
+	f, ok := fields["name"]
+	if !ok {
+		return false
+	}
+	return f.Value == name
 }
