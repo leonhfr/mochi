@@ -42,6 +42,16 @@ type cardParser interface {
 	convert(path string, source []byte) (Result, error)
 }
 
+func defaultParsers() map[string]cardParser {
+	return map[string]cardParser{
+		"note":      newNote(),
+		"headings":  newHeadings(1),
+		"headings1": newHeadings(1),
+		"headings2": newHeadings(2),
+		"headings3": newHeadings(3),
+	}
+}
+
 // Parser represents a parser.
 type Parser struct {
 	cardParser
@@ -49,18 +59,21 @@ type Parser struct {
 }
 
 // New returns a new parser.
-func New() *Parser {
-	return &Parser{
+func New(options ...Option) (*Parser, error) {
+	p := &Parser{
 		cardParser: newNote(),
-		parsers: map[string]cardParser{
-			"note":      newNote(),
-			"headings":  newHeadings(1),
-			"headings1": newHeadings(1),
-			"headings2": newHeadings(2),
-			"headings3": newHeadings(3),
-		},
+		parsers:    defaultParsers(),
 	}
+	for _, option := range options {
+		if err := option(p); err != nil {
+			return nil, err
+		}
+	}
+	return p, nil
 }
+
+// Option represents an option for the parser.
+type Option func(*Parser) error
 
 // Convert converts a source file into cards.
 func (p *Parser) Convert(parser, path string, r io.Reader) (Result, error) {
@@ -89,13 +102,14 @@ func (p *Parser) Convert(parser, path string, r io.Reader) (Result, error) {
 	return p.convert(path, content)
 }
 
-// List returns the list of allowed parser names.
-func (p *Parser) List() []string {
-	parsers := make([]string, 0, len(p.parsers))
-	for parser := range p.parsers {
-		parsers = append(parsers, parser)
+// Names returns the list of allowed parser names.
+func Names() []string {
+	parsers := defaultParsers()
+	names := make([]string, 0, len(parsers))
+	for name := range parsers {
+		names = append(names, name)
 	}
-	return parsers
+	return names
 }
 
 // Extensions returns the list of supported extensions.

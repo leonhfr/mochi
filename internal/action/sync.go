@@ -14,8 +14,12 @@ func Sync(ctx context.Context, logger Logger, token, workspace string) (updated 
 	logger.Infof("workspace: %s", workspace)
 
 	fs := file.NewSystem()
-	parser := parser.New()
-	config, err := loadConfig(fs, logger, parser.List(), workspace)
+	config, err := loadConfig(fs, logger, parser.Names(), workspace)
+	if err != nil {
+		return false, err
+	}
+
+	parser, err := parser.New()
 	if err != nil {
 		return false, err
 	}
