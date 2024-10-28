@@ -178,7 +178,7 @@ func Test_getDeckName(t *testing.T) {
 				{Path: "/test/data", Deck: config.Deck{}, OK: true},
 			},
 			path: "/test/data",
-			want: "data",
+			want: "Data",
 		},
 		{
 			name: "no config deck",
@@ -186,7 +186,7 @@ func Test_getDeckName(t *testing.T) {
 				{Path: "/test/data", OK: false},
 			},
 			path: "/test/data",
-			want: "data",
+			want: "Data",
 		},
 	}
 

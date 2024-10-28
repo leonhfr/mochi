@@ -4,6 +4,9 @@ import (
 	"context"
 	"path/filepath"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/mochi"
@@ -119,12 +122,14 @@ func updateDeckName(ctx context.Context, client CreateClient, lf CreateLockfile,
 	return nil
 }
 
+var titleCaser = cases.Title(language.English)
+
 func getDeckName(config CreateConfig, path string) string {
 	deck, ok := config.Deck(path)
 	if ok && deck.Name != "" {
 		return deck.Name
 	}
-	return filepath.Base(path)
+	return titleCaser.String(filepath.Base(path))
 }
 
 func getStack(lockfile CreateLockfile, path string) (string, []string) {

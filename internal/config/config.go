@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"path/filepath"
 	"slices"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v3"
@@ -115,7 +114,7 @@ func (c *Config) Deck(path string) (Deck, bool) {
 	}
 
 	for _, deck := range c.Decks {
-		if isParentDirectory(path, deck.Path) {
+		if deck.Path == path {
 			return deck, true
 		}
 	}
@@ -135,18 +134,4 @@ func parsersValidator(parsers []string) validator.StructLevelFunc {
 			}
 		}
 	}
-}
-
-func isParentDirectory(path, parent string) bool {
-	pathParts := strings.Split(path, "/")
-	parentParts := strings.Split(parent, "/")
-	if len(parentParts) < len(pathParts) {
-		return false
-	}
-	for i, part := range pathParts {
-		if part != parentParts[i] {
-			return false
-		}
-	}
-	return true
 }

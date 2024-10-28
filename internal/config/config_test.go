@@ -135,6 +135,24 @@ func Test_Config_Deck(t *testing.T) {
 			ok:   true,
 		},
 		{
+			name: "should return the expected deck config",
+			config: &Config{Decks: []Deck{
+				{Path: "/vocabulary/catalan"},
+				{Path: "/vocabulary/german"},
+			}},
+			path: "/vocabulary/german",
+			want: Deck{Path: "/vocabulary/german"},
+			ok:   true,
+		},
+		{
+			name: "should return nothing",
+			config: &Config{Decks: []Deck{
+				{Path: "/vocabulary/catalan"},
+				{Path: "/vocabulary/german"},
+			}},
+			path: "/vocabulary",
+		},
+		{
 			name: "should not return the deck config",
 			config: &Config{Decks: []Deck{
 				{Path: "/sub/lorem-ipsum"},
