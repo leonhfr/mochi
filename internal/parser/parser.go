@@ -8,6 +8,7 @@ import (
 
 	"github.com/adrg/frontmatter"
 
+	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -74,6 +75,19 @@ func New(options ...Option) (*Parser, error) {
 
 // Option represents an option for the parser.
 type Option func(*Parser) error
+
+// WithVocabulary adds the vocabulary templates.
+func WithVocabulary(vocabulary config.Vocabulary) Option {
+	return func(p *Parser) error {
+		for name, templateID := range vocabulary {
+			if _, ok := p.parsers[name]; ok {
+				return fmt.Errorf("vocabulary template: cannot overwrite default parser %s", name)
+			}
+			p.parsers[name] = newVocabulary(templateID)
+		}
+		return nil
+	}
+}
 
 // Convert converts a source file into cards.
 func (p *Parser) Convert(parser, path string, r io.Reader) (Result, error) {

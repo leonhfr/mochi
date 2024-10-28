@@ -19,7 +19,7 @@ func Sync(ctx context.Context, logger Logger, token, workspace string) (updated 
 		return false, err
 	}
 
-	parser, err := parser.New()
+	parser, err := parser.New(parser.WithVocabulary(config.Vocabulary))
 	if err != nil {
 		return false, err
 	}
