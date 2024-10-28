@@ -31,6 +31,7 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Re
 	filtered := filteredAttachments(lf, r.deckID, r.cardID, images)
 	req := mochi.UpdateCardRequest{
 		Content:     images.Replace(r.card.Content()),
+		Fields:      r.card.Fields(),
 		Attachments: filtered.Attachments(),
 		Pos:         r.card.Position(),
 	}

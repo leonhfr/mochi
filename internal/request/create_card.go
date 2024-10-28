@@ -27,11 +27,9 @@ func (r *createRequest) Execute(ctx context.Context, client Client, reader image
 	images := image.New(reader, r.card.Path(), r.card.Images())
 
 	req := mochi.CreateCardRequest{
-		Content: images.Replace(r.card.Content()),
-		DeckID:  r.deckID,
-		Fields: map[string]mochi.Field{
-			"name": {ID: "name", Value: r.card.Name()},
-		},
+		Content:     images.Replace(r.card.Content()),
+		DeckID:      r.deckID,
+		Fields:      r.card.Fields(),
 		Attachments: images.Attachments(),
 		Pos:         r.card.Position(),
 	}

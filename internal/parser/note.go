@@ -82,6 +82,13 @@ func (n noteCard) Images() []Image  { return n.images }
 func (n noteCard) Path() string     { return n.path }
 func (n noteCard) Filename() string { return getFilename(n.path) }
 func (n noteCard) Position() string { return "" }
+
+func (n noteCard) Fields() map[string]mochi.Field {
+	return map[string]mochi.Field{
+		"name": {ID: "name", Value: n.name},
+	}
+}
+
 func (n noteCard) Equals(card mochi.Card) bool {
 	return card.Content == n.content
 }

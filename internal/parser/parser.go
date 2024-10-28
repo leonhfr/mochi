@@ -23,6 +23,7 @@ type Result struct {
 type Card interface {
 	Name() string
 	Content() string
+	Fields() map[string]mochi.Field
 	Images() []Image
 	Path() string
 	Filename() string

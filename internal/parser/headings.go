@@ -166,6 +166,13 @@ func (h headingsCard) Images() []Image  { return h.images }
 func (h headingsCard) Path() string     { return h.path }
 func (h headingsCard) Filename() string { return getFilename(h.path) }
 func (h headingsCard) Position() string { return h.position }
+
+func (h headingsCard) Fields() map[string]mochi.Field {
+	return map[string]mochi.Field{
+		"name": {ID: "name", Value: h.name},
+	}
+}
+
 func (h headingsCard) Equals(card mochi.Card) bool {
 	return card.Content == h.content && card.Pos == h.position
 }
