@@ -33,7 +33,7 @@ Card card card.
 More card content.
 `
 
-func Test_Headings_Convert(t *testing.T) {
+func Test_headings_convert(t *testing.T) {
 	tests := []struct {
 		name     string
 		maxLevel int

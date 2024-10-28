@@ -8,7 +8,7 @@ import (
 
 var _ cardParser = &note{}
 
-func Test_Note_Convert(t *testing.T) {
+func Test_note_convert(t *testing.T) {
 	tests := []struct {
 		name   string
 		path   string

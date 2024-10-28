@@ -81,7 +81,7 @@ func getHeadingCards(path string, headings []parsedHeading, source []byte) []Car
 
 	if len(headings) == 1 && len(source) > 0 {
 		name := getNameFromPath(path)
-		return []Card{createNoteCard(name, path, source, headings[0].images)}
+		return []Card{newNoteCard(name, path, source, headings[0].images)}
 	} else if len(headings) == 1 {
 		return nil
 	}
@@ -117,24 +117,11 @@ func getHeadingCards(path string, headings []parsedHeading, source []byte) []Car
 			continue
 		}
 
-		cards = append(cards, createHeadingCard(titles, path, content, heading.images, len(cards)))
+		cards = append(cards, newHeadingsCard(titles, path, content, heading.images, len(cards)))
 		start = stop
 	}
 
 	return cards
-}
-
-func createHeadingCard(headings []string, path string, source []byte, images []Image, index int) Card {
-	filename := getFilename(path)
-	name := strings.ReplaceAll(strings.Join(headings, " > "), " >  > ", " > ")
-	content := fmt.Sprintf("%s\n\n%s\n", name, string(source))
-	return headingsCard{
-		name:     name,
-		content:  string(content),
-		images:   images,
-		path:     path,
-		position: getPosition(filename, index),
-	}
 }
 
 func getHeadingText(heading parsedHeading, source []byte) string {
@@ -158,6 +145,19 @@ type headingsCard struct {
 	images   []Image
 	path     string
 	position string
+}
+
+func newHeadingsCard(headings []string, path string, source []byte, images []Image, index int) Card {
+	filename := getFilename(path)
+	name := strings.ReplaceAll(strings.Join(headings, " > "), " >  > ", " > ")
+	content := fmt.Sprintf("%s\n\n%s\n", name, string(source))
+	return headingsCard{
+		name:     name,
+		content:  string(content),
+		images:   images,
+		path:     path,
+		position: getPosition(filename, index),
+	}
 }
 
 func (h headingsCard) Name() string       { return h.name }

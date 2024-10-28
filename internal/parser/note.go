@@ -56,17 +56,7 @@ func (n *note) convert(path string, source []byte) (Result, error) {
 	}
 
 	name := getNameFromPath(path)
-	return Result{Cards: []Card{createNoteCard(name, path, source, images)}}, nil
-}
-
-func createNoteCard(name, path string, source []byte, images []Image) Card {
-	content := fmt.Sprintf("# %s\n\n%s", name, string(source))
-	return noteCard{
-		name:    name,
-		content: content,
-		path:    path,
-		images:  images,
-	}
+	return Result{Cards: []Card{newNoteCard(name, path, source, images)}}, nil
 }
 
 type noteCard struct {
@@ -74,6 +64,16 @@ type noteCard struct {
 	content string
 	images  []Image
 	path    string
+}
+
+func newNoteCard(name, path string, source []byte, images []Image) Card {
+	content := fmt.Sprintf("# %s\n\n%s", name, string(source))
+	return noteCard{
+		name:    name,
+		content: content,
+		path:    path,
+		images:  images,
+	}
 }
 
 func (n noteCard) Name() string       { return n.name }
