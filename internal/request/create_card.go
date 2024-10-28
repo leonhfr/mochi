@@ -24,16 +24,16 @@ func CreateCard(deckID string, card parser.Card) Request {
 
 // Execute implements the Request interface.
 func (r *createRequest) Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error {
-	images := image.New(reader, r.card.Path, r.card.Images)
+	images := image.New(reader, r.card.Path(), r.card.Images())
 
 	req := mochi.CreateCardRequest{
-		Content: images.Replace(r.card.Content),
+		Content: images.Replace(r.card.Content()),
 		DeckID:  r.deckID,
 		Fields: map[string]mochi.Field{
-			"name": {ID: "name", Value: r.card.Name},
+			"name": {ID: "name", Value: r.card.Name()},
 		},
 		Attachments: images.Attachments(),
-		Pos:         r.card.Position,
+		Pos:         r.card.Position(),
 	}
 
 	card, err := client.CreateCard(ctx, req)
@@ -45,7 +45,7 @@ func (r *createRequest) Execute(ctx context.Context, client Client, reader image
 	lf.Lock()
 	defer lf.Unlock()
 
-	if err := lf.SetCard(r.deckID, card.ID, r.card.Filename, hashMap); err != nil {
+	if err := lf.SetCard(r.deckID, card.ID, r.card.Filename(), hashMap); err != nil {
 		return err
 	}
 
@@ -54,5 +54,5 @@ func (r *createRequest) Execute(ctx context.Context, client Client, reader image
 
 // String implements the fmt.Stringer interface.
 func (r *createRequest) String() string {
-	return fmt.Sprintf("create request for file %s", r.card.Filename)
+	return fmt.Sprintf("create request for file %s", r.card.Filename())
 }

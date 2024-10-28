@@ -59,11 +59,24 @@ func (n *note) convert(path string, source []byte) (Result, error) {
 
 func createNoteCard(name, path string, source []byte, images []Image) Card {
 	content := fmt.Sprintf("# %s\n\n%s", name, string(source))
-	return Card{
-		Name:     name,
-		Content:  content,
-		Filename: getFilename(path),
-		Path:     path,
-		Images:   images,
+	return noteCard{
+		name:    name,
+		content: content,
+		path:    path,
+		images:  images,
 	}
 }
+
+type noteCard struct {
+	name    string
+	content string
+	images  []Image
+	path    string
+}
+
+func (n noteCard) Name() string     { return n.name }
+func (n noteCard) Content() string  { return n.content }
+func (n noteCard) Images() []Image  { return n.images }
+func (n noteCard) Path() string     { return n.path }
+func (n noteCard) Filename() string { return getFilename(n.path) }
+func (n noteCard) Position() string { return "" }

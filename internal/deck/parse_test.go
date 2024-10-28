@@ -22,11 +22,11 @@ func Test_Parse(t *testing.T) {
 		Parser: "note",
 		Path:   "/testdata/lorem-ipsum.md",
 		Text:   "TEST",
-		Result: parser.Result{Cards: []parser.Card{{Name: "TEST"}}},
+		Result: parser.Result{Cards: []parser.Card{test.NewCard(test.ParserCard{Name: "TEST"})}},
 	}}
 	filePaths := []string{"/lorem-ipsum.md"}
 	want := []Card{
-		{card: parser.Card{Name: "TEST"}},
+		{card: test.NewCard(test.ParserCard{Name: "TEST"})},
 	}
 
 	r := newMockReader(readCalls)
@@ -82,10 +82,10 @@ func Test_parseFile(t *testing.T) {
 				Parser: "note",
 				Path:   "/testdata/lorem-ipsum.md",
 				Text:   "TEST",
-				Result: parser.Result{Cards: []parser.Card{{Name: "TEST"}}},
+				Result: parser.Result{Cards: []parser.Card{test.NewCard(test.ParserCard{Name: "TEST"})}},
 			}},
 			path: "/lorem-ipsum.md",
-			want: parser.Result{Cards: []parser.Card{{Name: "TEST"}}},
+			want: parser.Result{Cards: []parser.Card{test.NewCard(test.ParserCard{Name: "TEST"})}},
 		},
 	}
 

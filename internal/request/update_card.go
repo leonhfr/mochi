@@ -26,13 +26,13 @@ func UpdateCard(deckID, cardID string, card parser.Card) Request {
 
 // Execute implements the Request interface.
 func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error {
-	images := image.New(reader, r.card.Path, r.card.Images)
+	images := image.New(reader, r.card.Path(), r.card.Images())
 
 	filtered := filteredAttachments(lf, r.deckID, r.cardID, images)
 	req := mochi.UpdateCardRequest{
-		Content:     images.Replace(r.card.Content),
+		Content:     images.Replace(r.card.Content()),
 		Attachments: filtered.Attachments(),
-		Pos:         r.card.Position,
+		Pos:         r.card.Position(),
 	}
 
 	if _, err := client.UpdateCard(ctx, r.cardID, req); err != nil {
@@ -42,7 +42,7 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Re
 	lf.Lock()
 	defer lf.Unlock()
 
-	if err := lf.SetCard(r.deckID, r.cardID, r.card.Filename, images.HashMap()); err != nil {
+	if err := lf.SetCard(r.deckID, r.cardID, r.card.Filename(), images.HashMap()); err != nil {
 		return err
 	}
 
@@ -74,5 +74,5 @@ func filteredAttachments(lf Lockfile, deckID, cardID string, images image.Images
 
 // String implements the fmt.Stringer interface.
 func (r *updateCard) String() string {
-	return fmt.Sprintf("update request for card ID %s (%s)", r.cardID, r.card.Filename)
+	return fmt.Sprintf("update request for card ID %s (%s)", r.cardID, r.card.Filename())
 }

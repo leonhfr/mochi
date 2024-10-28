@@ -126,13 +126,12 @@ func createHeadingCard(headings []string, path string, source []byte, images []I
 	filename := getFilename(path)
 	name := strings.ReplaceAll(strings.Join(headings, " > "), " >  > ", " > ")
 	content := fmt.Sprintf("%s\n\n%s\n", name, string(source))
-	return Card{
-		Name:     name,
-		Content:  string(content),
-		Filename: filename,
-		Path:     path,
-		Images:   images,
-		Position: getPosition(filename, index),
+	return headingsCard{
+		name:     name,
+		content:  string(content),
+		images:   images,
+		path:     path,
+		position: getPosition(filename, index),
 	}
 }
 
@@ -150,3 +149,18 @@ type parsedHeading struct {
 	stop   int
 	images []Image
 }
+
+type headingsCard struct {
+	name     string
+	content  string
+	images   []Image
+	path     string
+	position string
+}
+
+func (h headingsCard) Name() string     { return h.name }
+func (h headingsCard) Content() string  { return h.content }
+func (h headingsCard) Images() []Image  { return h.images }
+func (h headingsCard) Path() string     { return h.path }
+func (h headingsCard) Filename() string { return getFilename(h.path) }
+func (h headingsCard) Position() string { return h.position }

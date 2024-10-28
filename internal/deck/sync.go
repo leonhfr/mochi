@@ -64,17 +64,17 @@ func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []pa
 }
 
 func equalsCard(mochiCard mochi.Card, parserCard parser.Card) bool {
-	return mochiCard.Content == parserCard.Content &&
-		mochiCard.Pos == parserCard.Position
+	return mochiCard.Content == parserCard.Content() &&
+		mochiCard.Pos == parserCard.Position()
 }
 
 func indexFunc(mochiCard mochi.Card) func(c parser.Card) bool {
 	return func(parsedCard parser.Card) bool {
 		name, ok := mochiCard.Fields["name"]
 		if !ok {
-			return mochiCard.Name == parsedCard.Name
+			return mochiCard.Name == parsedCard.Name()
 		}
-		return name.Value == parsedCard.Name
+		return name.Value == parsedCard.Name()
 	}
 }
 
@@ -116,7 +116,7 @@ func groupMochiCardsByFilename(lf SyncLockfile, deckID string, mochiCards []moch
 func groupParsedCardsByFilename(parsedCards []parser.Card) map[string][]parser.Card {
 	matched := make(map[string][]parser.Card)
 	for _, parsedCard := range parsedCards {
-		matched[parsedCard.Filename] = append(matched[parsedCard.Filename], parsedCard)
+		matched[parsedCard.Filename()] = append(matched[parsedCard.Filename()], parsedCard)
 	}
 	return matched
 }

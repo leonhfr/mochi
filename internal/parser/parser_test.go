@@ -11,11 +11,13 @@ import (
 func Test_Parser_Convert(t *testing.T) {
 	mockPath := "/testdata/lorem-ipsum/Lorem ipsum.md"
 	mockSource := "# Title 1\nParagraph.\n"
-	mockCards := []Card{{
-		Name:     "Lorem ipsum",
-		Content:  "# Title 1\nParagraph.\n",
-		Filename: "Lorem ipsum.md",
-	}}
+	mockCards := []Card{
+		noteCard{
+			name:    "Lorem ipsum",
+			content: "# Title 1\nParagraph.\n",
+			// Filename: "Lorem ipsum.md",
+		},
+	}
 
 	tests := []struct {
 		name    string

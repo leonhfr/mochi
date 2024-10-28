@@ -17,14 +17,14 @@ type Result struct {
 	Cards []Card
 }
 
-// Card contains the card data parsed from a file.
-type Card struct {
-	Name     string
-	Content  string
-	Filename string
-	Path     string
-	Images   []Image
-	Position string
+// Card represents a card.
+type Card interface {
+	Name() string
+	Content() string
+	Images() []Image
+	Path() string
+	Filename() string
+	Position() string
 }
 
 // Image contains the parsed image data.

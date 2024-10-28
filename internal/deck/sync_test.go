@@ -7,6 +7,7 @@ import (
 
 	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/request"
+	"github.com/leonhfr/mochi/internal/test"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -31,35 +32,35 @@ func Test_upsertSyncRequests(t *testing.T) {
 		},
 	}
 	parserCards := []parser.Card{
-		{
+		test.NewCard(test.ParserCard{
 			Name:     "CARD_TO_UPDATE",
 			Content:  "NEW_CONTENT",
 			Filename: filename,
-		},
-		{
+		}),
+		test.NewCard(test.ParserCard{
 			Name:     "CARD_TO_CREATE",
 			Content:  "CONTENT",
 			Filename: filename,
-		},
-		{
+		}),
+		test.NewCard(test.ParserCard{
 			Name:     "CARD_TO_KEEP",
 			Content:  "CONTENT",
 			Filename: filename,
-		},
+		}),
 	}
 
 	want := []request.Request{
-		request.UpdateCard(deckID, "CARD_ID_1", parser.Card{
+		request.UpdateCard(deckID, "CARD_ID_1", test.NewCard(test.ParserCard{
 			Name:     "CARD_TO_UPDATE",
 			Content:  "NEW_CONTENT",
 			Filename: filename,
-		}),
+		})),
 		request.DeleteCard("CARD_ID_2"),
-		request.CreateCard("DECK_ID", parser.Card{
+		request.CreateCard("DECK_ID", test.NewCard(test.ParserCard{
 			Name:     "CARD_TO_CREATE",
 			Content:  "CONTENT",
 			Filename: filename,
-		}),
+		})),
 	}
 
 	got := upsertSyncRequests(deckID, mochiCards, parserCards)
