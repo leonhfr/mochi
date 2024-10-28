@@ -9,42 +9,43 @@ const cardPath = "/api/cards"
 
 // Card represents a card.
 type Card struct {
-	ID            string           `json:"id"`
-	Name          string           `json:"name"`
-	Content       string           `json:"content"`
-	DeckID        string           `json:"deck-id"`
-	TemplateID    string           `json:"template-id"`
-	Pos           string           `json:"pos"`
-	Archived      bool             `json:"archived?"`
-	New           bool             `json:"new?"`
-	ReviewReverse bool             `json:"review-reverse?"`
-	Fields        map[string]Field `json:"fields"`
-	CreatedAt     Date             `json:"created-at"`
-	UpdatedAt     Date             `json:"updated-at"`
+	ID            string                `json:"id"`
+	Name          string                `json:"name"`
+	Content       string                `json:"content"`
+	DeckID        string                `json:"deck-id"`
+	TemplateID    string                `json:"template-id"`
+	Pos           string                `json:"pos"`
+	Archived      bool                  `json:"archived?"`
+	New           bool                  `json:"new?"`
+	ReviewReverse bool                  `json:"review-reverse?"`
+	Fields        map[string]Field      `json:"fields"`
+	Attachments   map[string]Attachment `json:"attachments"`
+	CreatedAt     Date                  `json:"created-at"`
+	UpdatedAt     Date                  `json:"updated-at"`
 }
 
 // CreateCardRequest holds the info to create a new card.
 type CreateCardRequest struct {
-	Content       string           `json:"content"`
-	DeckID        string           `json:"deck-id"`
-	TemplateID    string           `json:"template-id,omitempty"`
-	Archived      bool             `json:"archived?,omitempty"`
-	ReviewReverse bool             `json:"review-reverse?,omitempty"`
-	Pos           string           `json:"pos,omitempty"`
-	Fields        map[string]Field `json:"fields,omitempty"`
-	Attachments   []Attachment     `json:"deprecated/attachments,omitempty"`
+	Content       string                 `json:"content"`
+	DeckID        string                 `json:"deck-id"`
+	TemplateID    string                 `json:"template-id,omitempty"`
+	Archived      bool                   `json:"archived?,omitempty"`
+	ReviewReverse bool                   `json:"review-reverse?,omitempty"`
+	Pos           string                 `json:"pos,omitempty"`
+	Fields        map[string]Field       `json:"fields,omitempty"`
+	Attachments   []DeprecatedAttachment `json:"deprecated/attachments,omitempty"`
 }
 
 // UpdateCardRequest holds the info to update a card.
 type UpdateCardRequest struct {
-	Content       string           `json:"content,omitempty"`
-	DeckID        string           `json:"deck-id,omitempty"`
-	TemplateID    string           `json:"template-id,omitempty"`
-	Archived      bool             `json:"archived?,omitempty"`
-	ReviewReverse bool             `json:"review-reverse?,omitempty"`
-	Pos           string           `json:"pos,omitempty"`
-	Fields        map[string]Field `json:"fields,omitempty"`
-	Attachments   []Attachment     `json:"deprecated/attachments,omitempty"`
+	Content       string                 `json:"content,omitempty"`
+	DeckID        string                 `json:"deck-id,omitempty"`
+	TemplateID    string                 `json:"template-id,omitempty"`
+	Archived      bool                   `json:"archived?,omitempty"`
+	ReviewReverse bool                   `json:"review-reverse?,omitempty"`
+	Pos           string                 `json:"pos,omitempty"`
+	Fields        map[string]Field       `json:"fields,omitempty"`
+	Attachments   []DeprecatedAttachment `json:"deprecated/attachments,omitempty"`
 }
 
 // Field represents a field.
@@ -55,6 +56,12 @@ type Field struct {
 
 // Attachment represents an attachment.
 type Attachment struct {
+	Size int    `json:"size"` // Size in bytes.
+	Type string `json:"type"` // MIME type.
+}
+
+// DeprecatedAttachment represents a deprecated attachment.
+type DeprecatedAttachment struct {
 	FileName    string `json:"file-name"`    // File name must match the regex /[0-9a-zA-Z]{8,16}/. E.g. "j94fuC0R.jpg".
 	ContentType string `json:"content-type"` // MIME type.
 	Data        string `json:"data"`         // Base64 encoded representation of the attachment data.

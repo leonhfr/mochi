@@ -53,7 +53,7 @@ func Test_newImage(t *testing.T) {
 				AltText:     "alt text",
 			},
 			want: Image{
-				attachment: mochi.Attachment{
+				attachment: mochi.DeprecatedAttachment{
 					FileName:    "22abb8f07c02970e.png",
 					ContentType: "image/png",
 					Data:        "SU1BR0UgQ09OVEVO",

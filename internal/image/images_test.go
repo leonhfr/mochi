@@ -42,7 +42,7 @@ func Test_New(t *testing.T) {
 			},
 			want: Images{
 				{
-					attachment: mochi.Attachment{
+					attachment: mochi.DeprecatedAttachment{
 						FileName:    "22abb8f07c02970e.png",
 						ContentType: "image/png",
 						Data:        "SU1BR0UgQ09OVEVO",
@@ -77,12 +77,12 @@ func Test_Images_Replace(t *testing.T) {
 			name: "should replace the images",
 			images: Images{
 				{
-					attachment:  mochi.Attachment{FileName: "scream_hash.png"},
+					attachment:  mochi.DeprecatedAttachment{FileName: "scream_hash.png"},
 					destination: "./scream.png",
 					altText:     "Scream",
 				},
 				{
-					attachment:  mochi.Attachment{FileName: "constellations_hash.jpg"},
+					attachment:  mochi.DeprecatedAttachment{FileName: "constellations_hash.jpg"},
 					destination: "./constellations.jpg",
 				},
 			},

@@ -32,11 +32,11 @@ type Reader interface {
 
 // Image contains the data for an Image.
 type Image struct {
-	attachment  mochi.Attachment // filename: [md5 of path].ext
-	Hash        string           // md5 of contents
-	Path        string           // absolute path to file
-	destination string           // original destination
-	altText     string           // original alt text
+	attachment  mochi.DeprecatedAttachment // filename: [md5 of path].ext
+	Hash        string                     // md5 of contents
+	Path        string                     // absolute path to file
+	destination string                     // original destination
+	altText     string                     // original alt text
 }
 
 // newImage creates a new image.
@@ -57,7 +57,7 @@ func newImage(reader Reader, path string, parsed parser.Image) (Image, bool) {
 	filename := getFilename(pathHash, extension)
 
 	return Image{
-		attachment: mochi.Attachment{
+		attachment: mochi.DeprecatedAttachment{
 			FileName:    filename,
 			ContentType: mimeType,
 			Data:        content,

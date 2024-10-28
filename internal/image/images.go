@@ -23,8 +23,8 @@ func New(reader Reader, path string, parsed []parser.Image) Images {
 }
 
 // Attachments returns the list of attachments.
-func (images Images) Attachments() []mochi.Attachment {
-	attachments := make([]mochi.Attachment, len(images))
+func (images Images) Attachments() []mochi.DeprecatedAttachment {
+	attachments := make([]mochi.DeprecatedAttachment, len(images))
 	for i, image := range images {
 		attachments[i] = image.attachment
 	}
