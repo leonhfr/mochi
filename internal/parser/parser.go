@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/adrg/frontmatter"
+
+	"github.com/leonhfr/mochi/mochi"
 )
 
 var extensions = []string{".md"}
@@ -25,6 +27,7 @@ type Card interface {
 	Path() string
 	Filename() string
 	Position() string
+	Equals(card mochi.Card) bool
 }
 
 // Image contains the parsed image data.

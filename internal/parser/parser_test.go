@@ -15,7 +15,6 @@ func Test_Parser_Convert(t *testing.T) {
 		noteCard{
 			name:    "Lorem ipsum",
 			content: "# Title 1\nParagraph.\n",
-			// Filename: "Lorem ipsum.md",
 		},
 	}
 

@@ -8,6 +8,8 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
+
+	"github.com/leonhfr/mochi/mochi"
 )
 
 // headings represents a headings parser.
@@ -164,3 +166,6 @@ func (h headingsCard) Images() []Image  { return h.images }
 func (h headingsCard) Path() string     { return h.path }
 func (h headingsCard) Filename() string { return getFilename(h.path) }
 func (h headingsCard) Position() string { return h.position }
+func (h headingsCard) Equals(card mochi.Card) bool {
+	return card.Content == h.content && card.Pos == h.position
+}

@@ -6,6 +6,8 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
+
+	"github.com/leonhfr/mochi/mochi"
 )
 
 // note represents a note parser.
@@ -80,3 +82,6 @@ func (n noteCard) Images() []Image  { return n.images }
 func (n noteCard) Path() string     { return n.path }
 func (n noteCard) Filename() string { return getFilename(n.path) }
 func (n noteCard) Position() string { return "" }
+func (n noteCard) Equals(card mochi.Card) bool {
+	return card.Content == n.content
+}

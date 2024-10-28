@@ -46,6 +46,7 @@ func Test_upsertSyncRequests(t *testing.T) {
 			Name:     "CARD_TO_KEEP",
 			Content:  "CONTENT",
 			Filename: filename,
+			Equals:   true,
 		}),
 	}
 
