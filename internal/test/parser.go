@@ -18,37 +18,40 @@ type ParserCall struct {
 }
 
 type ParserCard struct {
-	Name     string
-	Content  string
-	Path     string
-	Filename string
-	Position string
-	Images   []parser.Image
-	Fields   map[string]mochi.Field
-	Equals   bool
+	Name       string
+	Content    string
+	TemplateID string
+	Path       string
+	Filename   string
+	Position   string
+	Images     []parser.Image
+	Fields     map[string]mochi.Field
+	Equals     bool
 }
 
 type parserCard struct {
-	name     string
-	content  string
-	path     string
-	filename string
-	position string
-	images   []parser.Image
-	fields   map[string]mochi.Field
-	equals   bool
+	name       string
+	content    string
+	templateID string
+	path       string
+	filename   string
+	position   string
+	images     []parser.Image
+	fields     map[string]mochi.Field
+	equals     bool
 }
 
 func NewCard(card ParserCard) parser.Card {
 	return &parserCard{
-		name:     card.Name,
-		content:  card.Content,
-		path:     card.Path,
-		filename: card.Filename,
-		position: card.Position,
-		images:   card.Images,
-		fields:   card.Fields,
-		equals:   card.Equals,
+		name:       card.Name,
+		content:    card.Content,
+		templateID: card.TemplateID,
+		path:       card.Path,
+		filename:   card.Filename,
+		position:   card.Position,
+		images:     card.Images,
+		fields:     card.Fields,
+		equals:     card.Equals,
 	}
 }
 
@@ -56,6 +59,7 @@ var _ parser.Card = (*parserCard)(nil)
 
 func (c *parserCard) Name() string                   { return c.name }
 func (c *parserCard) Content() string                { return c.content }
+func (c *parserCard) TemplateID() string             { return c.templateID }
 func (c *parserCard) Fields() map[string]mochi.Field { return c.fields }
 func (c *parserCard) Path() string                   { return c.path }
 func (c *parserCard) Filename() string               { return c.filename }

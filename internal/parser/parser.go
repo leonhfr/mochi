@@ -24,6 +24,7 @@ type Card interface {
 	Name() string
 	Content() string
 	Fields() map[string]mochi.Field
+	TemplateID() string
 	Images() []Image
 	Path() string
 	Filename() string

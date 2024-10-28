@@ -160,12 +160,13 @@ type headingsCard struct {
 	position string
 }
 
-func (h headingsCard) Name() string     { return h.name }
-func (h headingsCard) Content() string  { return h.content }
-func (h headingsCard) Images() []Image  { return h.images }
-func (h headingsCard) Path() string     { return h.path }
-func (h headingsCard) Filename() string { return getFilename(h.path) }
-func (h headingsCard) Position() string { return h.position }
+func (h headingsCard) Name() string       { return h.name }
+func (h headingsCard) Content() string    { return h.content }
+func (h headingsCard) Images() []Image    { return h.images }
+func (h headingsCard) Path() string       { return h.path }
+func (h headingsCard) Filename() string   { return getFilename(h.path) }
+func (h headingsCard) Position() string   { return h.position }
+func (h headingsCard) TemplateID() string { return "" }
 
 func (h headingsCard) Fields() map[string]mochi.Field {
 	return map[string]mochi.Field{
