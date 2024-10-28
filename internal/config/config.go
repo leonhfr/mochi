@@ -21,12 +21,6 @@ const (
 
 var configExtensions = [2]string{"yaml", "yml"}
 
-var validate *validator.Validate
-
-func init() {
-	validate = validator.New()
-}
-
 // ErrNoConfig is the error returned when no config is found in the target directory.
 var ErrNoConfig = errors.New("no config found in target")
 
@@ -43,7 +37,7 @@ type Config struct {
 type Deck struct {
 	Path   string `yaml:"path" validate:"required"`
 	Name   string `yaml:"name"`
-	Parser string `yaml:"parser" validate:"parser"`
+	Parser string `yaml:"parser"`
 }
 
 // Vocabulary represents the vocabulary templates.
@@ -56,10 +50,6 @@ type Reader interface {
 
 // Parse parses the config in the target directory.
 func Parse(reader Reader, target string, parsers []string) (*Config, error) {
-	if err := validate.RegisterValidation("parser", getValidatorFunc(parsers)); err != nil {
-		return nil, err
-	}
-
 	for _, ext := range configExtensions {
 		path := filepath.Join(target, fmt.Sprintf("%s.%s", configName, ext))
 		rc, err := reader.Read(path)
@@ -70,13 +60,13 @@ func Parse(reader Reader, target string, parsers []string) (*Config, error) {
 		}
 		defer rc.Close()
 
-		return parseConfig(rc)
+		return parseConfig(rc, parsers)
 	}
 
 	return nil, ErrNoConfig
 }
 
-func parseConfig(r io.Reader) (*Config, error) {
+func parseConfig(r io.Reader, parsers []string) (*Config, error) {
 	decoder := yaml.NewDecoder(r)
 	decoder.KnownFields(true)
 
@@ -85,6 +75,8 @@ func parseConfig(r io.Reader) (*Config, error) {
 		return nil, err
 	}
 
+	validate := validator.New()
+	validate.RegisterStructValidation(parsersValidator(parsers), Config{})
 	if err := validate.Struct(&config); err != nil {
 		return nil, err
 	}
@@ -130,9 +122,18 @@ func (c *Config) Deck(path string) (Deck, bool) {
 	return Deck{}, false
 }
 
-func getValidatorFunc(parsers []string) validator.Func {
-	return func(fl validator.FieldLevel) bool {
-		return fl.Field().IsZero() || slices.Contains(parsers, fl.Field().String())
+func parsersValidator(parsers []string) validator.StructLevelFunc {
+	return func(sl validator.StructLevel) {
+		config := sl.Current().Interface().(Config)
+		parserNames := parsers
+		for vocabularyParser := range config.Vocabulary {
+			parserNames = append(parserNames, vocabularyParser)
+		}
+		for _, deck := range config.Decks {
+			if deck.Parser != "" && !slices.Contains(parserNames, deck.Parser) {
+				sl.ReportError(deck.Parser, "parser", "Parser", "not found", "")
+			}
+		}
 	}
 }
 
