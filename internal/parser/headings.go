@@ -124,7 +124,7 @@ func getHeadingCards(path string, headings []parsedHeading, source []byte) []Car
 
 func createHeadingCard(headings []string, path string, source []byte, images []Image, index int) Card {
 	filename := getFilename(path)
-	name := strings.ReplaceAll(strings.Join(headings, " | "), " |  | ", " | ")
+	name := strings.ReplaceAll(strings.Join(headings, " > "), " >  > ", " > ")
 	content := fmt.Sprintf("%s\n\n%s\n", name, string(source))
 	return Card{
 		Name:     name,
