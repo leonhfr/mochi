@@ -76,7 +76,6 @@ func newNoteCard(name, path string, source []byte, images []Image) Card {
 	}
 }
 
-func (n noteCard) Name() string       { return n.name }
 func (n noteCard) Content() string    { return n.content }
 func (n noteCard) Images() []Image    { return n.images }
 func (n noteCard) Path() string       { return n.path }
