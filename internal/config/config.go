@@ -25,11 +25,11 @@ var ErrNoConfig = errors.New("no config found in target")
 
 // Config represents a config.
 type Config struct {
-	RateLimit  int        `yaml:"rateLimit"` // requests per second
-	RootName   string     `yaml:"rootName"`
-	SkipRoot   bool       `yaml:"skipRoot"`
-	Decks      []Deck     `yaml:"decks" validate:"required,dive"` // sorted by longest Path (more specific first)
-	Vocabulary Vocabulary `yaml:"vocabulary"`                     // map[vocabulary name]template id
+	RateLimit  int                           `yaml:"rateLimit"` // requests per second
+	RootName   string                        `yaml:"rootName"`
+	SkipRoot   bool                          `yaml:"skipRoot"`
+	Decks      []Deck                        `yaml:"decks" validate:"required,dive"` // sorted by longest Path (more specific first)
+	Vocabulary map[string]VocabularyTemplate `yaml:"vocabulary" validate:"dive"`     // map[vocabulary name]template id
 }
 
 // Deck represents a sync config.
@@ -39,8 +39,12 @@ type Deck struct {
 	Parser string `yaml:"parser"`
 }
 
-// Vocabulary represents the vocabulary templates.
-type Vocabulary map[string]string
+// VocabularyTemplate represents a vocabulary template.
+type VocabularyTemplate struct {
+	TemplateID string `yaml:"templateID" validate:"required"`
+	ExamplesID string `yaml:"examplesID"`
+	NotesID    string `yaml:"notesID"`
+}
 
 // Reader represents the interface to read a config file.
 type Reader interface {

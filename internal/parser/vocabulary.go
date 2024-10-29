@@ -8,6 +8,7 @@ import (
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
 
+	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/parser/example"
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -16,11 +17,11 @@ import (
 //
 // Each word returns a separate card.
 type vocabulary struct {
-	parser     parser.Parser
-	templateID string
+	parser parser.Parser
+	config config.VocabularyTemplate
 }
 
-func newVocabulary(templateID string) *vocabulary {
+func newVocabulary(config config.VocabularyTemplate) *vocabulary {
 	return &vocabulary{
 		parser: parser.NewParser(
 			parser.WithBlockParsers(
@@ -30,7 +31,7 @@ func newVocabulary(templateID string) *vocabulary {
 				util.Prioritized(example.NewParser(), 100),
 			),
 		),
-		templateID: templateID,
+		config: config,
 	}
 }
 
@@ -48,7 +49,7 @@ func (v *vocabulary) convert(path string, source []byte) (Result, error) {
 			if err != nil {
 				return ast.WalkStop, err
 			}
-			cards = append(cards, newVocabularyCard(word, examples, notes, path, v.templateID))
+			cards = append(cards, newVocabularyCard(word, examples, notes, path, v.config))
 		}
 
 		return ast.WalkContinue, nil
@@ -93,25 +94,25 @@ func parseParagraph(paragraph *ast.Paragraph, source []byte) (string, []string, 
 }
 
 type vocabularyCard struct {
-	templateID string
-	word       string
-	examples   []string
-	notes      []string
-	path       string
+	config   config.VocabularyTemplate
+	word     string
+	examples []string
+	notes    []string
+	path     string
 }
 
-func newVocabularyCard(word string, examples, notes []string, path, templateID string) vocabularyCard {
+func newVocabularyCard(word string, examples, notes []string, path string, config config.VocabularyTemplate) vocabularyCard {
 	return vocabularyCard{
-		templateID: templateID,
-		word:       word,
-		examples:   examples,
-		notes:      notes,
-		path:       path,
+		config:   config,
+		word:     word,
+		examples: examples,
+		notes:    notes,
+		path:     path,
 	}
 }
 
 func (c vocabularyCard) Content() string    { return "" }
-func (c vocabularyCard) TemplateID() string { return c.templateID }
+func (c vocabularyCard) TemplateID() string { return c.config.TemplateID }
 func (c vocabularyCard) Images() []Image    { return nil }
 func (c vocabularyCard) Path() string       { return c.path }
 func (c vocabularyCard) Filename() string   { return getFilename(c.path) }
@@ -122,12 +123,25 @@ func (c vocabularyCard) Is(card mochi.Card) bool {
 }
 
 func (c vocabularyCard) Fields() map[string]mochi.Field {
-	return map[string]mochi.Field{
+	fields := map[string]mochi.Field{
 		"name": {
 			ID:    "name",
 			Value: c.word,
 		},
 	}
+	if c.config.ExamplesID != "" {
+		fields[c.config.ExamplesID] = mochi.Field{
+			ID:    c.config.ExamplesID,
+			Value: strings.Join(c.examples, "\n\n"),
+		}
+	}
+	if c.config.NotesID != "" {
+		fields[c.config.NotesID] = mochi.Field{
+			ID:    c.config.NotesID,
+			Value: strings.Join(c.notes, "\n\n"),
+		}
+	}
+	return fields
 }
 
 func (c vocabularyCard) Equals(card mochi.Card) bool {

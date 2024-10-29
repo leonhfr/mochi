@@ -77,7 +77,7 @@ func New(options ...Option) (*Parser, error) {
 type Option func(*Parser) error
 
 // WithVocabulary adds the vocabulary templates.
-func WithVocabulary(vocabulary config.Vocabulary) Option {
+func WithVocabulary(vocabulary map[string]config.VocabularyTemplate) Option {
 	return func(p *Parser) error {
 		for name, templateID := range vocabulary {
 			if _, ok := p.parsers[name]; ok {
