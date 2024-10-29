@@ -50,6 +50,7 @@ func defaultParsers() map[string]cardParser {
 		"headings1": newHeadings(1),
 		"headings2": newHeadings(2),
 		"headings3": newHeadings(3),
+		"table":     newTable(),
 	}
 }
 

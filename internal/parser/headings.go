@@ -40,7 +40,6 @@ func newHeadings(maxLevel int) *headings {
 func (h *headings) convert(path string, source []byte) (Result, error) {
 	parsed := []parsedHeading{{level: 0}}
 	doc := h.parser.Parse(text.NewReader(source))
-
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if !entering {
 			return ast.WalkContinue, nil
