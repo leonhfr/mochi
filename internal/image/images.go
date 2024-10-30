@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/leonhfr/mochi/internal/parser"
-	"github.com/leonhfr/mochi/mochi"
 )
 
 // Images contains the images data.
@@ -22,15 +21,6 @@ func New(reader Reader, path string, parsed []parser.Image) Images {
 	return images
 }
 
-// Attachments returns the list of attachments.
-func (images Images) Attachments() []mochi.DeprecatedAttachment {
-	attachments := make([]mochi.DeprecatedAttachment, len(images))
-	for i, image := range images {
-		attachments[i] = image.attachment
-	}
-	return attachments
-}
-
 // HashMap returns the map of [abs path]hash.
 func (images Images) HashMap() map[string]string {
 	hashMap := make(map[string]string)
@@ -44,7 +34,7 @@ func (images Images) HashMap() map[string]string {
 func (images Images) Replace(content string) string {
 	for _, image := range images {
 		from := fmt.Sprintf("![%s](%s)", image.altText, image.destination)
-		to := fmt.Sprintf("![%s](@media/%s)", image.altText, image.attachment.FileName)
+		to := fmt.Sprintf("![%s](@media/%s)", image.altText, image.Filename)
 		content = strings.ReplaceAll(content, from, to)
 	}
 	return content

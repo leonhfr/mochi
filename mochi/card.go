@@ -1,7 +1,11 @@
 package mochi
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"mime/multipart"
+	"net/http"
 	"time"
 )
 
@@ -19,33 +23,31 @@ type Card struct {
 	New           bool                  `json:"new?"`
 	ReviewReverse bool                  `json:"review-reverse?"`
 	Fields        map[string]Field      `json:"fields"`
-	Attachments   map[string]Attachment `json:"attachments"`
+	Attachments   map[string]Attachment `json:"attachments"` // key is filename with extension.
 	CreatedAt     Date                  `json:"created-at"`
 	UpdatedAt     Date                  `json:"updated-at"`
 }
 
 // CreateCardRequest holds the info to create a new card.
 type CreateCardRequest struct {
-	Content       string                 `json:"content"`
-	DeckID        string                 `json:"deck-id"`
-	TemplateID    string                 `json:"template-id,omitempty"`
-	Archived      bool                   `json:"archived?,omitempty"`
-	ReviewReverse bool                   `json:"review-reverse?,omitempty"`
-	Pos           string                 `json:"pos,omitempty"`
-	Fields        map[string]Field       `json:"fields,omitempty"`
-	Attachments   []DeprecatedAttachment `json:"deprecated/attachments,omitempty"`
+	Content       string           `json:"content"`
+	DeckID        string           `json:"deck-id"`
+	TemplateID    string           `json:"template-id,omitempty"`
+	Archived      bool             `json:"archived?,omitempty"`
+	ReviewReverse bool             `json:"review-reverse?,omitempty"`
+	Pos           string           `json:"pos,omitempty"`
+	Fields        map[string]Field `json:"fields,omitempty"`
 }
 
 // UpdateCardRequest holds the info to update a card.
 type UpdateCardRequest struct {
-	Content       string                 `json:"content,omitempty"`
-	DeckID        string                 `json:"deck-id,omitempty"`
-	TemplateID    string                 `json:"template-id,omitempty"`
-	Archived      bool                   `json:"archived?,omitempty"`
-	ReviewReverse bool                   `json:"review-reverse?,omitempty"`
-	Pos           string                 `json:"pos,omitempty"`
-	Fields        map[string]Field       `json:"fields,omitempty"`
-	Attachments   []DeprecatedAttachment `json:"deprecated/attachments,omitempty"`
+	Content       string           `json:"content,omitempty"`
+	DeckID        string           `json:"deck-id,omitempty"`
+	TemplateID    string           `json:"template-id,omitempty"`
+	Archived      bool             `json:"archived?,omitempty"`
+	ReviewReverse bool             `json:"review-reverse?,omitempty"`
+	Pos           string           `json:"pos,omitempty"`
+	Fields        map[string]Field `json:"fields,omitempty"`
 }
 
 // Field represents a field.
@@ -58,13 +60,6 @@ type Field struct {
 type Attachment struct {
 	Size int    `json:"size"` // Size in bytes.
 	Type string `json:"type"` // MIME type.
-}
-
-// DeprecatedAttachment represents a deprecated attachment.
-type DeprecatedAttachment struct {
-	FileName    string `json:"file-name"`    // File name must match the regex /[0-9a-zA-Z]{8,16}/. E.g. "j94fuC0R.jpg".
-	ContentType string `json:"content-type"` // MIME type.
-	Data        string `json:"data"`         // Base64 encoded representation of the attachment data.
 }
 
 // Date represents a time.
@@ -100,4 +95,32 @@ func (c *Client) UpdateCard(ctx context.Context, id string, req UpdateCardReques
 // DeleteCard deletes a card.
 func (c *Client) DeleteCard(ctx context.Context, id string) error {
 	return deleteItem(ctx, c, cardPath, id)
+}
+
+// AddAttachment adds an attachment to a card.
+func (c *Client) AddAttachment(ctx context.Context, cardID, filename string, data []byte) error {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file", filename)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(part, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return err
+	}
+
+	rb := buildRequest(c).
+		Pathf("%s/%s/attachments/%s", cardPath, cardID, filename).
+		Method(http.MethodPost).
+		Header("Content-Type", writer.FormDataContentType()).
+		BodyReader(body)
+	err = executeRequest(ctx, rb)
+	return err
 }

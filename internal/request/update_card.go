@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/sourcegraph/conc/pool"
+
 	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/mochi"
@@ -28,16 +30,27 @@ func UpdateCard(deckID, cardID string, card parser.Card) Request {
 func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error {
 	images := image.New(reader, r.card.Path(), r.card.Images())
 
-	filtered := filteredAttachments(lf, r.deckID, r.cardID, images)
 	req := mochi.UpdateCardRequest{
-		Content:     images.Replace(r.card.Content()),
-		TemplateID:  r.card.TemplateID(),
-		Fields:      r.card.Fields(),
-		Attachments: filtered.Attachments(),
-		Pos:         r.card.Position(),
+		Content:    images.Replace(r.card.Content()),
+		TemplateID: r.card.TemplateID(),
+		Fields:     r.card.Fields(),
+		Pos:        r.card.Position(),
 	}
 
 	if _, err := client.UpdateCard(ctx, r.cardID, req); err != nil {
+		return err
+	}
+
+	p := pool.New().WithContext(ctx)
+	for _, image := range filteredAttachments(lf, r.deckID, r.cardID, images) {
+		image := image
+		p.Go(func(ctx context.Context) error {
+			return client.AddAttachment(ctx, r.cardID, image.Filename, image.Bytes)
+		})
+	}
+
+	err := p.Wait()
+	if err != nil {
 		return err
 	}
 

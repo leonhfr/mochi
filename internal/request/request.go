@@ -14,6 +14,7 @@ type Client interface {
 	CreateCard(ctx context.Context, req mochi.CreateCardRequest) (mochi.Card, error)
 	UpdateCard(ctx context.Context, id string, req mochi.UpdateCardRequest) (mochi.Card, error)
 	DeleteCard(ctx context.Context, id string) error
+	AddAttachment(ctx context.Context, cardID, filename string, data []byte) error
 }
 
 // Lockfile is the interface the lockfile implement to sync cards.

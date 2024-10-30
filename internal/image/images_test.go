@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/leonhfr/mochi/internal/parser"
-	"github.com/leonhfr/mochi/mochi"
 )
 
 func Test_New(t *testing.T) {
@@ -42,11 +41,8 @@ func Test_New(t *testing.T) {
 			},
 			want: Images{
 				{
-					attachment: mochi.DeprecatedAttachment{
-						FileName:    "22abb8f07c02970e.png",
-						ContentType: "image/png",
-						Data:        "SU1BR0UgQ09OVEVO",
-					},
+					Bytes:       []byte("IMAGE CONTENT"),
+					Filename:    "22abb8f07c02970e.png",
 					Hash:        "1923784bcb1663bbbd9efd9765c36382",
 					Path:        "/testdata/scream.png",
 					destination: "scream.png",
@@ -77,12 +73,12 @@ func Test_Images_Replace(t *testing.T) {
 			name: "should replace the images",
 			images: Images{
 				{
-					attachment:  mochi.DeprecatedAttachment{FileName: "scream_hash.png"},
+					Filename:    "scream_hash.png",
 					destination: "./scream.png",
 					altText:     "Scream",
 				},
 				{
-					attachment:  mochi.DeprecatedAttachment{FileName: "constellations_hash.jpg"},
+					Filename:    "constellations_hash.jpg",
 					destination: "./constellations.jpg",
 				},
 			},
