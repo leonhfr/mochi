@@ -148,6 +148,7 @@ type headingsCard struct {
 
 func newHeadingsCard(headings []string, path string, source []byte, images []Image, index int) Card {
 	filename := getFilename(path)
+	position := fmt.Sprintf("%s%04d", filename, index)
 	name := strings.ReplaceAll(strings.Join(headings, " > "), " >  > ", " > ")
 	content := fmt.Sprintf("%s\n\n%s\n", name, string(source))
 	return headingsCard{
@@ -155,7 +156,7 @@ func newHeadingsCard(headings []string, path string, source []byte, images []Ima
 		content:  string(content),
 		images:   images,
 		path:     path,
-		position: getPosition(filename, index),
+		position: sanitizePosition(position),
 	}
 }
 

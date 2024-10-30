@@ -94,12 +94,14 @@ type tableCard struct {
 }
 
 func newTableCard(headers, cells []string, path string, index int) Card {
+	filename := getFilename(path)
+	position := fmt.Sprintf("%s%04d", filename, index)
 	return tableCard{
 		name:     strings.Join(cells, "|"),
 		headers:  headers,
 		cells:    cells,
 		path:     path,
-		position: getPosition(getFilename(path), index),
+		position: sanitizePosition(position),
 	}
 }
 

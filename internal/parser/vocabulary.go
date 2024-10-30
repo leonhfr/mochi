@@ -116,7 +116,7 @@ func (c vocabularyCard) TemplateID() string { return c.config.TemplateID }
 func (c vocabularyCard) Images() []Image    { return nil }
 func (c vocabularyCard) Path() string       { return c.path }
 func (c vocabularyCard) Filename() string   { return getFilename(c.path) }
-func (c vocabularyCard) Position() string   { return c.word }
+func (c vocabularyCard) Position() string   { return sanitizePosition(c.word) }
 
 func (c vocabularyCard) Is(card mochi.Card) bool {
 	return nameEquals(card.Fields, c.word)

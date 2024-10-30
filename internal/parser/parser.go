@@ -144,12 +144,12 @@ func getNameFromPath(path string) string {
 	return base
 }
 
-func getPosition(filename string, index int) string {
-	runes := make([]rune, 0, len(filename))
-	for _, r := range filename {
+func sanitizePosition(position string) string {
+	runes := make([]rune, 0, len(position))
+	for _, r := range position {
 		if ('0' <= r && r <= '9') || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z') {
 			runes = append(runes, r)
 		}
 	}
-	return fmt.Sprintf("%s%04d", string(runes), index)
+	return string(runes)
 }
