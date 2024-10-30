@@ -47,8 +47,8 @@ func (h *headings) convert(path string, source []byte) (Result, error) {
 
 		switch node := n.(type) {
 		case *ast.Heading:
-			segment := node.Lines().At(0)
-			if level := node.Level; level <= h.maxLevel {
+			if level := node.Level; level <= h.maxLevel && node.Lines().Len() > 0 {
+				segment := node.Lines().At(0)
 				parsed = append(parsed, parsedHeading{
 					start: segment.Start,
 					stop:  segment.Stop,
