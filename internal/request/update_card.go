@@ -12,17 +12,19 @@ import (
 )
 
 type updateCard struct {
-	deckID string
-	cardID string
-	card   parser.Card
+	deckID      string
+	cardID      string
+	card        parser.Card
+	attachments map[string]mochi.Attachment
 }
 
 // UpdateCard returns a new update card request.
-func UpdateCard(deckID, cardID string, card parser.Card) Request {
+func UpdateCard(deckID, cardID string, card parser.Card, attachments map[string]mochi.Attachment) Request {
 	return &updateCard{
-		deckID: deckID,
-		cardID: cardID,
-		card:   card,
+		deckID:      deckID,
+		cardID:      cardID,
+		card:        card,
+		attachments: attachments,
 	}
 }
 
@@ -42,7 +44,7 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Re
 	}
 
 	p := pool.New().WithContext(ctx)
-	for _, image := range filteredAttachments(lf, r.deckID, r.cardID, images) {
+	for _, image := range filteredAttachments(images, r.attachments) {
 		image := image
 		p.Go(func(ctx context.Context) error {
 			return client.AddAttachment(ctx, r.cardID, image.Filename, image.Bytes)
@@ -57,30 +59,17 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Re
 	lf.Lock()
 	defer lf.Unlock()
 
-	if err := lf.SetCard(r.deckID, r.cardID, r.card.Filename(), images.HashMap()); err != nil {
+	if err := lf.SetCard(r.deckID, r.cardID, r.card.Filename()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func filteredAttachments(lf Lockfile, deckID, cardID string, images image.Images) image.Images {
-	lf.Lock()
-	defer lf.Unlock()
-
-	paths := make([]string, len(images))
-	for i, image := range images {
-		paths[i] = image.Path
-	}
-
-	card, ok := lf.Card(deckID, cardID)
-	if !ok {
-		return images
-	}
-
+func filteredAttachments(images image.Images, attachments map[string]mochi.Attachment) image.Images {
 	filtered := image.Images{}
 	for _, image := range images {
-		if md5, ok := card.Images[image.Path]; !ok || md5 != image.Hash {
+		if attachment, ok := attachments[image.Filename]; !ok || attachment.Size != len(image.Bytes) {
 			filtered = append(filtered, image)
 		}
 	}

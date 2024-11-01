@@ -43,8 +43,6 @@ func Test_New(t *testing.T) {
 				{
 					Bytes:       []byte("IMAGE CONTENT"),
 					Filename:    "22abb8f07c02970e.png",
-					Hash:        "1923784bcb1663bbbd9efd9765c36382",
-					Path:        "/testdata/scream.png",
 					destination: "scream.png",
 					altText:     "alt text",
 				},

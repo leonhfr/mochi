@@ -44,8 +44,6 @@ func Test_newImage(t *testing.T) {
 			want: Image{
 				Bytes:       []byte("IMAGE CONTENT"),
 				Filename:    "22abb8f07c02970e.png",
-				Hash:        "1923784bcb1663bbbd9efd9765c36382",
-				Path:        "/testdata/scream.png",
 				destination: "scream.png",
 				altText:     "alt text",
 			},
@@ -69,7 +67,6 @@ func Test_readImage(t *testing.T) {
 		name  string
 		call  testRead
 		path  string
-		hash  string
 		bytes []byte
 		err   error
 	}{
@@ -80,7 +77,6 @@ func Test_readImage(t *testing.T) {
 				content: "IMAGE CONTENT",
 			},
 			path:  "/testdata/scream.png",
-			hash:  "1923784bcb1663bbbd9efd9765c36382",
 			bytes: []byte("IMAGE CONTENT"),
 		},
 		{
@@ -98,8 +94,7 @@ func Test_readImage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := newMockReader([]testRead{tt.call})
-			hash, content, err := readImage(r, tt.path)
-			assert.Equal(t, tt.hash, hash)
+			content, err := readImage(r, tt.path)
 			assert.Equal(t, tt.bytes, content)
 			assert.Equal(t, tt.err, err)
 			r.AssertExpectations(t)

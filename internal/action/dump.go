@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/leonhfr/mochi/internal/file"
-	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/internal/worker"
@@ -68,10 +67,6 @@ type noOpLockfile struct{}
 func (lf *noOpLockfile) Lock()   {}
 func (lf *noOpLockfile) Unlock() {}
 
-func (lf *noOpLockfile) Card(_, _ string) (lock.Card, bool) {
-	return lock.Card{}, false
-}
-
-func (lf *noOpLockfile) SetCard(_, _, _ string, _ map[string]string) error {
+func (lf *noOpLockfile) SetCard(_, _, _ string) error {
 	return nil
 }

@@ -23,8 +23,6 @@ type Reader interface {
 type Image struct {
 	Bytes       []byte // image bytes
 	Filename    string // filename: [md5 of path].ext
-	Hash        string // md5 of contents
-	Path        string // absolute path to file
 	destination string // original destination
 	altText     string // original alt text
 }
@@ -32,7 +30,7 @@ type Image struct {
 // newImage creates a new image.
 func newImage(reader Reader, path string, parsed parser.Image) (Image, bool) {
 	absPath := filepath.Join(filepath.Dir(path), parsed.Destination)
-	hash, bytes, err := readImage(reader, absPath)
+	bytes, err := readImage(reader, absPath)
 	if err != nil {
 		return Image{}, false
 	}
@@ -44,31 +42,25 @@ func newImage(reader Reader, path string, parsed parser.Image) (Image, bool) {
 	return Image{
 		Bytes:       bytes,
 		Filename:    filename,
-		Path:        absPath,
-		Hash:        hash,
 		destination: parsed.Destination,
 		altText:     parsed.AltText,
 	}, true
 }
 
-func readImage(reader Reader, absPath string) (string, []byte, error) {
+func readImage(reader Reader, absPath string) ([]byte, error) {
 	file, err := reader.Read(absPath)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	defer file.Close()
 
 	bytes := bytes.NewBuffer(nil)
 
-	//nolint:gosec
-	hashEncoder := md5.New()
-	tee := io.TeeReader(file, hashEncoder)
-	if _, err := io.Copy(bytes, tee); err != nil {
-		return "", nil, err
+	if _, err := io.Copy(bytes, file); err != nil {
+		return nil, err
 	}
 
-	hash := fmt.Sprintf("%x", hashEncoder.Sum(nil))
-	return hash, bytes.Bytes(), nil
+	return bytes.Bytes(), nil
 }
 
 func getExtension(destination string) string {

@@ -50,8 +50,7 @@ type Deck struct {
 
 // Card contains the information about existing cards.
 type Card struct {
-	Filename string            `json:"filename" validate:"required"` // filename inside directory: note.md
-	Images   map[string]string `json:"images,omitempty"`             // map[path]md5 hash
+	Filename string `json:"filename" validate:"required"` // filename inside directory: note.md
 }
 
 // ReaderWriter represents the interface to interact with a lockfile.
@@ -196,7 +195,7 @@ func (l *Lock) Card(deckID, cardID string) (Card, bool) {
 // SetCard sets a card in the given deck.
 //
 // Assumes mutex is already acquired.
-func (l *Lock) SetCard(deckID, cardID, filename string, images map[string]string) error {
+func (l *Lock) SetCard(deckID, cardID, filename string) error {
 	if _, ok := l.decks[deckID]; !ok {
 		return fmt.Errorf("deck %s not found", deckID)
 	}
@@ -211,7 +210,6 @@ func (l *Lock) SetCard(deckID, cardID, filename string, images map[string]string
 
 	l.decks[deckID].Cards[cardID] = Card{
 		Filename: filename,
-		Images:   images,
 	}
 	l.updated = true
 

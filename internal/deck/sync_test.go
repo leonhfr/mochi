@@ -55,7 +55,7 @@ func Test_upsertSyncRequests(t *testing.T) {
 			Name:     "CARD_TO_UPDATE",
 			Content:  "NEW_CONTENT",
 			Filename: filename,
-		})),
+		}), nil),
 		request.DeleteCard("CARD_ID_2"),
 		request.CreateCard("DECK_ID", test.NewCard(test.ParserCard{
 			Name:     "CARD_TO_CREATE",

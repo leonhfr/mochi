@@ -51,7 +51,7 @@ func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []pa
 		}
 
 		if !tmp[index].Equals(mochiCard) {
-			reqs = append(reqs, request.UpdateCard(deckID, mochiCard.ID, tmp[index]))
+			reqs = append(reqs, request.UpdateCard(deckID, mochiCard.ID, tmp[index], mochiCard.Attachments))
 		}
 		tmp = sliceRemove(tmp, index)
 	}

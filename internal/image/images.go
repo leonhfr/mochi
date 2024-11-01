@@ -21,15 +21,6 @@ func New(reader Reader, path string, parsed []parser.Image) Images {
 	return images
 }
 
-// HashMap returns the map of [abs path]hash.
-func (images Images) HashMap() map[string]string {
-	hashMap := make(map[string]string)
-	for _, image := range images {
-		hashMap[image.Path] = image.Hash
-	}
-	return hashMap
-}
-
 // Replace replaces images link in the Markdown source to mochi Markdown.
 func (images Images) Replace(content string) string {
 	for _, image := range images {
