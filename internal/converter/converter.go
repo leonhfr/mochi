@@ -8,6 +8,7 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/util"
+	"go.abhg.dev/goldmark/mermaid"
 
 	"github.com/leonhfr/mochi/internal/converter/ast"
 )
@@ -40,6 +41,9 @@ func New() *Converter {
 				parser.WithASTTransformers(
 					util.Prioritized(newTransformer(), 999),
 				),
+			),
+			goldmark.WithExtensions(
+				&mermaid.Extender{},
 			),
 		),
 	}

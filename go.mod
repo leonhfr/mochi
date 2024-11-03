@@ -13,6 +13,7 @@ require (
 	github.com/teekennedy/goldmark-markdown v0.3.0
 	github.com/urfave/cli/v2 v2.27.4
 	github.com/yuin/goldmark v1.7.4
+	go.abhg.dev/goldmark/mermaid v0.5.0
 	golang.org/x/text v0.16.0
 	golang.org/x/time v0.7.0
 	gopkg.in/yaml.v3 v3.0.1

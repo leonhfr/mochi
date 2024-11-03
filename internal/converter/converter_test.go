@@ -45,6 +45,13 @@ func Test_Converter_Convert(t *testing.T) {
 				Markdown: "<iframe src=\"youtube.com/VIDEO?rel=0&amp;autoplay=0&amp;showinfo=0&amp;enablejsapi=0\" frameborder=\"0\" loading=\"lazy\" gesture=\"media\" allow=\"autoplay; fullscreen\" allowautoplay=\"true\" allowfullscreen=\"true\" style=\"aspect-ratio:16/9;height:100%;width:100%;\"></iframe>\n",
 			},
 		},
+		{
+			name:   "mermaid",
+			source: "```mermaid\ngraph TD;\n    A-->B;\n    A-->C;\n    B-->D;\n    C-->D;\n```\n",
+			want: Result{
+				Markdown: "<pre class=\"mermaid\">graph TD;\n    A--&gt;B;\n    A--&gt;C;\n    B--&gt;D;\n    C--&gt;D;\n</pre><script src=\"https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js\"></script><script>mermaid.initialize({startOnLoad: true});</script>\n",
+			},
+		},
 	}
 
 	for _, tt := range tests {
