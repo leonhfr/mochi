@@ -43,7 +43,9 @@ func New() *Converter {
 				),
 			),
 			goldmark.WithExtensions(
-				&mermaid.Extender{},
+				&mermaid.Extender{
+					RenderMode: mermaid.RenderModeServer,
+				},
 			),
 		),
 	}

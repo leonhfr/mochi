@@ -20,6 +20,13 @@ jobs:
           cache: true
           go-version-file: go.mod
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install global dependencies
+        run: npm install -g @mermaid-js/mermaid-cli
+
       - name: Lint
         uses: golangci/golangci-lint-action@v6
         with:
