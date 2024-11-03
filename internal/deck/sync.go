@@ -107,7 +107,8 @@ func groupParsedCardsByFilename(parsedCards []card.Card) map[string][]card.Card 
 }
 
 func cardIs(card card.Card, mochiCard mochi.Card) bool {
-	return mochiCard.Name == card.Fields["name"]
+	name, ok := mochiCard.Fields["name"]
+	return ok && name.Value == card.Fields["name"]
 }
 
 func cardEquals(card card.Card, mochiCard mochi.Card) bool {
