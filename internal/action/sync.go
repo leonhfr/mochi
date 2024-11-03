@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/leonhfr/mochi/internal/converter"
 	"github.com/leonhfr/mochi/internal/file"
 	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/worker"
@@ -23,6 +24,7 @@ func Sync(ctx context.Context, logger Logger, token, workspace string) (updated 
 	if err != nil {
 		return false, err
 	}
+	converter := converter.New()
 
 	client := loadClient(logger, config.RateLimit, token)
 
@@ -52,7 +54,7 @@ func Sync(ctx context.Context, logger Logger, token, workspace string) (updated 
 		return false, err
 	}
 
-	deckR := worker.SyncDecks(ctx, logger, fs, parser, client, config, lf, workspace, dirC)
+	deckR := worker.SyncDecks(ctx, logger, fs, parser, converter, client, config, lf, workspace, dirC)
 	deckC := worker.Unwrap(wg, deckR, errC)
 	syncR := worker.SyncRequests(ctx, logger, client, lf, deckC)
 	syncC := worker.Unwrap(wg, syncR, errC)

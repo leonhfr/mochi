@@ -4,7 +4,6 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/leonhfr/mochi/internal/parser"
-	"github.com/leonhfr/mochi/mochi"
 )
 
 type ParserCall struct {
@@ -12,18 +11,6 @@ type ParserCall struct {
 	Path   string
 	Result parser.Result
 	Err    error
-}
-
-type ParserCard struct {
-	Name       string // for tests
-	Content    string
-	TemplateID string
-	Path       string
-	Filename   string
-	Position   string
-	Images     []parser.Image
-	Fields     map[string]mochi.Field
-	Equals     bool
 }
 
 type MockParser struct {
