@@ -20,7 +20,7 @@ type Deck struct {
 }
 
 // SyncDecks syncs the decks and parses the files.
-func SyncDecks(ctx context.Context, logger Logger, r deck.Reader, p deck.Parser, client deck.CreateClient, config deck.CreateConfig, lf deck.CreateLockfile, workspace string, in <-chan heap.Group[heap.Path]) <-chan Result[Deck] {
+func SyncDecks(ctx context.Context, logger Logger, r parser.Reader, p deck.Parser, client deck.CreateClient, config deck.CreateConfig, lf deck.CreateLockfile, workspace string, in <-chan heap.Group[heap.Path]) <-chan Result[Deck] {
 	out := make(chan Result[Deck])
 	go func() {
 		defer close(out)

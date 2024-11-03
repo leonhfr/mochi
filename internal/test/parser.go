@@ -1,8 +1,6 @@
 package test
 
 import (
-	"io"
-
 	"github.com/stretchr/testify/mock"
 
 	"github.com/leonhfr/mochi/internal/parser"
@@ -12,7 +10,6 @@ import (
 type ParserCall struct {
 	Parser string
 	Path   string
-	Text   string
 	Result parser.Result
 	Err    error
 }
@@ -37,14 +34,13 @@ func NewMockParser(calls []ParserCall) *MockParser {
 	m := new(MockParser)
 	for _, call := range calls {
 		m.
-			On("Convert", call.Parser, call.Path, call.Text).
+			On("Convert", mock.Anything, call.Parser, call.Path).
 			Return(call.Result, call.Err)
 	}
 	return m
 }
 
-func (m *MockParser) Convert(parserName, path string, r io.Reader) (parser.Result, error) {
-	bytes, _ := io.ReadAll(r)
-	args := m.Called(parserName, path, string(bytes))
+func (m *MockParser) Convert(reader parser.Reader, parserName, path string) (parser.Result, error) {
+	args := m.Called(reader, parserName, path)
 	return args.Get(0).(parser.Result), args.Error(1)
 }

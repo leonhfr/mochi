@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"io"
 	"strings"
 	"testing"
 
@@ -59,6 +60,7 @@ func Test_Parser_Convert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			r := newMockReader([]readCall{{path: tt.path, text: tt.source}})
 			p0 := newMockCardParser(tt.parser0)
 			p1 := newMockCardParser(tt.parser1)
 			p2 := newMockCardParser(tt.parser2)
@@ -69,7 +71,8 @@ func Test_Parser_Convert(t *testing.T) {
 					"parser2": p2,
 				},
 			}
-			got, err := parser.Convert(tt.parser, tt.path, strings.NewReader(tt.source))
+
+			got, err := parser.Convert(r, tt.parser, tt.path)
 			assert.Equal(t, tt.want, got)
 			assert.NoError(t, err)
 			p0.AssertExpectations(t)
@@ -77,6 +80,32 @@ func Test_Parser_Convert(t *testing.T) {
 			p2.AssertExpectations(t)
 		})
 	}
+}
+
+type readCall struct {
+	path string
+	text string
+	err  error
+}
+
+type mockReader struct {
+	mock.Mock
+}
+
+func newMockReader(calls []readCall) *mockReader {
+	m := new(mockReader)
+	for _, call := range calls {
+		m.
+			On("Read", call.path).
+			Return(call.text, call.err)
+	}
+	return m
+}
+
+func (m *mockReader) Read(p string) (io.ReadCloser, error) {
+	args := m.Mock.Called(p)
+	rc := strings.NewReader(args.String(0))
+	return io.NopCloser(rc), args.Error(1)
 }
 
 type cardParserCall struct {

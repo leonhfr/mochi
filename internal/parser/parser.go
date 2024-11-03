@@ -11,6 +11,11 @@ import (
 	"github.com/leonhfr/mochi/internal/config"
 )
 
+// Reader represents the interface to read files.
+type Reader interface {
+	Read(path string) (io.ReadCloser, error)
+}
+
 var extensions = []string{".md"}
 
 // Result contains the result.
@@ -90,13 +95,8 @@ func WithVocabulary(vocabulary map[string]config.VocabularyTemplate) Option {
 }
 
 // Convert converts a source file into cards.
-func (p *Parser) Convert(parser, path string, r io.Reader) (Result, error) {
-	var matter struct {
-		Parser string `yaml:"mochi-parser"`
-		Skip   bool   `yaml:"mochi-skip"`
-	}
-
-	content, err := frontmatter.Parse(r, &matter)
+func (p *Parser) Convert(reader Reader, parser, path string) (Result, error) {
+	content, matter, err := parseFrontmatter(reader, path)
 	if err != nil {
 		return Result{}, err
 	}
@@ -114,6 +114,27 @@ func (p *Parser) Convert(parser, path string, r io.Reader) (Result, error) {
 	}
 
 	return p.convert(path, content)
+}
+
+type matter struct {
+	Parser string `yaml:"mochi-parser"`
+	Skip   bool   `yaml:"mochi-skip"`
+}
+
+func parseFrontmatter(reader Reader, path string) ([]byte, matter, error) {
+	bytes, err := reader.Read(path)
+	if err != nil {
+		return nil, matter{}, err
+	}
+	defer bytes.Close()
+
+	var fm matter
+	content, err := frontmatter.Parse(bytes, &fm)
+	if err != nil {
+		return nil, matter{}, err
+	}
+
+	return content, fm, nil
 }
 
 // Names returns the list of allowed parser names.
