@@ -44,7 +44,7 @@ type Image struct {
 }
 
 type cardParser interface {
-	convert(path string, source []byte) (Result, error)
+	parse(path string, source []byte) (Result, error)
 }
 
 func defaultParsers() map[string]cardParser {
@@ -94,8 +94,8 @@ func WithVocabulary(vocabulary map[string]config.VocabularyTemplate) Option {
 	}
 }
 
-// Convert converts a source file into cards.
-func (p *Parser) Convert(reader Reader, parser, path string) (Result, error) {
+// Parse converts a source file into cards.
+func (p *Parser) Parse(reader Reader, parser, path string) (Result, error) {
 	content, matter, err := parseFrontmatter(reader, path)
 	if err != nil {
 		return Result{}, err
@@ -110,10 +110,10 @@ func (p *Parser) Convert(reader Reader, parser, path string) (Result, error) {
 	}
 
 	if cp, ok := p.parsers[parser]; ok {
-		return cp.convert(path, content)
+		return cp.parse(path, content)
 	}
 
-	return p.convert(path, content)
+	return p.parse(path, content)
 }
 
 type matter struct {

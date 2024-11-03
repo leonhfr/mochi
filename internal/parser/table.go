@@ -38,7 +38,7 @@ func newTable() *table {
 	}
 }
 
-func (t *table) convert(path string, source []byte) (Result, error) {
+func (t *table) parse(path string, source []byte) (Result, error) {
 	var headers []string
 	var rows [][]string
 	var parsingRows, resetRow bool

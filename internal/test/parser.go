@@ -34,13 +34,13 @@ func NewMockParser(calls []ParserCall) *MockParser {
 	m := new(MockParser)
 	for _, call := range calls {
 		m.
-			On("Convert", mock.Anything, call.Parser, call.Path).
+			On("Parse", mock.Anything, call.Parser, call.Path).
 			Return(call.Result, call.Err)
 	}
 	return m
 }
 
-func (m *MockParser) Convert(reader parser.Reader, parserName, path string) (parser.Result, error) {
+func (m *MockParser) Parse(reader parser.Reader, parserName, path string) (parser.Result, error) {
 	args := m.Called(reader, parserName, path)
 	return args.Get(0).(parser.Result), args.Error(1)
 }

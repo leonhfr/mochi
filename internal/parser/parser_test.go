@@ -72,7 +72,7 @@ func Test_Parser_Convert(t *testing.T) {
 				},
 			}
 
-			got, err := parser.Convert(r, tt.parser, tt.path)
+			got, err := parser.Parse(r, tt.parser, tt.path)
 			assert.Equal(t, tt.want, got)
 			assert.NoError(t, err)
 			p0.AssertExpectations(t)
@@ -123,13 +123,13 @@ func newMockCardParser(calls []cardParserCall) *mockCardParser {
 	m := new(mockCardParser)
 	for _, call := range calls {
 		m.
-			On("convert", call.path, []byte(call.source)).
+			On("parse", call.path, []byte(call.source)).
 			Return(call.result, call.err)
 	}
 	return m
 }
 
-func (m *mockCardParser) convert(path string, source []byte) (Result, error) {
+func (m *mockCardParser) parse(path string, source []byte) (Result, error) {
 	args := m.Called(path, source)
 	return args.Get(0).(Result), args.Error(1)
 }

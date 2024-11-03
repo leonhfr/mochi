@@ -34,7 +34,7 @@ func newVocabulary(config config.VocabularyTemplate) *vocabulary {
 	}
 }
 
-func (v *vocabulary) convert(path string, source []byte) (Result, error) {
+func (v *vocabulary) parse(path string, source []byte) (Result, error) {
 	cards := []Card{}
 	doc := v.parser.Parse(text.NewReader(source))
 	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {

@@ -8,7 +8,7 @@ import (
 
 var _ cardParser = &note{}
 
-func Test_note_convert(t *testing.T) {
+func Test_note_parse(t *testing.T) {
 	tests := []struct {
 		name   string
 		path   string
@@ -44,7 +44,7 @@ func Test_note_convert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newNote().convert(tt.path, []byte(tt.source))
+			got, err := newNote().parse(tt.path, []byte(tt.source))
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})

@@ -15,7 +15,7 @@ type Reader interface {
 
 // Parser represents the interface to parse note files.
 type Parser interface {
-	Convert(reader parser.Reader, parser, path string) (parser.Result, error)
+	Parse(reader parser.Reader, parser, path string) (parser.Result, error)
 }
 
 // Parse parses the note files for cards.
@@ -33,7 +33,7 @@ func Parse(r Reader, p Parser, workspace, parserName string, filePaths []string)
 
 func parseFile(r Reader, p Parser, workspace, parserName, path string) (parser.Result, error) {
 	path = filepath.Join(workspace, path)
-	result, err := p.Convert(r, parserName, path)
+	result, err := p.Parse(r, parserName, path)
 	if err != nil {
 		return parser.Result{}, err
 	}

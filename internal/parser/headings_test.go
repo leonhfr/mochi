@@ -33,7 +33,7 @@ Card card card.
 More card content.
 `
 
-func Test_headings_convert(t *testing.T) {
+func Test_headings_parse(t *testing.T) {
 	tests := []struct {
 		name     string
 		maxLevel int
@@ -184,7 +184,7 @@ func Test_headings_convert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newHeadings(tt.maxLevel).convert(tt.path, []byte(tt.source))
+			got, err := newHeadings(tt.maxLevel).parse(tt.path, []byte(tt.source))
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})

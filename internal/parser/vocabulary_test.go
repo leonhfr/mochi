@@ -25,7 +25,7 @@ AnotherWord
 Notes without example.
 Notes can be multiline.`
 
-func Test_vocabulary_convert(t *testing.T) {
+func Test_vocabulary_parse(t *testing.T) {
 	tests := []struct {
 		name   string
 		path   string
@@ -117,7 +117,7 @@ func Test_vocabulary_convert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newVocabulary(tt.config).convert(tt.path, []byte(tt.source))
+			got, err := newVocabulary(tt.config).parse(tt.path, []byte(tt.source))
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})
