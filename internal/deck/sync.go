@@ -3,8 +3,8 @@ package deck
 import (
 	"slices"
 
+	"github.com/leonhfr/mochi/internal/card"
 	"github.com/leonhfr/mochi/internal/lock"
-	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/mochi"
 )
@@ -18,7 +18,7 @@ type SyncLockfile interface {
 
 // SyncRequests parses the note files and returns the requests
 // required to sync them.
-func SyncRequests(lf SyncLockfile, deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []request.Request {
+func SyncRequests(lf SyncLockfile, deckID string, mochiCards []mochi.Card, parsedCards []card.Card) []request.Request {
 	groupedMochiCards, notMatched := groupMochiCardsByFilename(lf, deckID, mochiCards)
 	groupedParsedCards := groupParsedCardsByFilename(parsedCards)
 	groupedCards := groupCardsByFilename(groupedMochiCards, groupedParsedCards)
@@ -35,16 +35,16 @@ func SyncRequests(lf SyncLockfile, deckID string, mochiCards []mochi.Card, parse
 
 type fileGroup struct {
 	mochi  []mochi.Card
-	parsed []parser.Card
+	parsed []card.Card
 }
 
-func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []parser.Card) []request.Request {
-	tmp := make([]parser.Card, len(parsedCards))
+func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []card.Card) []request.Request {
+	tmp := make([]card.Card, len(parsedCards))
 	copy(tmp, parsedCards)
 
 	reqs := []request.Request{}
 	for _, mochiCard := range mochiCards {
-		index := slices.IndexFunc(tmp, func(card parser.Card) bool { return cardIs(card, mochiCard) })
+		index := slices.IndexFunc(tmp, func(card card.Card) bool { return cardIs(card, mochiCard) })
 		if index < 0 {
 			reqs = append(reqs, request.DeleteCard(mochiCard.ID))
 			continue
@@ -68,7 +68,7 @@ func sliceRemove[T any](s []T, i int) []T {
 	return s[:len(s)-1]
 }
 
-func groupCardsByFilename(mochiCards map[string][]mochi.Card, parsedCards map[string][]parser.Card) map[string]fileGroup {
+func groupCardsByFilename(mochiCards map[string][]mochi.Card, parsedCards map[string][]card.Card) map[string]fileGroup {
 	groups := make(map[string]fileGroup)
 	for filename, cards := range mochiCards {
 		groups[filename] = fileGroup{mochi: cards}
@@ -98,19 +98,19 @@ func groupMochiCardsByFilename(lf SyncLockfile, deckID string, mochiCards []moch
 	return matched, notMatched
 }
 
-func groupParsedCardsByFilename(parsedCards []parser.Card) map[string][]parser.Card {
-	matched := make(map[string][]parser.Card)
+func groupParsedCardsByFilename(parsedCards []card.Card) map[string][]card.Card {
+	matched := make(map[string][]card.Card)
 	for _, parsedCard := range parsedCards {
 		matched[parsedCard.Filename()] = append(matched[parsedCard.Filename()], parsedCard)
 	}
 	return matched
 }
 
-func cardIs(card parser.Card, mochiCard mochi.Card) bool {
+func cardIs(card card.Card, mochiCard mochi.Card) bool {
 	return mochiCard.Name == card.Fields["name"]
 }
 
-func cardEquals(card parser.Card, mochiCard mochi.Card) bool {
+func cardEquals(card card.Card, mochiCard mochi.Card) bool {
 	return mochiCard.Content == card.Content &&
 		mochiCard.TemplateID == card.TemplateID &&
 		mochiCard.Pos == card.Position &&

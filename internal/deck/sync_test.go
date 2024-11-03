@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/leonhfr/mochi/internal/card"
 	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/mochi"
@@ -33,35 +34,45 @@ func Test_upsertSyncRequests(t *testing.T) {
 			Fields:  map[string]mochi.Field{"name": {ID: "name", Value: "CARD_TO_KEEP"}},
 		},
 	}
-	parserCards := []parser.Card{
+	parserCards := []card.Card{
 		{
-			Content: "NEW_CONTENT",
-			Fields:  map[string]string{"name": "CARD_TO_UPDATE"},
-			Path:    path,
+			Card: parser.Card{
+				Content: "NEW_CONTENT",
+				Fields:  map[string]string{"name": "CARD_TO_UPDATE"},
+				Path:    path,
+			},
 		},
 		{
-			Content: "CONTENT",
-			Fields:  map[string]string{"name": "CARD_TO_CREATE"},
-			Path:    path,
+			Card: parser.Card{
+				Content: "CONTENT",
+				Fields:  map[string]string{"name": "CARD_TO_CREATE"},
+				Path:    path,
+			},
 		},
 		{
-			Content: "CONTENT",
-			Fields:  map[string]string{"name": "CARD_TO_KEEP"},
-			Path:    path,
+			Card: parser.Card{
+				Content: "CONTENT",
+				Fields:  map[string]string{"name": "CARD_TO_KEEP"},
+				Path:    path,
+			},
 		},
 	}
 
 	want := []request.Request{
-		request.UpdateCard(deckID, "CARD_ID_1", parser.Card{
-			Content: "NEW_CONTENT",
-			Fields:  map[string]string{"name": "CARD_TO_UPDATE"},
-			Path:    path,
+		request.UpdateCard(deckID, "CARD_ID_1", card.Card{
+			Card: parser.Card{
+				Content: "NEW_CONTENT",
+				Fields:  map[string]string{"name": "CARD_TO_UPDATE"},
+				Path:    path,
+			},
 		}, nil),
 		request.DeleteCard("CARD_ID_2"),
-		request.CreateCard("DECK_ID", parser.Card{
-			Content: "CONTENT",
-			Fields:  map[string]string{"name": "CARD_TO_CREATE"},
-			Path:    path,
+		request.CreateCard("DECK_ID", card.Card{
+			Card: parser.Card{
+				Content: "CONTENT",
+				Fields:  map[string]string{"name": "CARD_TO_CREATE"},
+				Path:    path,
+			},
 		}),
 	}
 

@@ -1,4 +1,4 @@
-package deck
+package card
 
 import (
 	"errors"
@@ -18,7 +18,7 @@ func Test_Parse(t *testing.T) {
 	}}
 	filePaths := []string{"/lorem-ipsum.md"}
 	want := []Card{
-		{card: parser.Card{Content: "TEST"}},
+		{Card: parser.Card{Content: "TEST"}},
 	}
 
 	p := test.NewMockParser(parserCalls)

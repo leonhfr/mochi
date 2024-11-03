@@ -6,20 +6,20 @@ import (
 
 	"github.com/sourcegraph/conc/pool"
 
+	"github.com/leonhfr/mochi/internal/card"
 	"github.com/leonhfr/mochi/internal/image"
-	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/mochi"
 )
 
 type updateCard struct {
 	deckID      string
 	cardID      string
-	card        parser.Card
+	card        card.Card
 	attachments map[string]mochi.Attachment
 }
 
 // UpdateCard returns a new update card request.
-func UpdateCard(deckID, cardID string, card parser.Card, attachments map[string]mochi.Attachment) Request {
+func UpdateCard(deckID, cardID string, card card.Card, attachments map[string]mochi.Attachment) Request {
 	return &updateCard{
 		deckID:      deckID,
 		cardID:      cardID,

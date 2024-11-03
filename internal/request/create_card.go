@@ -6,18 +6,18 @@ import (
 
 	"github.com/sourcegraph/conc/pool"
 
+	"github.com/leonhfr/mochi/internal/card"
 	"github.com/leonhfr/mochi/internal/image"
-	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/mochi"
 )
 
 type createRequest struct {
 	deckID string
-	card   parser.Card
+	card   card.Card
 }
 
 // CreateCard returns a new create card request.
-func CreateCard(deckID string, card parser.Card) Request {
+func CreateCard(deckID string, card card.Card) Request {
 	return &createRequest{
 		deckID: deckID,
 		card:   card,

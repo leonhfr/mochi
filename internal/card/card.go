@@ -1,4 +1,4 @@
-package deck
+package card
 
 import (
 	"io"
@@ -53,7 +53,7 @@ func Heap(cards []Card) *heap.Heap[Card] {
 // Card contains the data to group and prioritize a card.
 type Card struct {
 	base string
-	card parser.Card
+	parser.Card
 }
 
 var _ heap.Item = &Card{}
@@ -61,7 +61,7 @@ var _ heap.Item = &Card{}
 func newCards(result parser.Result) []Card {
 	cards := make([]Card, len(result.Cards))
 	for i, card := range result.Cards {
-		cards[i] = Card{base: result.Deck, card: card}
+		cards[i] = Card{base: result.Deck, Card: card}
 	}
 	return cards
 }
@@ -74,13 +74,4 @@ func (c Card) Base() string {
 // Priority implements the PriorityItem interface.
 func (c Card) Priority() int {
 	return len(c.base)
-}
-
-// ConvertCards converts a slice of cards back to parser.Card.
-func ConvertCards(cards []Card) []parser.Card {
-	items := make([]parser.Card, len(cards))
-	for i, card := range cards {
-		items[i] = card.card
-	}
-	return items
 }
