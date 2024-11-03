@@ -29,19 +29,12 @@ type Card struct {
 	Content    string
 	Fields     map[string]string
 	TemplateID string
-	Images     []Image
 	Path       string
 	Position   string
 }
 
 // Filename returns the filename.
 func (c Card) Filename() string { return getFilename(c.Path) }
-
-// Image contains the parsed image data.
-type Image struct {
-	Destination string
-	AltText     string
-}
 
 type cardParser interface {
 	parse(path string, source []byte) (Result, error)

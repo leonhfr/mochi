@@ -22,7 +22,6 @@ func Test_note_parse(t *testing.T) {
 			want: Result{Cards: []Card{{
 				Content: "# Lorem ipsum\n\nParagraph.\n",
 				Fields:  nameFields("Lorem ipsum"),
-				Images:  []Image{},
 				Path:    "/testdata/lorem-ipsum/Lorem ipsum.md",
 			}}},
 		},
@@ -33,11 +32,7 @@ func Test_note_parse(t *testing.T) {
 			want: Result{Cards: []Card{{
 				Content: "# Lorem ipsum\n\n# Noun\n\n## Gender\n\n![Example 1](../images/example-1.png)\n\nInline image: ![Example 2](./example-2.png)",
 				Fields:  nameFields("Lorem ipsum"),
-				Images: []Image{
-					{Destination: "../images/example-1.png", AltText: "Example 1"},
-					{Destination: "./example-2.png", AltText: "Example 2"},
-				},
-				Path: "/testdata/lorem-ipsum/Lorem ipsum.md",
+				Path:    "/testdata/lorem-ipsum/Lorem ipsum.md",
 			}}},
 		},
 	}

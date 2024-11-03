@@ -53,11 +53,6 @@ func (h *headings) parse(path string, source []byte) (Result, error) {
 					level: node.Level,
 				})
 			}
-		case *ast.Image:
-			parsed[len(parsed)-1].images = append(parsed[len(parsed)-1].images, Image{
-				Destination: string(node.Destination),
-				AltText:     string(node.Text(source)),
-			})
 		}
 
 		return ast.WalkContinue, nil
@@ -78,7 +73,7 @@ func getHeadingCards(path string, headings []parsedHeading, source []byte) []Car
 
 	if len(headings) == 1 && len(source) > 0 {
 		name := getNameFromPath(path)
-		return []Card{newNoteCard(name, path, source, headings[0].images)}
+		return []Card{newNoteCard(name, path, source)}
 	} else if len(headings) == 1 {
 		return nil
 	}
@@ -114,7 +109,7 @@ func getHeadingCards(path string, headings []parsedHeading, source []byte) []Car
 			continue
 		}
 
-		cards = append(cards, newHeadingsCard(titles, path, content, heading.images, len(cards)))
+		cards = append(cards, newHeadingsCard(titles, path, content, len(cards)))
 		start = stop
 	}
 
@@ -130,13 +125,12 @@ func getHeadingStart(heading parsedHeading) int {
 }
 
 type parsedHeading struct {
-	level  int
-	start  int
-	stop   int
-	images []Image
+	level int
+	start int
+	stop  int
 }
 
-func newHeadingsCard(headings []string, path string, source []byte, images []Image, index int) Card {
+func newHeadingsCard(headings []string, path string, source []byte, index int) Card {
 	filename := getFilename(path)
 	position := fmt.Sprintf("%s%04d", filename, index)
 	name := strings.ReplaceAll(strings.Join(headings, " > "), " >  > ", " > ")
@@ -144,7 +138,6 @@ func newHeadingsCard(headings []string, path string, source []byte, images []Ima
 	return Card{
 		Content:  string(content),
 		Fields:   nameFields(name),
-		Images:   images,
 		Path:     path,
 		Position: sanitizePosition(position),
 	}

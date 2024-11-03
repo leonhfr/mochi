@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -20,7 +19,7 @@ func ArchiveCard(cardID string) Request {
 }
 
 // Execute implements the Request interface.
-func (r *archiveCard) Execute(ctx context.Context, client Client, _ image.Reader, _ Lockfile) error {
+func (r *archiveCard) Execute(ctx context.Context, client Client, _ Lockfile) error {
 	req := mochi.UpdateCardRequest{Archived: true}
 	_, err := client.UpdateCard(ctx, r.cardID, req)
 	return err

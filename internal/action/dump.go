@@ -41,7 +41,7 @@ func Dump(ctx context.Context, logger Logger, token, workspace string) (err erro
 
 	dumpR := worker.DumpRequests(ctx, logger, client, deckC)
 	dumpC := worker.Unwrap(wg, dumpR, errC)
-	doneR := worker.ExecuteRequests(ctx, logger, client, fs, lf, dumpC)
+	doneR := worker.ExecuteRequests(ctx, logger, client, lf, dumpC)
 	_ = worker.Unwrap(wg, doneR, errC)
 
 	wg.Wait()

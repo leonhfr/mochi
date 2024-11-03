@@ -7,7 +7,6 @@ import (
 	"github.com/sourcegraph/conc/pool"
 
 	"github.com/leonhfr/mochi/internal/card"
-	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -25,11 +24,9 @@ func CreateCard(deckID string, card card.Card) Request {
 }
 
 // Execute implements the Request interface.
-func (r *createRequest) Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error {
-	images := image.New(reader, r.card.Path, r.card.Images)
-
+func (r *createRequest) Execute(ctx context.Context, client Client, lf Lockfile) error {
 	req := mochi.CreateCardRequest{
-		Content:    images.Replace(r.card.Content),
+		Content:    r.card.Content,
 		DeckID:     r.deckID,
 		TemplateID: r.card.TemplateID,
 		Fields:     mochiFields(r.card.Fields),
@@ -42,10 +39,10 @@ func (r *createRequest) Execute(ctx context.Context, client Client, reader image
 	}
 
 	p := pool.New().WithContext(ctx)
-	for _, image := range images {
-		image := image
+	for _, attachment := range r.card.Attachments {
+		attachment := attachment
 		p.Go(func(ctx context.Context) error {
-			return client.AddAttachment(ctx, card.ID, image.Filename, image.Bytes)
+			return client.AddAttachment(ctx, card.ID, attachment.Filename, attachment.Bytes)
 		})
 	}
 

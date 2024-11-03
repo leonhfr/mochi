@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/leonhfr/mochi/internal/image"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -26,7 +25,7 @@ type Lockfile interface {
 // Request is the interface that should be implemented to execute a request.
 type Request interface {
 	fmt.Stringer
-	Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error
+	Execute(ctx context.Context, client Client, lf Lockfile) error
 }
 
 func mochiFields(fields map[string]string) map[string]mochi.Field {

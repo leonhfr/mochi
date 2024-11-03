@@ -167,14 +167,12 @@ func Test_headings_parse(t *testing.T) {
 				{
 					Content:  "Images > Heading 1\n\n# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n",
 					Fields:   nameFields("Images > Heading 1"),
-					Images:   []Image{{Destination: "../images/example-1.png", AltText: "Example 1"}},
 					Path:     "/subdirectory/Images.md",
 					Position: "Imagesmd0000",
 				},
 				{
 					Content:  "Images > Heading 2\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
 					Fields:   nameFields("Images > Heading 2"),
-					Images:   []Image{{Destination: "images/example-2.png", AltText: "Example 2"}},
 					Path:     "/subdirectory/Images.md",
 					Position: "Imagesmd0001",
 				},

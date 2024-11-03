@@ -7,7 +7,7 @@ import (
 	"github.com/sourcegraph/conc/pool"
 
 	"github.com/leonhfr/mochi/internal/card"
-	"github.com/leonhfr/mochi/internal/image"
+	"github.com/leonhfr/mochi/internal/converter"
 	"github.com/leonhfr/mochi/mochi"
 )
 
@@ -29,11 +29,9 @@ func UpdateCard(deckID, cardID string, card card.Card, attachments map[string]mo
 }
 
 // Execute implements the Request interface.
-func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error {
-	images := image.New(reader, r.card.Path, r.card.Images)
-
+func (r *updateCard) Execute(ctx context.Context, client Client, lf Lockfile) error {
 	req := mochi.UpdateCardRequest{
-		Content:    images.Replace(r.card.Content),
+		Content:    r.card.Content,
 		TemplateID: r.card.TemplateID,
 		Fields:     mochiFields(r.card.Fields),
 		Pos:        r.card.Position,
@@ -44,10 +42,10 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Re
 	}
 
 	p := pool.New().WithContext(ctx)
-	for _, image := range filteredAttachments(images, r.attachments) {
-		image := image
+	for _, attachment := range filterAttachments(r.card.Attachments, r.attachments) {
+		attachment := attachment
 		p.Go(func(ctx context.Context) error {
-			return client.AddAttachment(ctx, r.cardID, image.Filename, image.Bytes)
+			return client.AddAttachment(ctx, r.cardID, attachment.Filename, attachment.Bytes)
 		})
 	}
 
@@ -66,14 +64,14 @@ func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Re
 	return nil
 }
 
-func filteredAttachments(images image.Images, attachments map[string]mochi.Attachment) image.Images {
-	filtered := image.Images{}
+func filterAttachments(images []converter.Attachment, mochiAttachments map[string]mochi.Attachment) []converter.Attachment {
+	attachments := []converter.Attachment{}
 	for _, image := range images {
-		if attachment, ok := attachments[image.Filename]; !ok || attachment.Size != len(image.Bytes) {
-			filtered = append(filtered, image)
+		if mochiAttachment, ok := mochiAttachments[image.Filename]; !ok || mochiAttachment.Size != len(image.Bytes) {
+			attachments = append(attachments, image)
 		}
 	}
-	return filtered
+	return attachments
 }
 
 // String implements the fmt.Stringer interface.

@@ -84,7 +84,8 @@ type Card struct {
 
 var _ heap.Item = &Card{}
 
-func newCard(deck, _ string, card parser.Card, attachments []converter.Attachment) Card {
+func newCard(deck, markdown string, card parser.Card, attachments []converter.Attachment) Card {
+	card.Content = markdown
 	return Card{
 		base:        deck,
 		Attachments: attachments,
