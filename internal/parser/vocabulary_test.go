@@ -39,52 +39,77 @@ func Test_vocabulary_convert(t *testing.T) {
 			config: config.VocabularyTemplate{TemplateID: "GERMAN_TEMPLATE"},
 			source: "<!-- Generated. -->\n\nSpaziergang\n\nSpiegel\n",
 			want: Result{Cards: []Card{
-				vocabularyCard{
-					config: config.VocabularyTemplate{TemplateID: "GERMAN_TEMPLATE"},
-					word:   "Spaziergang",
-					path:   "/testdata/languages/de/vocabulary/s.md",
+				{
+					Fields: map[string]string{
+						"name": "Spaziergang",
+					},
+					TemplateID: "GERMAN_TEMPLATE",
+					Path:       "/testdata/languages/de/vocabulary/s.md",
+					Position:   "Spaziergang",
 				},
-				vocabularyCard{
-					config: config.VocabularyTemplate{TemplateID: "GERMAN_TEMPLATE"},
-					word:   "Spiegel",
-					path:   "/testdata/languages/de/vocabulary/s.md",
+				{
+					Fields: map[string]string{
+						"name": "Spiegel",
+					},
+					TemplateID: "GERMAN_TEMPLATE",
+					Path:       "/testdata/languages/de/vocabulary/s.md",
+					Position:   "Spiegel",
 				},
 			}},
 		},
 		{
-			name:   "should parse vocabulary and custom fields",
-			path:   "/testdata/full/example/a.md",
-			config: config.VocabularyTemplate{TemplateID: "FULL_EXAMPLE"},
+			name: "should parse vocabulary and custom fields",
+			path: "/testdata/full/example/a.md",
+			config: config.VocabularyTemplate{
+				TemplateID: "TEMPLATE_ID",
+				ExamplesID: "EXAMPLES_ID",
+				NotesID:    "NOTES_ID",
+			},
 			source: vocabularySource,
 			want: Result{Cards: []Card{
-				vocabularyCard{
-					config:   config.VocabularyTemplate{TemplateID: "FULL_EXAMPLE"},
-					word:     "Spaziergang",
-					examples: []string{"Wir haben nach dem Essen einen langen Spaziergang gemacht."},
-					notes:    []string{"Stroll, walk, promenade."},
-					path:     "/testdata/full/example/a.md",
+				{
+					Fields: map[string]string{
+						"name":        "Spaziergang",
+						"EXAMPLES_ID": "Wir haben nach dem Essen einen langen Spaziergang gemacht.",
+						"NOTES_ID":    "Stroll, walk, promenade.",
+					},
+					TemplateID: "TEMPLATE_ID",
+					Path:       "/testdata/full/example/a.md",
+					Position:   "Spaziergang",
 				},
-				vocabularyCard{
-					config: config.VocabularyTemplate{TemplateID: "FULL_EXAMPLE"},
-					word:   "Spiegel",
-					path:   "/testdata/full/example/a.md",
+				{
+					Fields: map[string]string{
+						"name": "Spiegel",
+					},
+					TemplateID: "TEMPLATE_ID",
+					Path:       "/testdata/full/example/a.md",
+					Position:   "Spiegel",
 				},
-				vocabularyCard{
-					config: config.VocabularyTemplate{TemplateID: "FULL_EXAMPLE"},
-					word:   "First line can be a sentence.",
-					path:   "/testdata/full/example/a.md",
+				{
+					Fields: map[string]string{
+						"name": "First line can be a sentence.",
+					},
+					TemplateID: "TEMPLATE_ID",
+					Path:       "/testdata/full/example/a.md",
+					Position:   "Firstlinecanbeasentence",
 				},
-				vocabularyCard{
-					config:   config.VocabularyTemplate{TemplateID: "FULL_EXAMPLE"},
-					word:     "Word",
-					examples: []string{"Example without note for word."},
-					path:     "/testdata/full/example/a.md",
+				{
+					Fields: map[string]string{
+						"name":        "Word",
+						"EXAMPLES_ID": "Example without note for word.",
+					},
+					TemplateID: "TEMPLATE_ID",
+					Path:       "/testdata/full/example/a.md",
+					Position:   "Word",
 				},
-				vocabularyCard{
-					config: config.VocabularyTemplate{TemplateID: "FULL_EXAMPLE"},
-					word:   "AnotherWord",
-					notes:  []string{"Notes without example.", "Notes can be multiline."},
-					path:   "/testdata/full/example/a.md",
+				{
+					Fields: map[string]string{
+						"name":     "AnotherWord",
+						"NOTES_ID": "Notes without example.\n\nNotes can be multiline.",
+					},
+					TemplateID: "TEMPLATE_ID",
+					Path:       "/testdata/full/example/a.md",
+					Position:   "AnotherWord",
 				},
 			}},
 		},

@@ -10,7 +10,6 @@ import (
 
 	"github.com/leonhfr/mochi/internal/config"
 	"github.com/leonhfr/mochi/internal/parser/example"
-	"github.com/leonhfr/mochi/mochi"
 )
 
 // vocabulary represents a vocabulary parser.
@@ -93,72 +92,24 @@ func parseParagraph(paragraph *ast.Paragraph, source []byte) (string, []string, 
 	return word, examples, notes, nil
 }
 
-type vocabularyCard struct {
-	config   config.VocabularyTemplate
-	word     string
-	examples []string
-	notes    []string
-	path     string
-}
-
-func newVocabularyCard(word string, examples, notes []string, path string, config config.VocabularyTemplate) vocabularyCard {
-	return vocabularyCard{
-		config:   config,
-		word:     word,
-		examples: examples,
-		notes:    notes,
-		path:     path,
+func newVocabularyCard(word string, examples, notes []string, path string, config config.VocabularyTemplate) Card {
+	return Card{
+		Fields:     vocabularyFields(word, examples, notes, config),
+		TemplateID: config.TemplateID,
+		Path:       path,
+		Position:   sanitizePosition(word),
 	}
 }
 
-func (c vocabularyCard) Content() string    { return "" }
-func (c vocabularyCard) TemplateID() string { return c.config.TemplateID }
-func (c vocabularyCard) Images() []Image    { return nil }
-func (c vocabularyCard) Path() string       { return c.path }
-func (c vocabularyCard) Filename() string   { return getFilename(c.path) }
-func (c vocabularyCard) Position() string   { return sanitizePosition(c.word) }
-
-func (c vocabularyCard) Is(card mochi.Card) bool {
-	return nameEquals(card.Fields, c.word)
-}
-
-func (c vocabularyCard) Fields() map[string]mochi.Field {
-	fields := map[string]mochi.Field{
-		"name": {
-			ID:    "name",
-			Value: c.word,
-		},
+func vocabularyFields(word string, examples, notes []string, config config.VocabularyTemplate) map[string]string {
+	fields := map[string]string{
+		"name": word,
 	}
-	if c.config.ExamplesID != "" {
-		fields[c.config.ExamplesID] = mochi.Field{
-			ID:    c.config.ExamplesID,
-			Value: strings.Join(c.examples, "\n\n"),
-		}
+	if value := strings.Join(examples, "\n\n"); config.ExamplesID != "" && value != "" {
+		fields[config.ExamplesID] = value
 	}
-	if c.config.NotesID != "" {
-		fields[c.config.NotesID] = mochi.Field{
-			ID:    c.config.NotesID,
-			Value: strings.Join(c.notes, "\n\n"),
-		}
+	if value := strings.Join(notes, "\n\n"); config.NotesID != "" && value != "" {
+		fields[config.NotesID] = value
 	}
 	return fields
-}
-
-func (c vocabularyCard) Equals(card mochi.Card) bool {
-	return card.Name == c.word &&
-		card.TemplateID == c.TemplateID() &&
-		mapsEqual(card.Fields, c.Fields())
-}
-
-func mapsEqual[T comparable](m1, m2 map[string]T) bool {
-	if len(m1) != len(m2) {
-		return false
-	}
-	for k, v1 := range m1 {
-		v2, ok := m2[k]
-		if !ok || v1 != v2 {
-			return false
-		}
-	}
-	return true
 }

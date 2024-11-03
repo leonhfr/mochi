@@ -28,3 +28,11 @@ type Request interface {
 	fmt.Stringer
 	Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error
 }
+
+func mochiFields(fields map[string]string) map[string]mochi.Field {
+	mochiFields := map[string]mochi.Field{}
+	for key, value := range fields {
+		mochiFields[key] = mochi.Field{ID: key, Value: value}
+	}
+	return mochiFields
+}

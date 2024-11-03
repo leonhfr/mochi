@@ -8,8 +8,6 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
-
-	"github.com/leonhfr/mochi/mochi"
 )
 
 // headings represents a headings parser.
@@ -138,45 +136,16 @@ type parsedHeading struct {
 	images []Image
 }
 
-type headingsCard struct {
-	name     string
-	content  string
-	images   []Image
-	path     string
-	position string
-}
-
 func newHeadingsCard(headings []string, path string, source []byte, images []Image, index int) Card {
 	filename := getFilename(path)
 	position := fmt.Sprintf("%s%04d", filename, index)
 	name := strings.ReplaceAll(strings.Join(headings, " > "), " >  > ", " > ")
 	content := fmt.Sprintf("%s\n\n%s\n", name, string(source))
-	return headingsCard{
-		name:     name,
-		content:  string(content),
-		images:   images,
-		path:     path,
-		position: sanitizePosition(position),
+	return Card{
+		Content:  string(content),
+		Fields:   nameFields(name),
+		Images:   images,
+		Path:     path,
+		Position: sanitizePosition(position),
 	}
-}
-
-func (h headingsCard) Content() string    { return h.content }
-func (h headingsCard) Images() []Image    { return h.images }
-func (h headingsCard) Path() string       { return h.path }
-func (h headingsCard) Filename() string   { return getFilename(h.path) }
-func (h headingsCard) Position() string   { return h.position }
-func (h headingsCard) TemplateID() string { return "" }
-
-func (h headingsCard) Is(card mochi.Card) bool {
-	return nameEquals(card.Fields, h.name)
-}
-
-func (h headingsCard) Fields() map[string]mochi.Field {
-	return map[string]mochi.Field{
-		"name": {ID: "name", Value: h.name},
-	}
-}
-
-func (h headingsCard) Equals(card mochi.Card) bool {
-	return card.Content == h.content && card.Pos == h.position
 }

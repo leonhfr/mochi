@@ -10,8 +10,6 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
-
-	"github.com/leonhfr/mochi/mochi"
 )
 
 // table represents a table parser.
@@ -85,50 +83,21 @@ func getTableCards(path string, headers []string, rows [][]string) []Card {
 	return cards
 }
 
-type tableCard struct {
-	name     string
-	headers  []string
-	cells    []string
-	path     string
-	position string
-}
-
 func newTableCard(headers, cells []string, path string, index int) Card {
 	filename := getFilename(path)
 	position := fmt.Sprintf("%s%04d", filename, index)
-	return tableCard{
-		name:     strings.Join(cells, "|"),
-		headers:  headers,
-		cells:    cells,
-		path:     path,
-		position: sanitizePosition(position),
+	return Card{
+		Content:  tableContent(headers, cells),
+		Fields:   nameFields(strings.Join(cells, "|")),
+		Path:     path,
+		Position: sanitizePosition(position),
 	}
 }
 
-func (t tableCard) Content() string {
+func tableContent(headers, cells []string) string {
 	rows := []string{"|Headers|Values|", "|---|---|"}
-	for i, header := range t.headers {
-		rows = append(rows, fmt.Sprintf("|%s|%s|", header, t.cells[i]))
+	for i, header := range headers {
+		rows = append(rows, fmt.Sprintf("|%s|%s|", header, cells[i]))
 	}
 	return fmt.Sprintf("%s\n", strings.Join(rows, "\n"))
-}
-
-func (t tableCard) Images() []Image    { return nil }
-func (t tableCard) Path() string       { return t.path }
-func (t tableCard) Filename() string   { return getFilename(t.path) }
-func (t tableCard) Position() string   { return t.position }
-func (t tableCard) TemplateID() string { return "" }
-
-func (t tableCard) Is(card mochi.Card) bool {
-	return nameEquals(card.Fields, t.name)
-}
-
-func (t tableCard) Fields() map[string]mochi.Field {
-	return map[string]mochi.Field{
-		"name": {ID: "name", Value: t.name},
-	}
-}
-
-func (t tableCard) Equals(card mochi.Card) bool {
-	return card.Content == t.Content() && card.Pos == t.position
 }

@@ -53,17 +53,17 @@ func Test_headings_convert(t *testing.T) {
 			path:     "/Headings.md",
 			source:   "# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n\n# Heading 2\n\nContent 3.\n",
 			want: Result{Deck: "Headings", Cards: []Card{
-				headingsCard{
-					name:     "Headings > Heading 1",
-					content:  "Headings > Heading 1\n\n# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0000",
+				{
+					Content:  "Headings > Heading 1\n\n# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n",
+					Fields:   nameFields("Headings > Heading 1"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0000",
 				},
-				headingsCard{
-					name:     "Headings > Heading 2",
-					content:  "Headings > Heading 2\n\n# Heading 2\n\nContent 3.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0001",
+				{
+					Content:  "Headings > Heading 2\n\n# Heading 2\n\nContent 3.\n",
+					Fields:   nameFields("Headings > Heading 2"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0001",
 				},
 			}},
 		},
@@ -80,23 +80,23 @@ func Test_headings_convert(t *testing.T) {
 			path:     "/Headings.md",
 			source:   headingSource,
 			want: Result{Deck: "Headings", Cards: []Card{
-				headingsCard{
-					name:     "Headings > Heading 1",
-					content:  "Headings > Heading 1\n\n# Heading 1\n\nSome text here.\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n\n## Heading 1.2\n\nAnother content.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0000",
+				{
+					Content:  "Headings > Heading 1\n\n# Heading 1\n\nSome text here.\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n\n## Heading 1.2\n\nAnother content.\n",
+					Fields:   nameFields("Headings > Heading 1"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0000",
 				},
-				headingsCard{
-					name:     "Headings > Heading 2",
-					content:  "Headings > Heading 2\n\n# Heading 2\n\nCard card card.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0001",
+				{
+					Content:  "Headings > Heading 2\n\n# Heading 2\n\nCard card card.\n",
+					Fields:   nameFields("Headings > Heading 2"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0001",
 				},
-				headingsCard{
-					name:     "Headings > Heading 3",
-					content:  "Headings > Heading 3\n\n# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0002",
+				{
+					Content:  "Headings > Heading 3\n\n# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
+					Fields:   nameFields("Headings > Heading 3"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0002",
 				},
 			}},
 		},
@@ -106,35 +106,35 @@ func Test_headings_convert(t *testing.T) {
 			path:     "/Headings.md",
 			source:   headingSource,
 			want: Result{Deck: "Headings", Cards: []Card{
-				headingsCard{
-					name:     "Headings > Heading 1",
-					content:  "Headings > Heading 1\n\n# Heading 1\n\nSome text here.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0000",
+				{
+					Content:  "Headings > Heading 1\n\n# Heading 1\n\nSome text here.\n",
+					Fields:   nameFields("Headings > Heading 1"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0000",
 				},
-				headingsCard{
-					name:     "Headings > Heading 1 > Heading 1.1",
-					content:  "Headings > Heading 1 > Heading 1.1\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0001",
+				{
+					Content:  "Headings > Heading 1 > Heading 1.1\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n",
+					Fields:   nameFields("Headings > Heading 1 > Heading 1.1"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0001",
 				},
-				headingsCard{
-					name:     "Headings > Heading 1 > Heading 1.2",
-					content:  "Headings > Heading 1 > Heading 1.2\n\n## Heading 1.2\n\nAnother content.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0002",
+				{
+					Content:  "Headings > Heading 1 > Heading 1.2\n\n## Heading 1.2\n\nAnother content.\n",
+					Fields:   nameFields("Headings > Heading 1 > Heading 1.2"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0002",
 				},
-				headingsCard{
-					name:     "Headings > Heading 2",
-					content:  "Headings > Heading 2\n\n# Heading 2\n\nCard card card.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0003",
+				{
+					Content:  "Headings > Heading 2\n\n# Heading 2\n\nCard card card.\n",
+					Fields:   nameFields("Headings > Heading 2"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0003",
 				},
-				headingsCard{
-					name:     "Headings > Heading 3 > Heading 3.1",
-					content:  "Headings > Heading 3 > Heading 3.1\n\n## Heading 3.1\n\nMore card content.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0004",
+				{
+					Content:  "Headings > Heading 3 > Heading 3.1\n\n## Heading 3.1\n\nMore card content.\n",
+					Fields:   nameFields("Headings > Heading 3 > Heading 3.1"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0004",
 				},
 			}},
 		},
@@ -144,17 +144,17 @@ func Test_headings_convert(t *testing.T) {
 			path:     "/Headings.md",
 			source:   "## Title 1\n\nContent 1.\n\n## Title 2\n\n### Title 2.1\n\nContent 1.\n",
 			want: Result{Deck: "Headings", Cards: []Card{
-				headingsCard{
-					name:     "Headings > Title 1",
-					content:  "Headings > Title 1\n\n## Title 1\n\nContent 1.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0000",
+				{
+					Content:  "Headings > Title 1\n\n## Title 1\n\nContent 1.\n",
+					Fields:   nameFields("Headings > Title 1"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0000",
 				},
-				headingsCard{
-					name:     "Headings > Title 2",
-					content:  "Headings > Title 2\n\n## Title 2\n\n### Title 2.1\n\nContent 1.\n",
-					path:     "/Headings.md",
-					position: "Headingsmd0001",
+				{
+					Content:  "Headings > Title 2\n\n## Title 2\n\n### Title 2.1\n\nContent 1.\n",
+					Fields:   nameFields("Headings > Title 2"),
+					Path:     "/Headings.md",
+					Position: "Headingsmd0001",
 				},
 			}},
 		},
@@ -164,19 +164,19 @@ func Test_headings_convert(t *testing.T) {
 			path:     "/subdirectory/Images.md",
 			source:   "# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
 			want: Result{Deck: "Images", Cards: []Card{
-				headingsCard{
-					name:     "Images > Heading 1",
-					content:  "Images > Heading 1\n\n# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n",
-					path:     "/subdirectory/Images.md",
-					images:   []Image{{Destination: "../images/example-1.png", AltText: "Example 1"}},
-					position: "Imagesmd0000",
+				{
+					Content:  "Images > Heading 1\n\n# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n",
+					Fields:   nameFields("Images > Heading 1"),
+					Images:   []Image{{Destination: "../images/example-1.png", AltText: "Example 1"}},
+					Path:     "/subdirectory/Images.md",
+					Position: "Imagesmd0000",
 				},
-				headingsCard{
-					name:     "Images > Heading 2",
-					content:  "Images > Heading 2\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
-					path:     "/subdirectory/Images.md",
-					images:   []Image{{Destination: "images/example-2.png", AltText: "Example 2"}},
-					position: "Imagesmd0001",
+				{
+					Content:  "Images > Heading 2\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
+					Fields:   nameFields("Images > Heading 2"),
+					Images:   []Image{{Destination: "images/example-2.png", AltText: "Example 2"}},
+					Path:     "/subdirectory/Images.md",
+					Position: "Imagesmd0001",
 				},
 			}},
 		},

@@ -26,19 +26,17 @@ func Test_table_convert(t *testing.T) {
 			source: tableSource,
 			want: Result{
 				Deck: "Strong Verbs", Cards: []Card{
-					tableCard{
-						name:     "backen|backt (bäckt)|[buk]|hat gebacken|to bake",
-						headers:  []string{"Infinitive", "Present", "Past", "Participle", "English"},
-						cells:    []string{"backen", "backt (bäckt)", "[buk]", "hat gebacken", "to bake"},
-						path:     "/testdata/verbs/Strong Verbs.md",
-						position: "StrongVerbsmd0000",
+					{
+						Content:  "|Headers|Values|\n|---|---|\n|Infinitive|backen|\n|Present|backt (bäckt)|\n|Past|[buk]|\n|Participle|hat gebacken|\n|English|to bake|\n",
+						Fields:   map[string]string{"name": "backen|backt (bäckt)|[buk]|hat gebacken|to bake"},
+						Path:     "/testdata/verbs/Strong Verbs.md",
+						Position: "StrongVerbsmd0000",
 					},
-					tableCard{
-						name:     "befehlen|befiehlt|befahl|hat befohlen|to order, instruct",
-						headers:  []string{"Infinitive", "Present", "Past", "Participle", "English"},
-						cells:    []string{"befehlen", "befiehlt", "befahl", "hat befohlen", "to order, instruct"},
-						path:     "/testdata/verbs/Strong Verbs.md",
-						position: "StrongVerbsmd0001",
+					{
+						Content:  "|Headers|Values|\n|---|---|\n|Infinitive|befehlen|\n|Present|befiehlt|\n|Past|befahl|\n|Participle|hat befohlen|\n|English|to order, instruct|\n",
+						Fields:   map[string]string{"name": "befehlen|befiehlt|befahl|hat befohlen|to order, instruct"},
+						Path:     "/testdata/verbs/Strong Verbs.md",
+						Position: "StrongVerbsmd0001",
 					},
 				},
 			},

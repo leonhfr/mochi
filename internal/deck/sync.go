@@ -44,13 +44,13 @@ func upsertSyncRequests(deckID string, mochiCards []mochi.Card, parsedCards []pa
 
 	reqs := []request.Request{}
 	for _, mochiCard := range mochiCards {
-		index := slices.IndexFunc(tmp, func(card parser.Card) bool { return card.Is(mochiCard) })
+		index := slices.IndexFunc(tmp, func(card parser.Card) bool { return cardIs(card, mochiCard) })
 		if index < 0 {
 			reqs = append(reqs, request.DeleteCard(mochiCard.ID))
 			continue
 		}
 
-		if !tmp[index].Equals(mochiCard) {
+		if !cardEquals(tmp[index], mochiCard) {
 			reqs = append(reqs, request.UpdateCard(deckID, mochiCard.ID, tmp[index], mochiCard.Attachments))
 		}
 		tmp = sliceRemove(tmp, index)
@@ -104,4 +104,36 @@ func groupParsedCardsByFilename(parsedCards []parser.Card) map[string][]parser.C
 		matched[parsedCard.Filename()] = append(matched[parsedCard.Filename()], parsedCard)
 	}
 	return matched
+}
+
+func cardIs(card parser.Card, mochiCard mochi.Card) bool {
+	return mochiCard.Name == card.Fields["name"]
+}
+
+func cardEquals(card parser.Card, mochiCard mochi.Card) bool {
+	return mochiCard.Content == card.Content &&
+		mochiCard.TemplateID == card.TemplateID &&
+		mochiCard.Pos == card.Position &&
+		mapsEqual(mochiCard.Fields, mochiFields(card.Fields))
+}
+
+func mochiFields(fields map[string]string) map[string]mochi.Field {
+	mochiFields := map[string]mochi.Field{}
+	for key, value := range fields {
+		mochiFields[key] = mochi.Field{ID: key, Value: value}
+	}
+	return mochiFields
+}
+
+func mapsEqual[T comparable](m1, m2 map[string]T) bool {
+	if len(m1) != len(m2) {
+		return false
+	}
+	for k, v1 := range m1 {
+		v2, ok := m2[k]
+		if !ok || v1 != v2 {
+			return false
+		}
+	}
+	return true
 }

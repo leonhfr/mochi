@@ -9,7 +9,6 @@ import (
 	"github.com/adrg/frontmatter"
 
 	"github.com/leonhfr/mochi/internal/config"
-	"github.com/leonhfr/mochi/mochi"
 )
 
 var extensions = []string{".md"}
@@ -21,17 +20,17 @@ type Result struct {
 }
 
 // Card represents a card.
-type Card interface {
-	Content() string
-	Fields() map[string]mochi.Field
-	TemplateID() string
-	Images() []Image
-	Path() string
-	Filename() string
-	Position() string
-	Is(card mochi.Card) bool
-	Equals(card mochi.Card) bool
+type Card struct {
+	Content    string
+	Fields     map[string]string
+	TemplateID string
+	Images     []Image
+	Path       string
+	Position   string
 }
+
+// Filename returns the filename.
+func (c Card) Filename() string { return getFilename(c.Path) }
 
 // Image contains the parsed image data.
 type Image struct {

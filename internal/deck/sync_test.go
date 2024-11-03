@@ -7,61 +7,62 @@ import (
 
 	"github.com/leonhfr/mochi/internal/parser"
 	"github.com/leonhfr/mochi/internal/request"
-	"github.com/leonhfr/mochi/internal/test"
 	"github.com/leonhfr/mochi/mochi"
 )
 
 func Test_upsertSyncRequests(t *testing.T) {
-	filename := "lorem-ipsum.md"
+	path := "/testdata/lorem-ipsum.md"
 	deckID := "DECK_ID"
 	mochiCards := []mochi.Card{
 		{
 			ID:      "CARD_ID_1",
 			Name:    "CARD_TO_UPDATE",
 			Content: "OLD_CONTENT",
+			Fields:  map[string]mochi.Field{"name": {ID: "name", Value: "CARD_TO_UPDATE"}},
 		},
 		{
 			ID:      "CARD_ID_2",
 			Name:    "CARD_TO_ARCHIVE",
 			Content: "CONTENT",
+			Fields:  map[string]mochi.Field{"name": {ID: "name", Value: "CARD_TO_ARCHIVE"}},
 		},
 		{
 			ID:      "CARD_ID_3",
 			Name:    "CARD_TO_KEEP",
 			Content: "CONTENT",
+			Fields:  map[string]mochi.Field{"name": {ID: "name", Value: "CARD_TO_KEEP"}},
 		},
 	}
 	parserCards := []parser.Card{
-		test.NewCard(test.ParserCard{
-			Name:     "CARD_TO_UPDATE",
-			Content:  "NEW_CONTENT",
-			Filename: filename,
-		}),
-		test.NewCard(test.ParserCard{
-			Name:     "CARD_TO_CREATE",
-			Content:  "CONTENT",
-			Filename: filename,
-		}),
-		test.NewCard(test.ParserCard{
-			Name:     "CARD_TO_KEEP",
-			Content:  "CONTENT",
-			Filename: filename,
-			Equals:   true,
-		}),
+		{
+			Content: "NEW_CONTENT",
+			Fields:  map[string]string{"name": "CARD_TO_UPDATE"},
+			Path:    path,
+		},
+		{
+			Content: "CONTENT",
+			Fields:  map[string]string{"name": "CARD_TO_CREATE"},
+			Path:    path,
+		},
+		{
+			Content: "CONTENT",
+			Fields:  map[string]string{"name": "CARD_TO_KEEP"},
+			Path:    path,
+		},
 	}
 
 	want := []request.Request{
-		request.UpdateCard(deckID, "CARD_ID_1", test.NewCard(test.ParserCard{
-			Name:     "CARD_TO_UPDATE",
-			Content:  "NEW_CONTENT",
-			Filename: filename,
-		}), nil),
+		request.UpdateCard(deckID, "CARD_ID_1", parser.Card{
+			Content: "NEW_CONTENT",
+			Fields:  map[string]string{"name": "CARD_TO_UPDATE"},
+			Path:    path,
+		}, nil),
 		request.DeleteCard("CARD_ID_2"),
-		request.CreateCard("DECK_ID", test.NewCard(test.ParserCard{
-			Name:     "CARD_TO_CREATE",
-			Content:  "CONTENT",
-			Filename: filename,
-		})),
+		request.CreateCard("DECK_ID", parser.Card{
+			Content: "CONTENT",
+			Fields:  map[string]string{"name": "CARD_TO_CREATE"},
+			Path:    path,
+		}),
 	}
 
 	got := upsertSyncRequests(deckID, mochiCards, parserCards)

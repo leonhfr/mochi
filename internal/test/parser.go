@@ -29,44 +29,6 @@ type ParserCard struct {
 	Equals     bool
 }
 
-type parserCard struct {
-	name       string
-	content    string
-	templateID string
-	path       string
-	filename   string
-	position   string
-	images     []parser.Image
-	fields     map[string]mochi.Field
-	equals     bool
-}
-
-func NewCard(card ParserCard) parser.Card {
-	return &parserCard{
-		name:       card.Name,
-		content:    card.Content,
-		templateID: card.TemplateID,
-		path:       card.Path,
-		filename:   card.Filename,
-		position:   card.Position,
-		images:     card.Images,
-		fields:     card.Fields,
-		equals:     card.Equals,
-	}
-}
-
-var _ parser.Card = (*parserCard)(nil)
-
-func (c *parserCard) Content() string                { return c.content }
-func (c *parserCard) TemplateID() string             { return c.templateID }
-func (c *parserCard) Fields() map[string]mochi.Field { return c.fields }
-func (c *parserCard) Path() string                   { return c.path }
-func (c *parserCard) Filename() string               { return c.filename }
-func (c *parserCard) Position() string               { return c.position }
-func (c *parserCard) Images() []parser.Image         { return c.images }
-func (c *parserCard) Is(card mochi.Card) bool        { return card.Name == c.name }
-func (c *parserCard) Equals(card mochi.Card) bool    { return c.equals }
-
 type MockParser struct {
 	mock.Mock
 }

@@ -30,13 +30,13 @@ func UpdateCard(deckID, cardID string, card parser.Card, attachments map[string]
 
 // Execute implements the Request interface.
 func (r *updateCard) Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error {
-	images := image.New(reader, r.card.Path(), r.card.Images())
+	images := image.New(reader, r.card.Path, r.card.Images)
 
 	req := mochi.UpdateCardRequest{
-		Content:    images.Replace(r.card.Content()),
-		TemplateID: r.card.TemplateID(),
-		Fields:     r.card.Fields(),
-		Pos:        r.card.Position(),
+		Content:    images.Replace(r.card.Content),
+		TemplateID: r.card.TemplateID,
+		Fields:     mochiFields(r.card.Fields),
+		Pos:        r.card.Position,
 	}
 
 	if _, err := client.UpdateCard(ctx, r.cardID, req); err != nil {

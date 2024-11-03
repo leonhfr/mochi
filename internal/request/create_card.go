@@ -26,14 +26,14 @@ func CreateCard(deckID string, card parser.Card) Request {
 
 // Execute implements the Request interface.
 func (r *createRequest) Execute(ctx context.Context, client Client, reader image.Reader, lf Lockfile) error {
-	images := image.New(reader, r.card.Path(), r.card.Images())
+	images := image.New(reader, r.card.Path, r.card.Images)
 
 	req := mochi.CreateCardRequest{
-		Content:    images.Replace(r.card.Content()),
+		Content:    images.Replace(r.card.Content),
 		DeckID:     r.deckID,
-		TemplateID: r.card.TemplateID(),
-		Fields:     r.card.Fields(),
-		Pos:        r.card.Position(),
+		TemplateID: r.card.TemplateID,
+		Fields:     mochiFields(r.card.Fields),
+		Pos:        r.card.Position,
 	}
 
 	card, err := client.CreateCard(ctx, req)

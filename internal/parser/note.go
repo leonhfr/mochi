@@ -6,8 +6,6 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
-
-	"github.com/leonhfr/mochi/mochi"
 )
 
 // note represents a note parser.
@@ -59,48 +57,16 @@ func (n *note) convert(path string, source []byte) (Result, error) {
 	return Result{Cards: []Card{newNoteCard(name, path, source, images)}}, nil
 }
 
-type noteCard struct {
-	name    string
-	content string
-	images  []Image
-	path    string
-}
-
 func newNoteCard(name, path string, source []byte, images []Image) Card {
 	content := fmt.Sprintf("# %s\n\n%s", name, string(source))
-	return noteCard{
-		name:    name,
-		content: content,
-		path:    path,
-		images:  images,
+	return Card{
+		Content: content,
+		Fields:  nameFields(name),
+		Images:  images,
+		Path:    path,
 	}
 }
 
-func (n noteCard) Content() string    { return n.content }
-func (n noteCard) Images() []Image    { return n.images }
-func (n noteCard) Path() string       { return n.path }
-func (n noteCard) Filename() string   { return getFilename(n.path) }
-func (n noteCard) Position() string   { return "" }
-func (n noteCard) TemplateID() string { return "" }
-
-func (n noteCard) Is(card mochi.Card) bool {
-	return nameEquals(card.Fields, n.name)
-}
-
-func (n noteCard) Fields() map[string]mochi.Field {
-	return map[string]mochi.Field{
-		"name": {ID: "name", Value: n.name},
-	}
-}
-
-func (n noteCard) Equals(card mochi.Card) bool {
-	return card.Content == n.content
-}
-
-func nameEquals(fields map[string]mochi.Field, name string) bool {
-	f, ok := fields["name"]
-	if !ok {
-		return false
-	}
-	return f.Value == name
+func nameFields(name string) map[string]string {
+	return map[string]string{"name": name}
 }
