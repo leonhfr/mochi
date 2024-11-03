@@ -8,6 +8,8 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/util"
+
+	"github.com/leonhfr/mochi/internal/converter/ast"
 )
 
 // Reader represents the interface to read files.
@@ -28,12 +30,15 @@ type Converter struct {
 
 // New returns a new Converter.
 func New() *Converter {
+	renderer := markdown.NewRenderer()
+	renderer.Register(ast.KindVideo, newVideoRenderer())
+
 	return &Converter{
 		markdown: goldmark.New(
-			goldmark.WithRenderer(markdown.NewRenderer()),
+			goldmark.WithRenderer(renderer),
 			goldmark.WithParserOptions(
-				parser.WithASTTransformers(util.
-					Prioritized(newTransformer(), 999),
+				parser.WithASTTransformers(
+					util.Prioritized(newTransformer(), 999),
 				),
 			),
 		),

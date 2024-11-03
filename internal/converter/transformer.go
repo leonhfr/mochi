@@ -12,7 +12,7 @@ func newTransformer() parser.ASTTransformer {
 	return &transformer{}
 }
 
-func (t *transformer) Transform(node *ast.Document, _ text.Reader, pc parser.Context) {
+func (t *transformer) Transform(node *ast.Document, tr text.Reader, pc parser.Context) {
 	reader := getReader(pc)
 	path := getPath(pc)
 
@@ -23,6 +23,11 @@ func (t *transformer) Transform(node *ast.Document, _ text.Reader, pc parser.Con
 
 		switch node := n.(type) {
 		case *ast.Image:
+			if isVideo(node, tr.Source()) {
+				replaceVideoNode(node)
+				return ast.WalkContinue, nil
+			}
+
 			attachment, err := newAttachment(reader, path, string(node.Destination))
 			if err == nil {
 				addAttachment(pc, attachment)

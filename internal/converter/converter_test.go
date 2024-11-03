@@ -37,6 +37,14 @@ func Test_Converter_Convert(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:   "video",
+			path:   "/testdata/Video.md",
+			source: "![@video](youtube.com/VIDEO)\n",
+			want: Result{
+				Markdown: "<iframe src=\"youtube.com/VIDEO?rel=0&amp;autoplay=0&amp;showinfo=0&amp;enablejsapi=0\" frameborder=\"0\" loading=\"lazy\" gesture=\"media\" allow=\"autoplay; fullscreen\" allowautoplay=\"true\" allowfullscreen=\"true\" style=\"aspect-ratio:16/9;height:100%;width:100%;\"></iframe>\n",
+			},
+		},
 	}
 
 	for _, tt := range tests {
