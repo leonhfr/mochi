@@ -24,6 +24,12 @@ jobs:
         with:
           node-version: 20
 
+      - name: NPM Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-cache
+
       - name: Install global dependencies
         run: npm install -g @mermaid-js/mermaid-cli
 
@@ -33,7 +39,7 @@ jobs:
           version: v1.61
 
       - name: Test
-        run: go test -race -v ./...
+        run: go test -race ./...
 
       - name: Build
         uses: goreleaser/goreleaser-action@v6
