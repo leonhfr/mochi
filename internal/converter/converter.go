@@ -10,7 +10,7 @@ import (
 	"github.com/yuin/goldmark/util"
 	"go.abhg.dev/goldmark/mermaid"
 
-	"github.com/leonhfr/mochi/internal/converter/ast"
+	"github.com/leonhfr/mochi/internal/converter/youtube"
 )
 
 // Reader represents the interface to read files.
@@ -31,18 +31,16 @@ type Converter struct {
 
 // New returns a new Converter.
 func New() *Converter {
-	renderer := markdown.NewRenderer()
-	renderer.Register(ast.KindVideo, newVideoRenderer())
-
 	return &Converter{
 		markdown: goldmark.New(
-			goldmark.WithRenderer(renderer),
+			goldmark.WithRenderer(markdown.NewRenderer()),
 			goldmark.WithParserOptions(
 				parser.WithASTTransformers(
 					util.Prioritized(newTransformer(), 999),
 				),
 			),
 			goldmark.WithExtensions(
+				youtube.New(),
 				&mermaid.Extender{
 					RenderMode: mermaid.RenderModeServer,
 				},
