@@ -22,9 +22,10 @@ func (n *note) parse(path string, source []byte) (Result, error) {
 func newNoteCard(name, path string, source []byte) Card {
 	content := fmt.Sprintf("# %s\n\n%s", name, string(source))
 	return Card{
-		Content: content,
-		Fields:  nameFields(name),
-		Path:    path,
+		Content:  content,
+		Fields:   nameFields(name),
+		Path:     path,
+		Position: sanitizePosition(name),
 	}
 }
 

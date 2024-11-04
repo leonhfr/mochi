@@ -20,9 +20,10 @@ func Test_note_parse(t *testing.T) {
 			path:   "/testdata/lorem-ipsum/Lorem ipsum.md",
 			source: "Paragraph.\n",
 			want: Result{Cards: []Card{{
-				Content: "# Lorem ipsum\n\nParagraph.\n",
-				Fields:  nameFields("Lorem ipsum"),
-				Path:    "/testdata/lorem-ipsum/Lorem ipsum.md",
+				Content:  "# Lorem ipsum\n\nParagraph.\n",
+				Fields:   nameFields("Lorem ipsum"),
+				Path:     "/testdata/lorem-ipsum/Lorem ipsum.md",
+				Position: "Loremipsum",
 			}}},
 		},
 		{
@@ -30,9 +31,10 @@ func Test_note_parse(t *testing.T) {
 			path:   "/testdata/lorem-ipsum/Lorem ipsum.md",
 			source: "# Noun\n\n## Gender\n\n![Example 1](../images/example-1.png)\n\nInline image: ![Example 2](./example-2.png)",
 			want: Result{Cards: []Card{{
-				Content: "# Lorem ipsum\n\n# Noun\n\n## Gender\n\n![Example 1](../images/example-1.png)\n\nInline image: ![Example 2](./example-2.png)",
-				Fields:  nameFields("Lorem ipsum"),
-				Path:    "/testdata/lorem-ipsum/Lorem ipsum.md",
+				Content:  "# Lorem ipsum\n\n# Noun\n\n## Gender\n\n![Example 1](../images/example-1.png)\n\nInline image: ![Example 2](./example-2.png)",
+				Fields:   nameFields("Lorem ipsum"),
+				Path:     "/testdata/lorem-ipsum/Lorem ipsum.md",
+				Position: "Loremipsum",
 			}}},
 		},
 	}
