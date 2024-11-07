@@ -134,11 +134,14 @@ func newHeadingsCard(headings []string, path string, source []byte, index int) C
 	filename := getFilename(path)
 	position := fmt.Sprintf("%s%04d", filename, index)
 	name := strings.ReplaceAll(strings.Join(headings, " > "), " >  > ", " > ")
-	content := fmt.Sprintf("%s\n\n%s\n", name, string(source))
 	return Card{
-		Content:  string(content),
+		Content:  getContent(name, source),
 		Fields:   nameFields(name),
 		Path:     path,
 		Position: sanitizePosition(position),
 	}
+}
+
+func getContent(hierarchy string, source []byte) string {
+	return fmt.Sprintf("<details><summary>Headings</summary>%s</details>\n\n%s\n", hierarchy, string(source))
 }
