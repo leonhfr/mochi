@@ -117,7 +117,7 @@ func cardEquals(card card.Card, mochiCard mochi.Card) bool {
 		mochiCard.TemplateID == card.TemplateID &&
 		mochiCard.Pos == card.Position &&
 		mapsEqual(mochiCard.Fields, mochiFields(card.Fields)) &&
-		slicesEqual(mochiAttachments(mochiCard.Attachments), converterAttachments(card.Attachments))
+		hasAttachments(card.Attachments, mochiCard.Attachments)
 }
 
 func mochiFields(fields map[string]string) map[string]mochi.Field {
@@ -128,20 +128,13 @@ func mochiFields(fields map[string]string) map[string]mochi.Field {
 	return mochiFields
 }
 
-func mochiAttachments(attachments map[string]mochi.Attachment) []string {
-	filenames := []string{}
-	for filename := range attachments {
-		filenames = append(filenames, filename)
-	}
-	return filenames
-}
-
-func converterAttachments(attachments []converter.Attachment) []string {
-	filenames := []string{}
+func hasAttachments(attachments []converter.Attachment, mochiAttachments map[string]mochi.Attachment) bool {
 	for _, attachment := range attachments {
-		filenames = append(filenames, attachment.Filename)
+		if mochiAttachment, ok := mochiAttachments[attachment.Filename]; !ok || mochiAttachment.Size != len(attachment.Bytes) {
+			return false
+		}
 	}
-	return filenames
+	return true
 }
 
 func mapsEqual[T comparable](m1, m2 map[string]T) bool {
@@ -151,18 +144,6 @@ func mapsEqual[T comparable](m1, m2 map[string]T) bool {
 	for k, v1 := range m1 {
 		v2, ok := m2[k]
 		if !ok || v1 != v2 {
-			return false
-		}
-	}
-	return true
-}
-
-func slicesEqual[T comparable](s1, s2 []T) bool {
-	if len(s1) != len(s2) {
-		return false
-	}
-	for i, v1 := range s1 {
-		if v1 != s2[i] {
 			return false
 		}
 	}
