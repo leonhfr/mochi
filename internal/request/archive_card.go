@@ -20,8 +20,7 @@ func ArchiveCard(cardID string) Request {
 
 // Execute implements the Request interface.
 func (r *archiveCard) Execute(ctx context.Context, client Client, _ Lockfile) error {
-	req := mochi.UpdateCardRequest{Archived: true}
-	_, err := client.UpdateCard(ctx, r.cardID, req)
+	_, err := client.UpdateCard(ctx, r.cardID, mochi.UpdateCardRequest{Archived: true})
 	return err
 }
 

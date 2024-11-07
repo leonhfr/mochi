@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sourcegraph/conc/pool"
-
 	"github.com/leonhfr/mochi/internal/card"
 	"github.com/leonhfr/mochi/internal/converter"
 	"github.com/leonhfr/mochi/mochi"
@@ -14,50 +12,43 @@ import (
 type updateCard struct {
 	deckID      string
 	cardID      string
-	card        card.Card
-	attachments map[string]mochi.Attachment
+	filename    string
+	req         mochi.UpdateCardRequest
+	attachments []converter.Attachment
 }
 
 // UpdateCard returns a new update card request.
 func UpdateCard(deckID, cardID string, card card.Card, attachments map[string]mochi.Attachment) Request {
 	return &updateCard{
-		deckID:      deckID,
-		cardID:      cardID,
-		card:        card,
-		attachments: attachments,
+		deckID:   deckID,
+		cardID:   cardID,
+		filename: card.Filename(),
+		req: mochi.UpdateCardRequest{
+			Content:    card.Content,
+			TemplateID: card.TemplateID,
+			Fields:     mochiFields(card.Fields),
+			Pos:        card.Position,
+		},
+		attachments: filterAttachments(card.Attachments, attachments),
 	}
 }
 
 // Execute implements the Request interface.
 func (r *updateCard) Execute(ctx context.Context, client Client, lf Lockfile) error {
-	req := mochi.UpdateCardRequest{
-		Content:    r.card.Content,
-		TemplateID: r.card.TemplateID,
-		Fields:     mochiFields(r.card.Fields),
-		Pos:        r.card.Position,
-	}
-
-	if _, err := client.UpdateCard(ctx, r.cardID, req); err != nil {
+	if _, err := client.UpdateCard(ctx, r.cardID, r.req); err != nil {
 		return err
 	}
 
-	p := pool.New().WithContext(ctx)
-	for _, attachment := range filterAttachments(r.card.Attachments, r.attachments) {
-		attachment := attachment
-		p.Go(func(ctx context.Context) error {
-			return client.AddAttachment(ctx, r.cardID, attachment.Filename, attachment.Bytes)
-		})
-	}
-
-	err := p.Wait()
-	if err != nil {
-		return err
+	for _, attachment := range r.attachments {
+		if err := client.AddAttachment(ctx, r.cardID, attachment.Filename, attachment.Bytes); err != nil {
+			return err
+		}
 	}
 
 	lf.Lock()
 	defer lf.Unlock()
 
-	if err := lf.SetCard(r.deckID, r.cardID, r.card.Filename()); err != nil {
+	if err := lf.SetCard(r.deckID, r.cardID, r.filename); err != nil {
 		return err
 	}
 
@@ -76,5 +67,8 @@ func filterAttachments(images []converter.Attachment, mochiAttachments map[strin
 
 // String implements the fmt.Stringer interface.
 func (r *updateCard) String() string {
-	return fmt.Sprintf("update request for card ID %s (%s)", r.cardID, r.card.Filename())
+	if len(r.attachments) > 0 {
+		return fmt.Sprintf("update request for card ID %s (%s) with %d attachments", r.cardID, r.filename, len(r.attachments))
+	}
+	return fmt.Sprintf("update request for card ID %s (%s)", r.cardID, r.filename)
 }
