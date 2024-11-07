@@ -80,7 +80,6 @@ func getHeadingCards(path string, headings []parsedHeading, source []byte) []Car
 
 	cards := []Card{}
 	titles := []string{}
-	var start int
 
 	for i, heading := range headings {
 		switch {
@@ -98,19 +97,18 @@ func getHeadingCards(path string, headings []parsedHeading, source []byte) []Car
 			titles = append(titles, getHeadingText(heading, source))
 		}
 
+		start := heading.stop
 		stop := len(source)
 		if i < len(headings)-1 {
 			stop = getHeadingStart(headings[i+1])
 		}
 
 		content := bytes.TrimSpace(source[start:stop])
-		if !bytes.ContainsRune(content, '\n') {
-			start = stop
+		if len(content) == 0 {
 			continue
 		}
 
 		cards = append(cards, newHeadingsCard(titles, path, content, len(cards)))
-		start = stop
 	}
 
 	return cards
@@ -135,13 +133,13 @@ func newHeadingsCard(headings []string, path string, source []byte, index int) C
 	position := fmt.Sprintf("%s%04d", filename, index)
 	name := strings.ReplaceAll(strings.Join(headings, " > "), " >  > ", " > ")
 	return Card{
-		Content:  getContent(name, source),
+		Content:  getContent(name, headings[len(headings)-1], source),
 		Fields:   nameFields(name),
 		Path:     path,
 		Position: sanitizePosition(position),
 	}
 }
 
-func getContent(hierarchy string, source []byte) string {
-	return fmt.Sprintf("<details><summary>Headings</summary>%s</details>\n\n%s\n", hierarchy, string(source))
+func getContent(hierarchy, title string, source []byte) string {
+	return fmt.Sprintf("<details><summary>Headings</summary>%s</details>\n\n# %s\n\n%s\n", hierarchy, title, string(source))
 }
