@@ -24,7 +24,8 @@ func newVocabulary(config config.VocabularyTemplate) *vocabulary {
 	return &vocabulary{
 		parser: parser.NewParser(
 			parser.WithBlockParsers(
-				parser.DefaultBlockParsers()...,
+				util.Prioritized(parser.NewHTMLBlockParser(), 900),
+				util.Prioritized(parser.NewParagraphParser(), 1000),
 			),
 			parser.WithInlineParsers(
 				util.Prioritized(example.NewParser(), 100),
