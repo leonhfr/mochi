@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	"github.com/leonhfr/mochi/internal/card"
+	"github.com/leonhfr/mochi/internal/converter"
 	"github.com/leonhfr/mochi/internal/lock"
 	"github.com/leonhfr/mochi/internal/request"
 	"github.com/leonhfr/mochi/mochi"
@@ -115,7 +116,8 @@ func cardEquals(card card.Card, mochiCard mochi.Card) bool {
 	return mochiCard.Content == card.Content &&
 		mochiCard.TemplateID == card.TemplateID &&
 		mochiCard.Pos == card.Position &&
-		mapsEqual(mochiCard.Fields, mochiFields(card.Fields))
+		mapsEqual(mochiCard.Fields, mochiFields(card.Fields)) &&
+		slicesEqual(mochiAttachments(mochiCard.Attachments), converterAttachments(card.Attachments))
 }
 
 func mochiFields(fields map[string]string) map[string]mochi.Field {
@@ -126,6 +128,22 @@ func mochiFields(fields map[string]string) map[string]mochi.Field {
 	return mochiFields
 }
 
+func mochiAttachments(attachments map[string]mochi.Attachment) []string {
+	filenames := []string{}
+	for filename := range attachments {
+		filenames = append(filenames, filename)
+	}
+	return filenames
+}
+
+func converterAttachments(attachments []converter.Attachment) []string {
+	filenames := []string{}
+	for _, attachment := range attachments {
+		filenames = append(filenames, attachment.Filename)
+	}
+	return filenames
+}
+
 func mapsEqual[T comparable](m1, m2 map[string]T) bool {
 	if len(m1) != len(m2) {
 		return false
@@ -133,6 +151,18 @@ func mapsEqual[T comparable](m1, m2 map[string]T) bool {
 	for k, v1 := range m1 {
 		v2, ok := m2[k]
 		if !ok || v1 != v2 {
+			return false
+		}
+	}
+	return true
+}
+
+func slicesEqual[T comparable](s1, s2 []T) bool {
+	if len(s1) != len(s2) {
+		return false
+	}
+	for i, v1 := range s1 {
+		if v1 != s2[i] {
 			return false
 		}
 	}
