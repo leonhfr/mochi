@@ -8,7 +8,6 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/util"
-	"go.abhg.dev/goldmark/mermaid"
 
 	"github.com/leonhfr/mochi/internal/converter/youtube"
 )
@@ -41,9 +40,6 @@ func New() *Converter {
 			),
 			goldmark.WithExtensions(
 				youtube.New(),
-				&mermaid.Extender{
-					RenderMode: mermaid.RenderModeServer,
-				},
 			),
 		),
 	}
