@@ -29,6 +29,15 @@ func (h *Heap[T]) Pop() Group[T] {
 	return heap.Pop(h.heap).(Group[T])
 }
 
+// Drain returns all the heap items ordered by priority (lowest).
+func (h *Heap[T]) Drain() []Group[T] {
+	var groups []Group[T]
+	for h.Len() > 0 {
+		groups = append(groups, h.Pop())
+	}
+	return groups
+}
+
 // Item is the interface that should be implemented
 // for an item to be grouped and prioritized.
 type Item interface {
@@ -45,9 +54,17 @@ type Group[T Item] struct {
 
 type priorityHeap[T Item] []Group[T]
 
-func (h priorityHeap[T]) Less(i, j int) bool { return h[i].priority < h[j].priority } // Less implements heap.Interface.
-func (h priorityHeap[T]) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }              // Swap implements heap.Interface.
-func (h priorityHeap[T]) Len() int           { return len(h) }                        // Len implements heap.Interface.
+// Less implements heap.Interface.
+func (h priorityHeap[T]) Less(i, j int) bool {
+	if h[i].priority != h[j].priority {
+		return h[i].priority < h[j].priority
+	}
+
+	return h[i].Base < h[j].Base
+}
+
+func (h priorityHeap[T]) Swap(i, j int) { h[i], h[j] = h[j], h[i] } // Swap implements heap.Interface.
+func (h priorityHeap[T]) Len() int      { return len(h) }           // Len implements heap.Interface.
 
 // Push implements heap.Interface.
 func (h *priorityHeap[T]) Push(x any) {
