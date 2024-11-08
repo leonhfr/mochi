@@ -131,15 +131,34 @@ type parsedHeading struct {
 func newHeadingsCard(headings []string, path string, source []byte, index int) Card {
 	filename := getFilename(path)
 	position := fmt.Sprintf("%s%04d", filename, index)
-	name := strings.ReplaceAll(strings.Join(headings, " > "), " >  > ", " > ")
 	return Card{
-		Content:  getContent(name, headings[len(headings)-1], source),
-		Fields:   nameFields(name),
+		Content:  getHeadingsContent(headings, string(source)),
+		Fields:   nameFields(getHeadingsName(headings)),
 		Path:     path,
 		Position: sanitizePosition(position),
 	}
 }
 
-func getContent(hierarchy, title string, source []byte) string {
-	return fmt.Sprintf("<details><summary>Headings</summary>%s</details>\n\n# %s\n\n%s\n", hierarchy, title, string(source))
+func getHeadingsName(headings []string) string {
+	var name []string
+	for _, heading := range headings {
+		if len(heading) > 0 {
+			name = append(name, heading)
+		}
+	}
+	return strings.Join(name, " > ")
+}
+
+func getHeadingsContent(headings []string, content string) string {
+	if len(headings) == 0 {
+		return content
+	}
+
+	if len(headings) == 1 {
+		return fmt.Sprintf("# %s\n\n%s\n", headings[0], content)
+	}
+
+	details := getHeadingsName(headings[1:])
+	title := headings[len(headings)-1]
+	return fmt.Sprintf("<details><summary>Headings</summary>%s</details>\n\n# %s\n\n%s\n", details, title, content)
 }

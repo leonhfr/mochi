@@ -54,13 +54,13 @@ func Test_headings_parse(t *testing.T) {
 			source:   "# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n\n# Heading 2\n\nContent 3.\n",
 			want: Result{Deck: "Headings", Cards: []Card{
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Heading 1</details>\n\n# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n",
+					Content:  "<details><summary>Headings</summary>Heading 1</details>\n\n# Heading 1\n\nContent 1.\n\n## Subtitle\n\nContent 2.\n",
 					Fields:   nameFields("Headings > Heading 1"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0000",
 				},
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Heading 2</details>\n\n# Heading 2\n\nContent 3.\n",
+					Content:  "<details><summary>Headings</summary>Heading 2</details>\n\n# Heading 2\n\nContent 3.\n",
 					Fields:   nameFields("Headings > Heading 2"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0001",
@@ -81,19 +81,19 @@ func Test_headings_parse(t *testing.T) {
 			source:   headingSource,
 			want: Result{Deck: "Headings", Cards: []Card{
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Heading 1</details>\n\n# Heading 1\n\nSome text here.\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n\n## Heading 1.2\n\nAnother content.\n",
+					Content:  "<details><summary>Headings</summary>Heading 1</details>\n\n# Heading 1\n\nSome text here.\n\n## Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n\n## Heading 1.2\n\nAnother content.\n",
 					Fields:   nameFields("Headings > Heading 1"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0000",
 				},
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Heading 2</details>\n\n# Heading 2\n\nCard card card.\n",
+					Content:  "<details><summary>Headings</summary>Heading 2</details>\n\n# Heading 2\n\nCard card card.\n",
 					Fields:   nameFields("Headings > Heading 2"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0001",
 				},
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Heading 3</details>\n\n# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
+					Content:  "<details><summary>Headings</summary>Heading 3</details>\n\n# Heading 3\n\n## Heading 3.1\n\nMore card content.\n",
 					Fields:   nameFields("Headings > Heading 3"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0002",
@@ -107,31 +107,31 @@ func Test_headings_parse(t *testing.T) {
 			source:   headingSource,
 			want: Result{Deck: "Headings", Cards: []Card{
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Heading 1</details>\n\n# Heading 1\n\nSome text here.\n",
+					Content:  "<details><summary>Headings</summary>Heading 1</details>\n\n# Heading 1\n\nSome text here.\n",
 					Fields:   nameFields("Headings > Heading 1"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0000",
 				},
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Heading 1 > Heading 1.1</details>\n\n# Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n",
+					Content:  "<details><summary>Headings</summary>Heading 1 > Heading 1.1</details>\n\n# Heading 1.1\n\n### Heading 1.1.1\n\nActual content.\n\nMore content.\n",
 					Fields:   nameFields("Headings > Heading 1 > Heading 1.1"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0001",
 				},
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Heading 1 > Heading 1.2</details>\n\n# Heading 1.2\n\nAnother content.\n",
+					Content:  "<details><summary>Headings</summary>Heading 1 > Heading 1.2</details>\n\n# Heading 1.2\n\nAnother content.\n",
 					Fields:   nameFields("Headings > Heading 1 > Heading 1.2"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0002",
 				},
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Heading 2</details>\n\n# Heading 2\n\nCard card card.\n",
+					Content:  "<details><summary>Headings</summary>Heading 2</details>\n\n# Heading 2\n\nCard card card.\n",
 					Fields:   nameFields("Headings > Heading 2"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0003",
 				},
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Heading 3 > Heading 3.1</details>\n\n# Heading 3.1\n\nMore card content.\n",
+					Content:  "<details><summary>Headings</summary>Heading 3 > Heading 3.1</details>\n\n# Heading 3.1\n\nMore card content.\n",
 					Fields:   nameFields("Headings > Heading 3 > Heading 3.1"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0004",
@@ -145,13 +145,13 @@ func Test_headings_parse(t *testing.T) {
 			source:   "## Title 1\n\nContent 1.\n\n## Title 2\n\n### Title 2.1\n\nContent 1.\n",
 			want: Result{Deck: "Headings", Cards: []Card{
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Title 1</details>\n\n# Title 1\n\nContent 1.\n",
+					Content:  "<details><summary>Headings</summary>Title 1</details>\n\n# Title 1\n\nContent 1.\n",
 					Fields:   nameFields("Headings > Title 1"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0000",
 				},
 				{
-					Content:  "<details><summary>Headings</summary>Headings > Title 2</details>\n\n# Title 2\n\n### Title 2.1\n\nContent 1.\n",
+					Content:  "<details><summary>Headings</summary>Title 2</details>\n\n# Title 2\n\n### Title 2.1\n\nContent 1.\n",
 					Fields:   nameFields("Headings > Title 2"),
 					Path:     "/Headings.md",
 					Position: "Headingsmd0001",
@@ -165,13 +165,13 @@ func Test_headings_parse(t *testing.T) {
 			source:   "# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
 			want: Result{Deck: "Images", Cards: []Card{
 				{
-					Content:  "<details><summary>Headings</summary>Images > Heading 1</details>\n\n# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n",
+					Content:  "<details><summary>Headings</summary>Heading 1</details>\n\n# Heading 1\n\nContent 1.\n\n![Example 1](../images/example-1.png)\n",
 					Fields:   nameFields("Images > Heading 1"),
 					Path:     "/subdirectory/Images.md",
 					Position: "Imagesmd0000",
 				},
 				{
-					Content:  "<details><summary>Headings</summary>Images > Heading 2</details>\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
+					Content:  "<details><summary>Headings</summary>Heading 2</details>\n\n# Heading 2\n\n![Example 2](images/example-2.png)\n",
 					Fields:   nameFields("Images > Heading 2"),
 					Path:     "/subdirectory/Images.md",
 					Position: "Imagesmd0001",
