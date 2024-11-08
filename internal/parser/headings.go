@@ -160,5 +160,5 @@ func getHeadingsContent(headings []string, content string) string {
 
 	details := getHeadingsName(headings[1:])
 	title := headings[len(headings)-1]
-	return fmt.Sprintf("<details><summary>Headings</summary>%s</details>\n\n# %s\n\n%s\n", details, title, content)
+	return fmt.Sprintf("# %s\n\n<details><summary>Headings</summary>%s</details>\n\n%s\n", title, details, content)
 }
