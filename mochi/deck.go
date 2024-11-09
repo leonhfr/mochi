@@ -9,18 +9,21 @@ type Deck struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	ParentID string `json:"parent-id,omitempty"`
+	Sort     int    `json:"integer,omitempty"`
 }
 
 // CreateDeckRequest holds the info to create a new deck.
 type CreateDeckRequest struct {
 	Name     string `json:"name"`
 	ParentID string `json:"parent-id,omitempty"`
+	Sort     int    `json:"integer,omitempty"`
 }
 
 // UpdateDeckRequest holds the info to update a deck.
 type UpdateDeckRequest struct {
 	Name     string `json:"name"`
 	ParentID string `json:"parent-id,omitempty"`
+	Sort     int    `json:"integer,omitempty"`
 }
 
 // CreateDeck creates a new deck.
