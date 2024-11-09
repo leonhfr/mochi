@@ -38,6 +38,14 @@ func Test_Converter_Convert(t *testing.T) {
 			},
 		},
 		{
+			name:   "headings numbering",
+			path:   "/testdata/Headings Numbering.md",
+			source: "# 1.2.3 Heading\n\nContent.\n",
+			want: Result{
+				Markdown: "# Heading\n\nContent.\n",
+			},
+		},
+		{
 			name:   "video",
 			path:   "/testdata/Video.md",
 			source: "![](https://www.youtube.com/watch?v=VIDEO)\n",

@@ -9,6 +9,7 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/util"
 
+	"github.com/leonhfr/mochi/internal/converter/heading"
 	"github.com/leonhfr/mochi/internal/converter/youtube"
 )
 
@@ -39,6 +40,7 @@ func New() *Converter {
 				),
 			),
 			goldmark.WithExtensions(
+				heading.New(),
 				youtube.New(),
 			),
 		),

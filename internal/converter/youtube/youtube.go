@@ -67,6 +67,7 @@ func (a *astTransformer) Transform(node *ast.Document, _ text.Reader, _ parser.C
 		if !entering {
 			return ast.WalkContinue, nil
 		}
+
 		if n.Kind() != ast.KindImage {
 			return ast.WalkContinue, nil
 		}
