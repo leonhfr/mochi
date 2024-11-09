@@ -159,6 +159,14 @@ func getHeadingsContent(headings []string, content string) string {
 	}
 
 	details := getHeadingsName(headings[1:])
-	title := headings[len(headings)-1]
+	title := sanitizeHeading(headings[len(headings)-1])
 	return fmt.Sprintf("# %s\n\n<details><summary>Headings</summary>%s</details>\n\n%s\n", title, details, content)
+}
+
+func sanitizeHeading(heading string) string {
+	heading = strings.TrimLeftFunc(heading, func(r rune) bool {
+		return ('0' <= r && r <= '9') || r == '.'
+	})
+	heading = strings.TrimSpace(heading)
+	return heading
 }

@@ -178,6 +178,32 @@ func Test_headings_parse(t *testing.T) {
 				},
 			}},
 		},
+		{
+			name:     "numbered headings",
+			maxLevel: 2,
+			path:     "/Numbered Headings.md",
+			source:   "# 1 Heading 1\n\nContent 1.\n\n## 1.1 Subtitle\n\nContent 2.\n\n# 2 Heading 2\n\nContent 3.\n",
+			want: Result{Deck: "Numbered Headings", Cards: []Card{
+				{
+					Content:  "# Heading 1\n\n<details><summary>Headings</summary>1 Heading 1</details>\n\nContent 1.\n",
+					Fields:   nameFields("Numbered Headings > 1 Heading 1"),
+					Path:     "/Numbered Headings.md",
+					Position: "NumberedHeadingsmd0000",
+				},
+				{
+					Content:  "# Subtitle\n\n<details><summary>Headings</summary>1 Heading 1 > 1.1 Subtitle</details>\n\nContent 2.\n",
+					Fields:   nameFields("Numbered Headings > 1 Heading 1 > 1.1 Subtitle"),
+					Path:     "/Numbered Headings.md",
+					Position: "NumberedHeadingsmd0001",
+				},
+				{
+					Content:  "# Heading 2\n\n<details><summary>Headings</summary>2 Heading 2</details>\n\nContent 3.\n",
+					Fields:   nameFields("Numbered Headings > 2 Heading 2"),
+					Path:     "/Numbered Headings.md",
+					Position: "NumberedHeadingsmd0002",
+				},
+			}},
+		},
 	}
 
 	for _, tt := range tests {
