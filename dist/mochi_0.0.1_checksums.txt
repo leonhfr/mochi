@@ -1,0 +1,4 @@
+b5222e78ea1b08185d879a907b8d343d6a6d35c1628767d73d4bc0354c204ebc  mochi_0.0.1_darwin_amd64.tar.gz
+6e7858aaf0258c71ab90ff35fcd8b7b700cb32d517dd7615d0474570a57ee456  mochi_0.0.1_darwin_arm64.tar.gz
+18ca7da2fda5ed6f67b29f79f37d5c09b649be11fe6a386a8b3fd52b1a28d97d  mochi_0.0.1_linux_amd64.tar.gz
+0ef4715b49be2b57ea001a2d4356ca017be73b65d61c387c6016bd09c863cc40  mochi_0.0.1_linux_arm64.tar.gz
