@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	configName       = "mochi"
-	defaultRateLimit = 50
-	defaultRootName  = "Root Deck"
+	configName              = "mochi"
+	defaultRateLimit        = 50
+	defaultConcurrencyLimit = 1
+	defaultRootName         = "Root Deck"
 )
 
 var configExtensions = [2]string{"yaml", "yml"}
@@ -25,11 +26,12 @@ var ErrNoConfig = errors.New("no config found in target")
 
 // Config represents a config.
 type Config struct {
-	RateLimit  int                           `yaml:"rateLimit"` // requests per second
-	RootName   string                        `yaml:"rootName"`
-	SkipRoot   bool                          `yaml:"skipRoot"`
-	Decks      []Deck                        `yaml:"decks" validate:"required,dive"` // sorted by longest Path (more specific first)
-	Vocabulary map[string]VocabularyTemplate `yaml:"vocabulary" validate:"dive"`     // map[vocabulary name]template id
+	RateLimit        int                           `yaml:"rateLimit"` // requests per second
+	ConcurrencyLimit int                           `yaml:"concurrencyLimit"`
+	RootName         string                        `yaml:"rootName"`
+	SkipRoot         bool                          `yaml:"skipRoot"`
+	Decks            []Deck                        `yaml:"decks" validate:"required,dive"` // sorted by longest Path (more specific first)
+	Vocabulary       map[string]VocabularyTemplate `yaml:"vocabulary" validate:"dive"`     // map[vocabulary name]template id
 }
 
 // Deck represents a sync config.
@@ -91,6 +93,10 @@ func parseConfig(r io.Reader, parsers []string) (*Config, error) {
 func cleanConfig(config Config) Config {
 	if config.RateLimit <= 0 {
 		config.RateLimit = defaultRateLimit
+	}
+
+	if config.ConcurrencyLimit <= 0 {
+		config.ConcurrencyLimit = defaultConcurrencyLimit
 	}
 
 	if config.RootName == "" {

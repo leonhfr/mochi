@@ -20,7 +20,7 @@ func Dump(ctx context.Context, logger Logger, token, workspace string) (err erro
 		return err
 	}
 
-	client := loadClient(logger, config.RateLimit, token)
+	client := loadClient(logger, config.RateLimit, config.ConcurrencyLimit, token)
 
 	wg := &sync.WaitGroup{}
 	errC := make(chan error)

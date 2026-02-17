@@ -26,7 +26,7 @@ func Sync(ctx context.Context, logger Logger, token, workspace string) (updated 
 	}
 	converter := converter.New()
 
-	client := loadClient(logger, config.RateLimit, token)
+	client := loadClient(logger, config.RateLimit, config.ConcurrencyLimit, token)
 
 	lf, err := loadLockfile(ctx, logger, client, fs, workspace)
 	if err != nil {

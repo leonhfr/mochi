@@ -32,11 +32,13 @@ func loadConfig(r config.Reader, logger Logger, parsers []string, workspace stri
 	return config, err
 }
 
-func loadClient(logger Logger, rateLimit int, token string) *mochi.Client {
+func loadClient(logger Logger, rateLimit, concurrencyLimit int, token string) *mochi.Client {
 	rate, burst := getRate(rateLimit)
 	client := mochi.New(
 		token,
-		mochi.WithTransport(throttle.New(rate, burst)),
+		mochi.WithTransport(
+			throttle.New(rate, burst, throttle.WithConcurrencyLimit(concurrencyLimit)),
+		),
 	)
 	logger.Infof("loaded client")
 	return client
